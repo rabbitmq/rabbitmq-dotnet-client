@@ -86,7 +86,18 @@ namespace RabbitMQ.Client
         {
             RateLimitLease lease = _concurrencyLimiter.AttemptAcquire(permitCount);
 
-            ThrottleIfNeeded();
+            // The same ownership hazard as AcquireAsyncCore below, for a throttle that throws rather
+            // than one that is cancelled. Defensive: ThrottleIfNeeded only computes a delay and
+            // sleeps, and nothing in this library calls AttemptAcquire.
+            try
+            {
+                ThrottleIfNeeded();
+            }
+            catch
+            {
+                lease.Dispose();
+                throw;
+            }
 
             return lease;
         }
@@ -95,7 +106,23 @@ namespace RabbitMQ.Client
         {
             RateLimitLease lease = await _concurrencyLimiter.AcquireAsync(permitCount, cancellationToken).ConfigureAwait(false);
 
-            await ThrottleIfNeededAsync(cancellationToken).ConfigureAwait(false);
+            /*
+             * The throttle delay observes the caller's token, so a cancellation there would return
+             * the permit to no one: the lease is already held but has not been handed back to the
+             * caller, whose own cleanup therefore has nothing to dispose. Each such cancelled
+             * acquisition would permanently consume a permit, and since the limiter is shared across
+             * every channel built from one CreateChannelOptions and across every recovery, the
+             * exhaustion is process-lifetime rather than per-channel. See issue #1988.
+             */
+            try
+            {
+                await ThrottleIfNeededAsync(cancellationToken).ConfigureAwait(false);
+            }
+            catch
+            {
+                lease.Dispose();
+                throw;
+            }
 
             return lease;
         }
@@ -131,6 +158,15 @@ namespace RabbitMQ.Client
 
             base.Dispose(disposing);
         }
+
+        /*
+         * RateLimiter.DisposeAsync runs DisposeAsyncCore and then Dispose(disposing: false), so
+         * without this override the inner limiter is never released on the async path: the
+         * Dispose(bool) body above is gated on `disposing`, which is false there. A limiter
+         * disposed with `await DisposeAsync()` stayed fully usable and kept handing out leases,
+         * so a use-after-dispose was undetectable.
+         */
+        protected override ValueTask DisposeAsyncCore() => _concurrencyLimiter.DisposeAsync();
 
         private int CalculateDelay()
         {

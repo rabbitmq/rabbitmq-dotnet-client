@@ -36,7 +36,7 @@ using RabbitMQ.Client.Events;
 
 namespace RabbitMQ.Client.ConsumerDispatching
 {
-    internal interface IConsumerDispatcher : IDisposable
+    internal interface IConsumerDispatcher : IDisposable, IAsyncDisposable
     {
         IAsyncBasicConsumer? DefaultConsumer { get; set; }
 

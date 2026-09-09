@@ -31,12 +31,14 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using Integration;
 using RabbitMQ.Client;
+using RabbitMQ.Client.ConsumerDispatching;
 using RabbitMQ.Client.Events;
 using RabbitMQ.Client.Exceptions;
 using RabbitMQ.Client.Impl;
@@ -484,6 +486,110 @@ namespace Test.Integration
             Skip.IfNot(IsRunningInCI,
                 $"only {blockedCount}/{publishCount} publishes blocked, so this environment did not " +
                 "stall the write loop and the scenario under test cannot be reached here");
+        }
+
+        // Behavioural coverage for https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1988
+        //
+        // Disposing a channel has to release its consumer dispatcher's worker, and the only thing
+        // that does so is completing the dispatcher's work channel: the worker awaits
+        // WaitToReadAsync with no token, so cancelling the shutdown source cannot wake it. In the
+        // ordinary case the session shutdown that a close triggers completes the writer, which is
+        // why a test that closes before disposing cannot tell whether Dispose does its part -
+        // verified by mutation: removing the completion from Dispose leaves such a test green.
+        //
+        // The case that isolates it is a dispose whose close never completes. Rate=0 downstream
+        // means channel.close reaches the broker but close-ok cannot return, so the abort inside
+        // dispose swallows the timeout, the session is never shut down, and completing the writer
+        // falls to Dispose alone. Without that, the worker stays parked for the process lifetime.
+        [SkippableFact]
+        [Trait("Category", "Toxiproxy")]
+        public async Task TestDisposeReleasesTheDispatcherWhenTheCloseCannotComplete_GH1988()
+        {
+            Skip.IfNot(AreToxiproxyTestsEnabled, "RABBITMQ_TOXIPROXY_TESTS is not set, skipping test");
+
+            ConnectionFactory cf = CreateConnectionFactory();
+            cf.Endpoint = new AmqpTcpEndpoint(_proxyHost, _proxyPort);
+            cf.AutomaticRecoveryEnabled = false;
+            cf.TopologyRecoveryEnabled = false;
+            cf.ContinuationTimeout = TimeSpan.FromSeconds(2);
+            cf.RequestedHeartbeat = TimeSpan.FromSeconds(600);
+
+            await using IConnection conn = await cf.CreateConnectionAsync();
+
+            // Recovery is disabled, so this is a plain Channel and its dispatcher is reachable.
+            IChannel ch = await conn.CreateChannelAsync();
+            var impl = (RabbitMQ.Client.Impl.Channel)ch;
+            IConsumerDispatcher dispatcher = impl.ConsumerDispatcher;
+
+            string toxicName = $"rmq-dispose-dispatcher-bandwidth-{Now}-{GenerateShortUuid()}";
+            var bandwidthToxic = new BandwidthToxic
+            {
+                Name = toxicName,
+                Toxicity = 1.0,
+                Stream = ToxicDirection.DownStream
+            };
+            bandwidthToxic.Attributes.Rate = 0;
+
+            try
+            {
+                await _toxiproxyManager.AddToxicAsync(bandwidthToxic);
+                await Task.Delay(TimeSpan.FromSeconds(1));
+
+                // The channel is still open, so dispose aborts it; the abort swallows the
+                // continuation timeout and returns, leaving the session unshut.
+                var stopwatch = Stopwatch.StartNew();
+                await ch.DisposeAsync();
+                stopwatch.Stop();
+
+                Assert.True(stopwatch.Elapsed >= cf.ContinuationTimeout - TimeSpan.FromMilliseconds(100),
+                    $"dispose returned in {stopwatch.Elapsed}, sooner than the {cf.ContinuationTimeout} " +
+                    "budget, so the close did not time out and this test is not exercising the path");
+
+                Assert.True(await DispatcherWorkChannelCompletedAsync(dispatcher, WaitSpan),
+                    "disposing a channel whose close could not complete must still complete the " +
+                    "consumer dispatcher's work channel, otherwise its worker stays parked for the " +
+                    "process lifetime. See #1988.");
+            }
+            finally
+            {
+                await _toxiproxyManager.RemoveToxicAsync(toxicName);
+            }
+        }
+
+        /*
+         * Read-only: the reader's Completion task finishes once the work channel is completed and
+         * drained. Do not probe by calling TryComplete on the writer, which completes the channel as
+         * a side effect and so releases the very dispatcher under test.
+         */
+        private static async Task<bool> DispatcherWorkChannelCompletedAsync(IConsumerDispatcher dispatcher,
+            TimeSpan timeout)
+        {
+            object reader = null;
+            for (Type t = dispatcher.GetType(); t is not null && reader is null; t = t.BaseType)
+            {
+                System.Reflection.FieldInfo f = t.GetField("_reader",
+                    System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
+                reader = f?.GetValue(dispatcher);
+            }
+
+            Assert.NotNull(reader);
+            var completion = (Task)reader.GetType()
+                .GetProperty("Completion", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.Public)
+                .GetValue(reader);
+
+            try
+            {
+                await completion.WaitAsync(timeout);
+                return true;
+            }
+            catch (TimeoutException)
+            {
+                return false;
+            }
+            catch
+            {
+                return true;
+            }
         }
 
         // Regression test for https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1930
