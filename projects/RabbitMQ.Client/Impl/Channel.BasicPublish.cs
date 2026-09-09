@@ -166,7 +166,7 @@ namespace RabbitMQ.Client.Impl
                 try
                 {
                     sendActivity = RabbitMQActivitySource.PublisherHasListeners
-                        ? RabbitMQActivitySource.BasicPublish(routingKey, exchange, body.Length, basicProperties)
+                        ? RabbitMQActivitySource.BasicPublish(routingKey, exchange, body.Length, basicProperties, TracingOptions)
                         : default;
 
                     publisherConfirmationInfo = MaybeStartPublisherConfirmationTracking();
@@ -319,7 +319,7 @@ namespace RabbitMQ.Client.Impl
                 try
                 {
                     sendActivity = RabbitMQActivitySource.PublisherHasListeners
-                        ? RabbitMQActivitySource.BasicPublish(routingKey, exchange, (int)body.Length, basicProperties)
+                        ? RabbitMQActivitySource.BasicPublish(routingKey, exchange, (int)body.Length, basicProperties, TracingOptions)
                         : default;
 
                     publisherConfirmationInfo = MaybeStartPublisherConfirmationTracking();
@@ -478,7 +478,7 @@ namespace RabbitMQ.Client.Impl
                     }
 
                     // Inject the ActivityContext into the message headers to propagate trace context to the receiving service.
-                    RabbitMQActivitySource.ContextInjector(sendActivity, headers);
+                    RabbitMQActivitySource.ResolveTracingOptions(TracingOptions).ContextInjector(sendActivity, headers);
                 }
             }
 

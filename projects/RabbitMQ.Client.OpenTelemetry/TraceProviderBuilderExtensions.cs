@@ -11,21 +11,128 @@ namespace OpenTelemetry.Trace
 
     public static class OpenTelemetryExtensions
     {
-        public static TracerProviderBuilder AddRabbitMQInstrumentation(this TracerProviderBuilder builder, Action<RabbitMQTracingOptions> configure)
-        {
-            var options = new RabbitMQTracingOptions();
-            configure?.Invoke(options);
-            RabbitMQActivitySource.TracingOptions = options;
+        private const string ActivitySourceNamePattern = "RabbitMQ.Client.*";
 
-            RabbitMQActivitySource.ContextExtractor = OpenTelemetryContextExtractor;
-            RabbitMQActivitySource.ContextInjector = OpenTelemetryContextInjector;
-            builder.AddSource("RabbitMQ.Client.*");
+        /// <summary>
+        /// Configures <paramref name="connectionFactory"/> so that connections it creates propagate
+        /// trace context with OpenTelemetry. Pair this with
+        /// <see cref="AddRabbitMQInstrumentation(TracerProviderBuilder)"/> on the
+        /// <see cref="TracerProviderBuilder"/> to observe the resulting spans.
+        /// </summary>
+        /// <remarks>
+        /// This is the preferred way to configure propagation, because the configuration ends up owned
+        /// by the connection that performs the traced operations rather than by process-wide state.
+        /// Unlike the <see cref="TracerProviderBuilder"/> overloads it needs no
+        /// <see cref="TracerProvider"/>, so it can be called wherever the factory is built - including
+        /// inside a dependency-injection registration, where the factory instance does not yet exist at
+        /// the point <c>WithTracing</c> configures the builder.
+        /// <para>
+        /// Installs the OpenTelemetry inject/extract delegates on the factory's
+        /// <see cref="ConnectionFactory.TracingOptions"/>, replacing any custom propagation delegates
+        /// already set (installing OpenTelemetry propagation is this method's purpose), while carrying
+        /// over the factory's other tracing options. <paramref name="configure"/> then lets the caller
+        /// adjust the result, including replacing the delegates again with its own. A fresh options
+        /// instance is assigned to the factory, so any instance the caller already held is not mutated,
+        /// and connections created by the factory after this call capture the configuration; connections
+        /// created before it are unaffected.
+        /// </para>
+        /// </remarks>
+        public static ConnectionFactory UseOpenTelemetryTracing(this ConnectionFactory connectionFactory,
+            Action<RabbitMQTracingOptions> configure = null)
+        {
+            if (connectionFactory is null)
+            {
+                throw new ArgumentNullException(nameof(connectionFactory));
+            }
+
+            RabbitMQTracingOptions existing = connectionFactory.TracingOptions;
+            var options = new RabbitMQTracingOptions
+            {
+                ContextInjector = OpenTelemetryContextInjector,
+                ContextExtractor = OpenTelemetryContextExtractor
+            };
+            if (existing != null)
+            {
+                options.UseRoutingKeyAsOperationName = existing.UseRoutingKeyAsOperationName;
+                options.UsePublisherAsParent = existing.UsePublisherAsParent;
+            }
+            configure?.Invoke(options);
+            connectionFactory.TracingOptions = options;
+
+            return connectionFactory;
+        }
+
+        /// <summary>
+        /// Calls <see cref="UseOpenTelemetryTracing"/> on <paramref name="connectionFactory"/> and
+        /// subscribes this builder to the client's activity sources. A convenience shortcut for when
+        /// both objects are on hand; where they are not, configure the factory and the builder
+        /// separately.
+        /// </summary>
+        public static TracerProviderBuilder AddRabbitMQInstrumentation(this TracerProviderBuilder builder,
+            ConnectionFactory connectionFactory, Action<RabbitMQTracingOptions> configure = null)
+        {
+            connectionFactory.UseOpenTelemetryTracing(configure);
+
+            builder.AddSource(ActivitySourceNamePattern);
             return builder;
         }
 
+        /// <summary>
+        /// Subscribes this builder to the client's activity sources and installs the OpenTelemetry
+        /// propagation delegates as the process-wide tracing default.
+        /// </summary>
+        /// <remarks>
+        /// The process-wide default applies to every connection whose factory set no
+        /// <see cref="ConnectionFactory.TracingOptions"/>; a factory that sets its own options - for
+        /// example through <see cref="UseOpenTelemetryTracing"/> - overrides the default for the
+        /// connections it creates.
+        /// <para>
+        /// Because this default is process-wide rather than per-<see cref="TracerProvider"/>, the last
+        /// call wins when several providers configure it with different <paramref name="configure"/>
+        /// actions, and disposing a provider does not restore the previous values. That is inherent
+        /// rather than an implementation choice: one <see cref="System.Diagnostics.ActivitySource"/>
+        /// produces a single <see cref="System.Diagnostics.Activity"/> shared by every provider, and one
+        /// publish injects a single set of headers, so span shape and propagation cannot differ per
+        /// provider. Configure the factory instead when the configuration needs an owner. See
+        /// https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1981.
+        /// </para>
+        /// </remarks>
+        public static TracerProviderBuilder AddRabbitMQInstrumentation(this TracerProviderBuilder builder, Action<RabbitMQTracingOptions> configure)
+        {
+            /*
+             * The OpenTelemetry delegates are applied before `configure` runs, so a caller that sets
+             * ContextInjector or ContextExtractor in `configure` replaces them - matching
+             * UseOpenTelemetryTracing. Applying them afterwards would silently discard a custom
+             * delegate, because assigning RabbitMQActivitySource.TracingOptions copies only the
+             * span-shaping flags out of the instance.
+             */
+            var options = new RabbitMQTracingOptions
+            {
+                ContextInjector = OpenTelemetryContextInjector,
+                ContextExtractor = OpenTelemetryContextExtractor
+            };
+            configure?.Invoke(options);
+
+#pragma warning disable CS0618 // the statics are the process-wide default this overload exists to set
+            RabbitMQActivitySource.TracingOptions = options;
+            RabbitMQActivitySource.ContextInjector = options.ContextInjector;
+            RabbitMQActivitySource.ContextExtractor = options.ContextExtractor;
+#pragma warning restore CS0618
+
+            builder.AddSource(ActivitySourceNamePattern);
+            return builder;
+        }
+
+        /// <summary>
+        /// Subscribes this builder to the client's activity sources and installs the OpenTelemetry
+        /// propagation delegates as the process-wide tracing default, leaving the span-shaping options
+        /// at their defaults. See
+        /// <see cref="AddRabbitMQInstrumentation(TracerProviderBuilder, Action{RabbitMQTracingOptions})"/>
+        /// for what "process-wide" means here.
+        /// </summary>
         public static TracerProviderBuilder AddRabbitMQInstrumentation(this TracerProviderBuilder builder)
         {
-            return AddRabbitMQInstrumentation(builder, null);
+            return AddRabbitMQInstrumentation(builder, (Action<RabbitMQTracingOptions>)null);
         }
 
         private static ActivityContext OpenTelemetryContextExtractor(IReadOnlyBasicProperties props)

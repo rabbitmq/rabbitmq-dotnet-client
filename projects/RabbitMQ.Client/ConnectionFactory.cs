@@ -182,6 +182,26 @@ namespace RabbitMQ.Client
         /// </para></remarks>
         public ushort ConsumerDispatchConcurrency { get; set; } = Constants.DefaultConsumerDispatchConcurrency;
 
+        /// <summary>
+        /// Tracing configuration for connections created by this factory: the span-shaping options
+        /// and the trace-context propagation delegates.
+        /// </summary>
+        /// <remarks>
+        /// Each connection captures these when it is created, so a connection is unaffected by later
+        /// changes to the factory, and two factories can be configured differently. Setting this is
+        /// preferred over the deprecated statics on <see cref="RabbitMQActivitySource"/>, because the
+        /// configuration ends up owned by the connection that performs the traced operations rather
+        /// than shared by every connection in the process.
+        /// <para>
+        /// When left <see langword="null"/> (the default), a connection reads the process-wide default
+        /// held by <see cref="RabbitMQActivitySource"/> instead, and reads it live rather than
+        /// capturing it. To fill this in with OpenTelemetry's propagation, call
+        /// <c>UseOpenTelemetryTracing</c> on the factory from the <c>RabbitMQ.Client.OpenTelemetry</c>
+        /// package.
+        /// </para>
+        /// </remarks>
+        public RabbitMQTracingOptions? TracingOptions { get; set; }
+
         /// <summary>The host to connect to.</summary>
         public string HostName { get; set; } = "localhost";
 
@@ -619,6 +639,7 @@ namespace RabbitMQ.Client
                 HandshakeContinuationTimeout,
                 RequestedConnectionTimeout,
                 ConsumerDispatchConcurrency,
+                TracingOptions?.Clone(),
                 CreateFrameHandlerAsync);
         }
 
