@@ -108,15 +108,19 @@ namespace Test.Unit
         }
 
         [Fact]
-        public async Task TestTimeoutIdentifiesItselfByTheCompletingToken_GH1996()
+        public async Task TestATimeoutLeavesTheCallersTokenUntouched_GH1996()
         {
             /*
-             * A continuation that outruns ContinuationTimeout completes as cancelled, so callers
-             * cannot tell a timeout from their own cancellation by exception type. The documented
-             * discriminator is the completing token, so pin it: it must be a real token, and it must
-             * not be the caller's. Without this, dropping the token from either TrySetCanceled call
-             * leaves every test green while the discriminator silently degrades to
-             * CancellationToken.None, which is what a defaulted caller token also looks like.
+             * A continuation that outruns ContinuationTimeout completes as cancelled, so a caller
+             * cannot tell a timeout from its own cancellation by exception type, and nothing on the
+             * exception distinguishes them either: the token it carries is internal in both cases,
+             * so comparing it against the caller's reports a difference either way.
+             *
+             * What does distinguish them is the caller's own token, which a timeout leaves alone
+             * because the client never cancels a token it does not own. That is the check the public
+             * documentation prescribes, so pin it here. Measured against a live broker for both
+             * cases; see issue #2019 for the open question of whether a timeout should be positively
+             * identifiable rather than inferred this way.
              */
             using var callerCts = new CancellationTokenSource();
             using var k = new SimpleAsyncRpcContinuation(ProtocolCommandId.ExchangeDeclareOk,
@@ -127,8 +131,18 @@ namespace Test.Unit
             OperationCanceledException ex =
                 await Assert.ThrowsAnyAsync<OperationCanceledException>(async () => await k);
 
+            Assert.False(callerCts.IsCancellationRequested,
+                "a continuation timeout cancelled the caller's own token, which would make the " +
+                "documented way of telling a timeout from a caller cancellation report the wrong " +
+                "answer");
+
+            /*
+             * The completing token is still pinned, for a different reason: it must be a real
+             * cancelled token rather than CancellationToken.None. Dropping it from either
+             * TrySetCanceled call leaves the netstandard2.0 arm reporting None, which is what a
+             * defaulted caller token also looks like.
+             */
             Assert.NotEqual(CancellationToken.None, ex.CancellationToken);
-            Assert.NotEqual(callerCts.Token, ex.CancellationToken);
             Assert.True(ex.CancellationToken.IsCancellationRequested);
         }
 
