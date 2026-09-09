@@ -32,16 +32,56 @@ namespace RabbitMQ.Client
             }
         }
 
+        private bool _isRunning;
+        private ShutdownEventArgs? _shutdownReason;
+
         /// <summary>
         /// Returns true while the consumer is registered and expecting deliveries from the broker.
         /// </summary>
-        public bool IsRunning { get; private set; }
+        /// <remarks>
+        /// Read and written with <see cref="Volatile"/>, because these are set from a dispatcher
+        /// worker and read from application threads. Without that a polling loop can be optimised
+        /// into a single read and never observe a change.
+        /// </remarks>
+        public bool IsRunning => Volatile.Read(ref _isRunning);
 
         /// <summary>
         /// If our <see cref="IChannel"/> shuts down, this property will contain a description of the reason for the
         /// shutdown. Otherwise it will contain null. See <see cref="ShutdownEventArgs"/>.
         /// </summary>
-        public ShutdownEventArgs? ShutdownReason { get; private set; }
+        /// <remarks>
+        /// The default implementation of <see cref="HandleBasicConsumeOkAsync"/> clears this when the
+        /// broker confirms a registration, which includes automatic recovery re-registering the
+        /// consumer after a connection drop. A subclass that overrides that method without calling
+        /// the base implementation does not clear it.
+        /// <para>
+        /// A reason therefore survives whenever no registration was confirmed afterwards. That
+        /// includes the default configuration: consumer recovery can fail per consumer, for instance
+        /// when the queue is gone after the drop, and recovery still reports success, so a non-null
+        /// reason after a recovery is the signal that this consumer was not restored. It also
+        /// includes a consumer excluded from topology recovery, whether by disabling it or through a
+        /// <see cref="TopologyRecoveryFilter"/>. A registration confirmed after the channel has begun
+        /// shutting down does not clear it either, so a consumer on a dead channel keeps reporting
+        /// the shutdown. Note that <see cref="IsRunning"/> is still set on that path, so the two
+        /// properties disagree there and the reason is the one to trust.
+        /// </para>
+        /// <para>
+        /// Two cautions. The value is per consumer instance, not per consumer tag, so for an instance
+        /// registered under several tags a single confirmed registration clears the reason even if
+        /// the other registrations were not restored. And unlike previous versions the value can go
+        /// from non-null back to null, so do not test it and then dereference the result; copy it to
+        /// a local first.
+        /// </para>
+        /// <para>
+        /// This and <see cref="IsRunning"/> are written separately and never published as a pair, at
+        /// any dispatch concurrency, so a reader can observe one updated and not the other. Above a
+        /// concurrency of one they are also written from concurrent workers. Note that a channel's
+        /// concurrency comes from <see cref="CreateChannelOptions.ConsumerDispatchConcurrency"/> when
+        /// set, which takes precedence over <see cref="IConnectionFactory.ConsumerDispatchConcurrency"/>.
+        /// See rabbitmq/rabbitmq-dotnet-client#2006 and rabbitmq/rabbitmq-dotnet-client#2016.
+        /// </para>
+        /// </remarks>
+        public ShutdownEventArgs? ShutdownReason => Volatile.Read(ref _shutdownReason);
 
         /// <summary>
         /// Retrieve the <see cref="IChannel"/> this consumer is associated with,
@@ -79,7 +119,23 @@ namespace RabbitMQ.Client
         public virtual Task HandleBasicConsumeOkAsync(string consumerTag, CancellationToken cancellationToken = default)
         {
             _consumerTags.Add(consumerTag);
-            IsRunning = true;
+
+            /*
+             * The broker has accepted this registration, so clear any reason left from an earlier
+             * shutdown; see the ShutdownReason docs for the full contract. The token is the
+             * dispatcher's shutdown token, cancelled by Quiesce(), and it is what keeps this reset
+             * fail-safe: a registration confirmed after the channel began shutting down must not
+             * clear the reason, or a consumer on a permanently dead channel would report a null
+             * reason with IsRunning true, which reads as fully healthy. That interleaving is
+             * reachable because the shutdown work item and an already-enqueued consume-ok are
+             * ordered only by the dispatcher queue. See rabbitmq/rabbitmq-dotnet-client#2006.
+             */
+            if (false == cancellationToken.IsCancellationRequested)
+            {
+                Volatile.Write(ref _shutdownReason, null);
+            }
+
+            Volatile.Write(ref _isRunning, true);
             return Task.CompletedTask;
         }
 
@@ -113,7 +169,7 @@ namespace RabbitMQ.Client
         /// <param name="reason">Shutdown context.</param>
         public virtual Task HandleChannelShutdownAsync(object channel, ShutdownEventArgs reason)
         {
-            ShutdownReason = reason;
+            Volatile.Write(ref _shutdownReason, reason);
             return OnCancelAsync(ConsumerTags, reason.CancellationToken);
         }
 
@@ -126,7 +182,7 @@ namespace RabbitMQ.Client
         /// </remarks>
         protected virtual Task OnCancelAsync(string[] consumerTags, CancellationToken cancellationToken = default)
         {
-            IsRunning = false;
+            Volatile.Write(ref _isRunning, false);
 
             foreach (string consumerTag in consumerTags)
             {

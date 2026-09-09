@@ -29,6 +29,7 @@
 //  Copyright (c) 2007-2026 Broadcom. All Rights Reserved.
 //---------------------------------------------------------------------------
 
+using System.Threading;
 using System.Threading.Tasks;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
@@ -86,6 +87,80 @@ namespace Test.Integration.ConnectionRecovery
             await CloseAndWaitForRecoveryAsync();
             Assert.True(_channel.IsOpen);
             await AssertConsumerCountAsync(q, 0);
+        }
+
+        [Fact]
+        public async Task TestConsumerShutdownReasonIsClearedAfterRecovery_GH2006()
+        {
+            /*
+             * rabbitmq/rabbitmq-dotnet-client#2006
+             *
+             * AsyncDefaultBasicConsumer.ShutdownReason documents itself as null unless the channel
+             * has shut down. Recovery re-registers the consumer, so it starts receiving deliveries
+             * again, but the reason recorded when the connection dropped was never cleared. The
+             * consumer therefore went on reporting a shutdown that was over, indefinitely, which is
+             * misleading for anything using it to decide whether the consumer is healthy.
+             */
+            string q = (await _channel.QueueDeclareAsync(GenerateQueueName(), false, true, false)).QueueName;
+            var consumer = new AsyncEventingBasicConsumer(_channel);
+
+            /*
+             * HandleBasicConsumeOkAsync runs on the consumer dispatcher, so it has not necessarily
+             * happened by the time BasicConsumeAsync returns. The initial state therefore has to be
+             * observed from the registration event rather than read straight after the call.
+             */
+            var firstRegistrationTcs =
+                new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+            consumer.RegisteredAsync += (sender, ea) =>
+            {
+                firstRegistrationTcs.TrySetResult(true);
+                return Task.CompletedTask;
+            };
+
+            // Capture the reason the drop records, so this test asserts the transition rather than
+            // just "null before, null after". Without it, a future change that stopped delivering
+            // the shutdown notification would leave both assertions passing and silently retire the
+            // guard.
+            ShutdownEventArgs shutdownReasonSeen = null;
+            consumer.ShutdownAsync += (sender, ea) =>
+            {
+                shutdownReasonSeen = consumer.ShutdownReason;
+                return Task.CompletedTask;
+            };
+
+            var deliveredAfterRecoveryTcs =
+                new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+            consumer.ReceivedAsync += (sender, ea) =>
+            {
+                deliveredAfterRecoveryTcs.TrySetResult(true);
+                return Task.CompletedTask;
+            };
+
+            await _channel.BasicConsumeAsync(q, true, consumer);
+            await WaitAsync(firstRegistrationTcs, "consumer registered");
+
+            Assert.True(consumer.IsRunning);
+            Assert.Null(consumer.ShutdownReason);
+
+            await CloseAndWaitForRecoveryAsync();
+
+            Assert.True(shutdownReasonSeen is not null,
+                "the consumer never observed a shutdown reason, so the connection drop did not " +
+                "reach this consumer and the clear-on-recovery assertions below prove nothing");
+
+            /*
+             * A delivery is the barrier, not the registration event. At a dispatch concurrency of
+             * one the dispatcher is a single-reader FIFO queue, so receiving a message proves the
+             * consume-ok that precedes it was processed. Latching on the registration count instead
+             * could be satisfied by a recovery attempt that re-registered and then failed, leaving
+             * the assertions below to read state from an attempt still in flight.
+             */
+            await _channel.BasicPublishAsync(string.Empty, q, _encoding.GetBytes("after recovery"));
+            await WaitAsync(deliveredAfterRecoveryTcs, "delivery after recovery");
+
+            Assert.True(_channel.IsOpen);
+            Assert.True(consumer.IsRunning);
+            Assert.Null(consumer.ShutdownReason);
         }
     }
 }

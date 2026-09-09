@@ -303,6 +303,20 @@ All seven disposal calls were removed. Proving no waiter can be parked at each o
 
 Two things to know if you extend these tests. `AutorecoveringChannel.DisposeAsync` does not dispose its inner channel, so disposing the `IChannel` that `CreateChannelAsync` returns never reaches `Channel`'s dispose path at all - the test disposes `InnerChannel` directly. And use `BindingFlags.DeclaredOnly` when enumerating: `_rpcSemaphore` is `protected`, so `RecoveryAwareChannel` otherwise reports it a second time.
 
+## Issue #2006: the consumer shutdown reason and why clearing it is safe
+
+`AsyncDefaultBasicConsumer.ShutdownReason` documents itself as null unless the channel has shut down, but nothing ever cleared it, so after a recovered connection drop a consumer served deliveries again while still reporting the shutdown that triggered the recovery. `HandleBasicConsumeOkAsync` now clears it, because that is where the broker confirms the registration.
+
+**The ordering that makes this safe is the one this document already establishes.** `Connection.OnShutdownAsync` awaits every `PreConnectionShutdownAsync` handler before the public `ConnectionShutdownAsync` handlers, and automatic recovery starts from a public handler. The pre-shutdown chain reaches `SessionBase` teardown, which awaits `ConsumerDispatcher.ShutdownAsync(reason)`, which awaits the dispatcher's worker. So every consumer's `HandleChannelShutdownAsync` has already run, and set the reason, before recovery can re-register anything and clear it. If those two events are ever allowed to overlap, or the reset is moved, #2006 returns silently.
+
+**The reset is nevertheless conditional, and that matters.** It is skipped when the work item's cancellation token is already cancelled, which is the dispatcher's shutdown token that `Quiesce()` cancels. The shutdown work item and an already-enqueued consume-ok are ordered only by the dispatcher queue, so a consume-ok can be processed after the shutdown on the *same* dispatcher: user-initiated close is not serialized against `MainLoop`, and above a dispatch concurrency of one two workers can take the two items concurrently. An unconditional reset in that window leaves `ShutdownReason` null with `IsRunning` true on a permanently dead channel, which reads as fully healthy. Keeping the stale reason is the fail-safe answer, and it is what the code did before #2006.
+
+The guard narrows that window rather than closing it. `IsCancellationRequested` is read and `_shutdownReason` written as two separate steps, so above a dispatch concurrency of one a worker can pass the check while the channel is still healthy, be preempted, and resume after another worker has recorded the shutdown, nulling the reason it just wrote. That leaves the null-reason-with-`IsRunning`-true state this paragraph is about, and it is a state `main` could not reach at all, because nothing there ever wrote null. The residue is instruction-level and unreproduced, but it is real and it belongs to #2016, which is where the unsynchronised state on this class is tracked. Note also that `IsRunning` is set outside the guard, so even on the guarded path the two properties disagree.
+
+**Both properties are `Volatile`-accessed.** They are written from a dispatcher worker and read from application threads, and a plain auto-property read gets hoisted out of a polling loop, so a health check written as `while (consumer.ShutdownReason is not null)` would never observe the reset. `SessionBase.CloseReason` uses the same pattern for the same reason.
+
+**Known limits, deliberately not fixed here.** The value is per consumer instance, not per tag, so for one instance registered under several tags a single confirmed registration clears the instance-wide reason even if the other registrations were not restored. `IsRunning` has the mirror-image problem on cancel. And the dispatcher drops the consume-ok work item entirely when the channel is already quiescing, while `BasicConsumeAsync` still returns a valid tag, so a registration the broker accepted may never be confirmed locally. The concurrency hazards on these two properties and on `_consumerTags` are tracked as #2016.
+
 ## Relevant timeouts
 
 These are easy to confuse; distinguishing which one a hang tracks is the key diagnostic signal.
@@ -372,6 +386,12 @@ It asserts more than "the TCS completed": it asserts the channel shutdown handle
 The regression test (`projects/Test/Integration/TestConnectionFactory.cs::TestCreateConnectionAsync_CancellationDuringHandshake_CompletesQuickly`) sweeps short cancellation delays (0us .. 50ms) with a 30s `ContinuationTimeout` and asserts each attempt completes in under 3s. The wide `ContinuationTimeout` is deliberate: it makes a regression manifest as a ~30s stall rather than a subtle few-second delay that a slow CI runner could mask.
 
 The test is a timing assertion and does not assert a specific exception type. It catches the only two exceptions `CreateConnectionAsync` can surface: `OperationCanceledException` (rethrown when the token was the cause) and `BrokerUnreachableException` (the wrapper for any other handshake failure, including the Windows DNS-cancel `SocketException`). Anything else escapes and fails the test.
+
+### #2006
+
+`projects/Test/Unit/TestConsumerShutdownReason.cs` covers the state transitions with no broker: a registration clears a recorded reason, a registration on an already-cancelled token does not, and a reason survives when no registration follows. Verified by mutation: removing the cancellation guard fails the second of those.
+
+`TestConsumerRecovery.TestConsumerShutdownReasonIsClearedAfterRecovery_GH2006` covers the same thing end to end against a broker, asserting that a reason was recorded during the drop and that a message published after recovery is delivered before the state is read. The delivery is the barrier: at a dispatch concurrency of one the dispatcher is a single-reader FIFO queue, so a delivery proves the preceding consume-ok ran. Verified to fail with the fix reverted.
 
 ### Running against a local broker
 
