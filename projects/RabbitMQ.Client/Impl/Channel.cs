@@ -735,8 +735,15 @@ namespace RabbitMQ.Client.Impl
                  * for a server-originated close rethrows a faulted close or times out, and either
                  * would otherwise skip this while the flag below still latches _disposed, so the
                  * dispatcher this exists to release would leak with no way to retry. See issue #1988.
+                 *
+                 * DisposeAsync rather than Dispose because this path can afford to wait: it queues
+                 * each consumer's shutdown notification and then gives the worker a short, bounded
+                 * window to deliver it, so a caller that awaits DisposeAsync and then inspects a
+                 * consumer does not see stale state. The synchronous Dispose cannot wait and only
+                 * queues them.
                  */
-                ConsumerDispatcher.Dispose();
+                await ConsumerDispatcher.DisposeAsync()
+                    .ConfigureAwait(false);
 
                 /*
                  * The publisher-confirmation rate limiter is deliberately NOT disposed.

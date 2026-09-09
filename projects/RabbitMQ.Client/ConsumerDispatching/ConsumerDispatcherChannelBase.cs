@@ -409,15 +409,41 @@ namespace RabbitMQ.Client.ConsumerDispatching
                         Quiesce();
 
                         /*
-                         * Complete the writer, otherwise disposal does not release the worker at
-                         * all. ProcessChannelAsync awaits _reader.WaitToReadAsync() with no token,
-                         * so cancelling _shutdownCts cannot wake it; only completing the writer
-                         * does, and the shutdown path that normally does so is skipped whenever a
-                         * channel is disposed without its session having been shut down, for
-                         * instance when an abort swallows a close that never got a close-ok. The
-                         * worker then stays parked for the process lifetime, rooting this
-                         * dispatcher, its channel and its session. Completing rather than
-                         * cancelling also lets any queued work drain first.
+                         * Disposal has to release the worker, and completing the writer is the only
+                         * thing that can: ProcessChannelAsync awaits _reader.WaitToReadAsync() with
+                         * no token, so cancelling _shutdownCts cannot wake it. Without this the
+                         * worker stays parked for the process lifetime, rooting this dispatcher, its
+                         * channel and its session, whenever a channel is disposed without its
+                         * session having been shut down - for instance when an abort swallows a
+                         * close that never got a close-ok.
+                         *
+                         * But completing is only half of a shutdown, and doing that half alone loses
+                         * the other. ShutdownConsumer enqueues each consumer's Shutdown work item
+                         * with _writer.TryWrite and discards the result, so once the writer is
+                         * completed a later ConsumerDispatcher.ShutdownAsync - which is exactly what
+                         * OnSessionShutdownAsync runs when the socket finally drops - silently
+                         * enqueues nothing. Every consumer is then left reporting no shutdown reason
+                         * with IsRunning true, on a channel that is gone, and nothing surfaces it
+                         * because the channel's own ChannelShutdownAsync event does not go through
+                         * the dispatcher.
+                         *
+                         * So run the whole shutdown rather than its tail. ShutdownAsync is not an
+                         * async method: DoShutdownConsumers and the TryComplete inside
+                         * InternalShutdownAsync both run before it returns, so the notifications are
+                         * queued ahead of the completion and the worker drains them on its way out.
+                         * That is the same enqueue-then-complete order the session-driven path uses.
+                         * The returned task is _worker, which Dispose deliberately does not await:
+                         * this runs on the caller's thread, a consumer callback may be arbitrarily
+                         * slow, and the worker is already reachable through the field for anyone who
+                         * needs to wait on it. DoShutdownConsumers clears the consumer collection,
+                         * so a shutdown that has already happened makes this a no-op rather than a
+                         * duplicate notification.
+                         *
+                         * The reason is the channel's own. Channel.CloseAsync sets it before it
+                         * transmits channel.close, so it is already published on every path that
+                         * reaches disposal, including an abort whose handshake never completed. The
+                         * fallback covers a dispatcher built without a channel, which the unit tests
+                         * do.
                          *
                          * _shutdownCts is deliberately NOT disposed, for the same reason the
                          * channel does not dispose its semaphores (see issue #1976). Quiesce()
@@ -429,7 +455,7 @@ namespace RabbitMQ.Client.ConsumerDispatching
                          * holds no library registrations, so there is nothing to reclaim.
                          * See issue #1988.
                          */
-                        _writer.TryComplete();
+                        _ = ShutdownAsync(DisposalReason());
                     }
                 }
                 catch
@@ -440,6 +466,64 @@ namespace RabbitMQ.Client.ConsumerDispatching
                 {
                     _disposed = true;
                 }
+            }
+        }
+
+        /*
+         * The reason handed to consumers when disposal is what shuts the dispatcher down.
+         *
+         * Channel.CloseAsync sets the channel's close reason before it transmits channel.close, so
+         * it is already published on every path that reaches disposal, including an abort whose
+         * handshake never completed. The fallback covers a dispatcher built without a channel, which
+         * the unit tests do; it is deliberately not an error code, because a consumer callback
+         * should not be told the channel failed when nothing failed.
+         */
+        private ShutdownEventArgs DisposalReason()
+        {
+            return _channel?.CloseReason
+                ?? new ShutdownEventArgs(ShutdownInitiator.Library,
+                    Constants.ReplySuccess, "consumer dispatcher disposed");
+        }
+
+        /*
+         * Async disposal waits, briefly, for the shutdown notifications queued above to actually
+         * reach their consumers, which the synchronous path cannot do: Dispose runs on the caller's
+         * thread and a consumer callback may be arbitrarily slow, so there it queues them and moves
+         * on. Here the caller is already awaiting, so the wait is affordable and worth having,
+         * because a caller who disposes and then inspects a consumer would otherwise still see the
+         * stale state.
+         *
+         * WaitForShutdownAsync is the existing wait on _worker and carries the AggregateException
+         * filtering that issue #1751 needed, so reuse it rather than write a second one. It returns
+         * early once _disposed is set, hence the wait happening before the finally.
+         *
+         * Bounded by ConsumerDispatcherDrainTimeout and best effort: expiry means a consumer
+         * callback is slow or stuck, which must not stop the channel being disposed. Everything is
+         * swallowed for the same reason Dispose(bool) swallows.
+         */
+        public async ValueTask DisposeAsync()
+        {
+            if (_disposed)
+            {
+                return;
+            }
+
+            try
+            {
+                Quiesce();
+                _ = ShutdownAsync(DisposalReason());
+
+                using var cts = new CancellationTokenSource(InternalConstants.ConsumerDispatcherDrainTimeout);
+                await WaitForShutdownAsync(cts.Token)
+                    .ConfigureAwait(false);
+            }
+            catch
+            {
+                // CHOMP
+            }
+            finally
+            {
+                _disposed = true;
             }
         }
 

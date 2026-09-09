@@ -39,6 +39,14 @@ namespace RabbitMQ.Client
         internal static readonly TimeSpan DefaultConnectionCloseTimeout = TimeSpan.FromSeconds(30);
         internal static readonly TimeSpan DefaultChannelDisposeTimeout = TimeSpan.FromSeconds(5);
 
+        // How long an async disposal waits for the consumer dispatcher's worker to drain the
+        // shutdown notifications it just queued. Deliberately shorter than
+        // DefaultChannelDisposeTimeout, and separate from it: a channel dispose may already have
+        // spent that budget waiting for a server-originated close, and what is being waited on here
+        // is user callbacks, which disposal must not be held hostage to. Delivering these
+        // notifications is best effort, so expiry is not an error.
+        internal static readonly TimeSpan ConsumerDispatcherDrainTimeout = TimeSpan.FromSeconds(2);
+
         /// <summary>
         /// The shortest graceful close budget that can actually complete a close.
         /// </summary>
