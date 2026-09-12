@@ -94,6 +94,20 @@ namespace Test.Unit
             await consumer.HandleBasicConsumeOkAsync("tag", quiesced.Token);
 
             Assert.Same(reason, consumer.ShutdownReason);
+
+            /*
+             * Pin the state the ShutdownReason docs describe, because it is the part that is easy to
+             * get wrong in prose: IsRunning is written outside the guard, so it goes back to true and
+             * nothing resets it again. OnCancelAsync is the only writer of false and is reached only
+             * from the three dispatcher-driven handlers, and by this point the shutdown item has
+             * already been consumed and the work channel completed. So this pair is where the
+             * consumer rests, permanently - not a window that later reconciles.
+             */
+            Assert.True(consumer.IsRunning,
+                "IsRunning is expected to be true here, disagreeing with the retained reason. If " +
+                "this now fails, something resets IsRunning after a post-shutdown registration and " +
+                "the ShutdownReason remarks - which tell callers not to wait for IsRunning to go " +
+                "false - need updating with it.");
         }
 
         [Fact]

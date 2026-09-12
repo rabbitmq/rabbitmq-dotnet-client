@@ -62,9 +62,11 @@ namespace RabbitMQ.Client
         /// includes a consumer excluded from topology recovery, whether by disabling it or through a
         /// <see cref="TopologyRecoveryFilter"/>. A registration confirmed after the channel has begun
         /// shutting down does not clear it either, so a consumer on a dead channel keeps reporting
-        /// the shutdown. Note that <see cref="IsRunning"/> is still set on that path, so the two
-        /// properties disagree until the channel's shutdown notification reaches this consumer and
-        /// resets <see cref="IsRunning"/>. While they disagree, the reason is the one to trust.
+        /// the shutdown. Note that <see cref="IsRunning"/> is set on that path and is <b>not</b> reset
+        /// again afterwards - the only thing that clears it is a cancel, cancel-ok or channel-shutdown
+        /// notification, and the shutdown has already been delivered by then - so the pair rests
+        /// permanently at a non-null reason with <see cref="IsRunning"/> true. The reason is the one
+        /// to trust; do not wait for <see cref="IsRunning"/> to go false.
         /// </para>
         /// <para>
         /// Two cautions. The value is per consumer instance, not per consumer tag, so for an instance
