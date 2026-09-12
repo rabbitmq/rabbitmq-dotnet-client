@@ -126,7 +126,7 @@ namespace RabbitMQ.Client
         /// An operation that reaches this limit completes as <b>cancelled</b>, not as a
         /// <see cref="System.TimeoutException"/> as it did in 6.x. See
         /// <see cref="IConnectionFactory.ContinuationTimeout"/> for the full semantics, including how
-        /// to tell a timeout from the caller cancelling and the two paths that do not surface it as
+        /// to tell a timeout from the caller cancelling and the paths that do not surface it as
         /// cancellation at all.
         /// </remarks>
         public readonly TimeSpan ContinuationTimeout;

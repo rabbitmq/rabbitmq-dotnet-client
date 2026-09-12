@@ -59,13 +59,16 @@ try
 }
 catch (OperationCanceledException) when (false == myToken.IsCancellationRequested)
 {
-    // The operation outran ContinuationTimeout. The request was issued before the
-    // budget started, so the broker may still act on it.
+    // The operation outran ContinuationTimeout. The budget is armed immediately
+    // before the request is sent, so unless the budget is very small the request
+    // reached the wire and the broker may still act on it.
 }
 ```
 
-Check your own token, and do not compare against the one carried by the exception. That token is internal in both cases - the timeout's own token on a timeout, a linked token on a caller cancel - so comparing it against yours reports a difference either way and cannot tell them apart. Your token, by contrast, is untouched by a timeout: the client never cancels a token it does not own.
+Do not compare against the token carried by the exception. It is internal in both cases - the timeout's own token on a timeout, a linked token on a caller cancel - so comparing it against yours reports a difference either way and cannot tell them apart.
 
-The one caveat is that this reads your token as a proxy for "did I cause this", which is sound only where your token governs the operation. A close on an open channel or connection deliberately ignores the caller's token, so that a close already under way is not truncated; a cancelled token of yours there does not tell you the request was never sent.
+**Your own token answers in one direction only.** If it is not cancelled, it was a timeout, because the client never cancels a token it does not own and nothing else could have produced the cancellation. If it is cancelled, you cannot tell: cancelling your token does not abort the wait for the reply, since nothing registers it against the continuation, so once the request is on the wire the operation runs its full budget and then completes as a timeout with your token cancelled too. Read a cancelled token as "cannot tell", not as "not a timeout".
 
-Some paths do not surface a timeout as cancellation at all. `CreateConnectionAsync` wraps it in `BrokerUnreachableException`; an abort swallows it, so `AbortAsync` can return successfully after waiting out the timeout; and topology recovery wraps it in a `TopologyRecoveryException` delivered through `ConnectionRecoveryErrorAsync`. Waiting for a publisher confirmation is not bounded by `ContinuationTimeout` at all, so it is governed only by whatever token you pass.
+A close on an open channel or connection is a further exception: those deliberately ignore the caller's token so that a close already under way is not truncated, so there a cancelled token of yours does not even tell you the request was never sent. Whether a timeout should be positively identifiable rather than inferred this way is tracked in [#2019](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/2019).
+
+Some paths do not surface a timeout as cancellation at all. `CreateConnectionAsync` wraps it in `BrokerUnreachableException`; an abort swallows it, so `AbortAsync` can return successfully after waiting out the timeout; and topology recovery wraps it in a `TopologyRecoveryException` that is logged and fails the recovery attempt rather than reaching an event handler, since `ConnectionRecoveryErrorAsync` covers reconnection and not the topology phase. Waiting for a publisher confirmation is not bounded by `ContinuationTimeout` at all, so it is governed only by whatever token you pass.

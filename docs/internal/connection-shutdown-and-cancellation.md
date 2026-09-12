@@ -91,7 +91,7 @@ The source is created **unarmed** and armed only by `StartTimeout()`, which runs
 _continuationTimeoutCancellationTokenSource = new CancellationTokenSource();
 ```
 
-Measure an expected stall from `StartTimeout`, not from the continuation's construction. When the budget elapses the continuation completes as **cancelled**, so the awaiter sees an `OperationCanceledException` rather than a `TimeoutException`; the token on that exception is the internal timeout token, which is the only reliable way to tell it from the caller cancelling (#1996).
+Measure an expected stall from `StartTimeout`, not from the continuation's construction. When the budget elapses the continuation completes as **cancelled**, so the awaiter sees an `OperationCanceledException` rather than a `TimeoutException`; the token on that exception is the internal timeout token. That does *not* distinguish it from a caller cancel, which completes with a different internal token; the only signal available to a caller is its own token, and only in one direction (#1996, #2019).
 
 ## Issue #1921: hang when a CancellationToken fires during connection open
 
