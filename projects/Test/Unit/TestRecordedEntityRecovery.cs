@@ -146,8 +146,9 @@ namespace Test.Unit
             /*
              * The reflection test above pins the signature; this pins the body. Accepting the token
              * and then passing CancellationToken.None is a one-word change that no signature or
-             * call-site check can see, and it is the shape a refactor actually takes - it was
-             * measured to leave the whole suite green.
+             * call-site check can see, and it is the shape a refactor actually takes - before this
+             * test existed it was measured to leave the whole suite green. It is measured to fail
+             * this test now, which is the whole point.
              *
              * RecoverAsync takes the channel as a parameter and never touches the recorded one, so
              * default(RecordedConsumer) is enough and no AutorecoveringChannel is needed. The

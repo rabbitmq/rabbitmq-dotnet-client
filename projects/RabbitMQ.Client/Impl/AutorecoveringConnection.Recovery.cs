@@ -742,24 +742,34 @@ namespace RabbitMQ.Client.Impl
                          * semaphore is free, so passing the recovery token here makes that certain
                          * rather than unlikely once a close is in flight.
                          *
-                         * Waiting untokenised is safe here because every other acquirer of this
-                         * semaphore holds it only across in-memory dictionary work: the ten
-                         * WaitAsync sites in AutorecoveringConnection.Recording.cs each guard a
-                         * read or write of _recordedExchanges / _recordedQueues /
-                         * _recordedBindings / _recordedConsumers and nothing else, and where one
-                         * of those awaits, it awaits another Recording method passed
-                         * recordedEntitiesSemaphoreHeld: true, which does not re-acquire. None of
-                         * them performs I/O or invokes application code while holding it.
+                         * Waiting untokenised is safe here. Apart from the initial acquisition in
+                         * TryPerformAutomaticRecoveryAsync - whose critical section is all of
+                         * topology recovery, and which this code is running inside - every acquirer
+                         * of this semaphore is one of the ten WaitAsync sites on it in
+                         * AutorecoveringConnection.Recording.cs. Each guards a read or write of
+                         * _recordedExchanges / _recordedQueues / _recordedBindings /
+                         * _recordedConsumers and nothing else, and where one of those awaits, it
+                         * awaits another Recording method passed recordedEntitiesSemaphoreHeld:
+                         * true, which does not re-acquire. None performs I/O or invokes
+                         * application code while holding it.
                          *
-                         * One path does hold this semaphore across application code, and it is on
-                         * this same recovery task: TryPerformAutomaticRecoveryAsync calls
+                         * One path does hold this semaphore across application code:
+                         * TryPerformAutomaticRecoveryAsync calls
                          * RecoverChannelsAndItsConsumersAsync with recordedEntitiesSemaphoreHeld:
-                         * true, which reaches AutorecoveringChannel.RunRecoveryEventHandlers and
-                         * invokes user channel-recovery handlers. That is a pre-existing deadlock
-                         * in its own right - a handler that declares an exchange waits on this
-                         * semaphore untokenised and never returns - but it cannot deadlock this
-                         * wait, because it runs strictly after the consumer loop on the same task
-                         * rather than concurrently with it.
+                         * true, which loops over the recovered channels and reaches
+                         * Channel.RunRecoveryEventHandlers (declared in Impl/Channel.cs, invoked
+                         * from AutorecoveringChannel on _innerChannel), invoking user
+                         * channel-recovery handlers. That is a pre-existing deadlock in its own
+                         * right - a handler that declares an exchange waits on this semaphore
+                         * untokenised and never returns.
+                         *
+                         * It cannot deadlock this wait, but not because it runs strictly after the
+                         * consumer loop: the channel loop runs each channel's consumers and then
+                         * that channel's handlers, so with two or more channels the first
+                         * channel's handlers run before the second channel's consumer loop. The
+                         * reason it is safe is that this is one sequential task, so there is never
+                         * a second holder to contend with - a wedged handler stops the remaining
+                         * consumer loops from starting rather than blocking them here.
                          */
                         await _recordedEntitiesSemaphore.WaitAsync(CancellationToken.None)
                             .ConfigureAwait(false);
