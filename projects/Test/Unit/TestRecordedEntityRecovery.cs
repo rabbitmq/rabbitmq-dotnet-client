@@ -160,7 +160,21 @@ namespace Test.Unit
 
             Assert.True(recorder.BasicConsumeWasCalled,
                 "basic.consume was never issued, so no token was captured and this test is vacuous");
-            Assert.Equal(cts.Token, recorder.CapturedToken);
+
+            /*
+             * Not Assert.Equal. CancellationToken is a struct that does not override ToString(),
+             * so ValueType.ToString() returns the type name and the failure reads "Expected:
+             * System.Threading.CancellationToken / Actual: System.Threading.CancellationToken" -
+             * measured, not assumed. That says nothing about which token arrived, which is the
+             * only thing this test is about. Describe the difference instead.
+             */
+            Assert.True(cts.Token.Equals(recorder.CapturedToken),
+                "basic.consume was issued with a CancellationToken other than the one RecoverAsync " +
+                "was given, so the recovery token does not reach the protocol operation. See #1997. " +
+                "The mutation this guards is passing CancellationToken.None from the body while " +
+                "keeping the parameter. Captured token: " +
+                $"CanBeCanceled={recorder.CapturedToken.CanBeCanceled}, " +
+                $"is CancellationToken.None={recorder.CapturedToken == CancellationToken.None}.");
         }
 
         /// <summary>

@@ -740,8 +740,26 @@ namespace RabbitMQ.Client.Impl
                          * real cancellation and turning an orderly shutdown into a 541 internal
                          * error. WaitAsync throws on an already-cancelled token even when the
                          * semaphore is free, so passing the recovery token here makes that certain
-                         * rather than unlikely once a close is in flight. The wait is bounded
-                         * regardless: the only other holder is this same recovery loop.
+                         * rather than unlikely once a close is in flight.
+                         *
+                         * Waiting untokenised is safe here because every other acquirer of this
+                         * semaphore holds it only across in-memory dictionary work: the ten
+                         * WaitAsync sites in AutorecoveringConnection.Recording.cs each guard a
+                         * read or write of _recordedExchanges / _recordedQueues /
+                         * _recordedBindings / _recordedConsumers and nothing else, and where one
+                         * of those awaits, it awaits another Recording method passed
+                         * recordedEntitiesSemaphoreHeld: true, which does not re-acquire. None of
+                         * them performs I/O or invokes application code while holding it.
+                         *
+                         * One path does hold this semaphore across application code, and it is on
+                         * this same recovery task: TryPerformAutomaticRecoveryAsync calls
+                         * RecoverChannelsAndItsConsumersAsync with recordedEntitiesSemaphoreHeld:
+                         * true, which reaches AutorecoveringChannel.RunRecoveryEventHandlers and
+                         * invokes user channel-recovery handlers. That is a pre-existing deadlock
+                         * in its own right - a handler that declares an exchange waits on this
+                         * semaphore untokenised and never returns - but it cannot deadlock this
+                         * wait, because it runs strictly after the consumer loop on the same task
+                         * rather than concurrently with it.
                          */
                         await _recordedEntitiesSemaphore.WaitAsync(CancellationToken.None)
                             .ConfigureAwait(false);
