@@ -63,7 +63,8 @@ namespace RabbitMQ.Client
         /// <see cref="TopologyRecoveryFilter"/>. A registration confirmed after the channel has begun
         /// shutting down does not clear it either, so a consumer on a dead channel keeps reporting
         /// the shutdown. Note that <see cref="IsRunning"/> is still set on that path, so the two
-        /// properties disagree there and the reason is the one to trust.
+        /// properties disagree until the channel's shutdown notification reaches this consumer and
+        /// resets <see cref="IsRunning"/>. While they disagree, the reason is the one to trust.
         /// </para>
         /// <para>
         /// Two cautions. The value is per consumer instance, not per consumer tag, so for an instance
@@ -126,9 +127,20 @@ namespace RabbitMQ.Client
              * dispatcher's shutdown token, cancelled by Quiesce(), and it is what keeps this reset
              * fail-safe: a registration confirmed after the channel began shutting down must not
              * clear the reason, or a consumer on a permanently dead channel would report a null
-             * reason with IsRunning true, which reads as fully healthy. That interleaving is
-             * reachable because the shutdown work item and an already-enqueued consume-ok are
-             * ordered only by the dispatcher queue. See rabbitmq/rabbitmq-dotnet-client#2006.
+             * reason with IsRunning true, which reads as fully healthy.
+             *
+             * Note that the dispatcher queue is what rules that interleaving *out* at a dispatch
+             * concurrency of one, rather than what makes it reachable: the queue is FIFO with a
+             * single reader, so a consume-ok already in it is processed before the shutdown items
+             * ShutdownAsync writes afterwards, and Quiesce() sets IsQuiescing so no new consume-ok
+             * is enqueued after that. Two things still reach it. Above a concurrency of one,
+             * separate workers take the consume-ok and the shutdown item concurrently and nothing
+             * orders them. And at any concurrency the dispatcher's IsQuiescing check and its write
+             * are not atomic, so a consume-ok can pass the check, be preempted, and land behind
+             * the shutdown items - ConsumerDispatcherBase.ShutdownAsync writes those and only then
+             * completes the channel, so there is a window where a late write still succeeds.
+             *
+             * See rabbitmq/rabbitmq-dotnet-client#2006.
              */
             if (false == cancellationToken.IsCancellationRequested)
             {
