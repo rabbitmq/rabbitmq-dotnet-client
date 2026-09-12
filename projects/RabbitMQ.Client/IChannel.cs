@@ -570,33 +570,45 @@ namespace RabbitMQ.Client
         /// <see cref="System.TimeoutException"/>. Note that 6.x threw
         /// <see cref="System.TimeoutException"/> here.
         /// <para>
-        /// Telling a timeout from the caller cancelling takes care, and <b>nothing on the exception
-        /// distinguishes them</b>. The
+        /// <b>Nothing on the exception tells a timeout from the caller cancelling.</b> The
         /// <see cref="System.OperationCanceledException.CancellationToken"/> is an internal token in
-        /// both cases - the timeout's own token on a timeout, a linked token on a caller cancel -
-        /// so comparing it against your own reports a difference either way and tells you nothing.
+        /// both cases - the timeout's own token on a timeout, a linked token on a caller cancel - so
+        /// comparing it against your own reports a difference either way and tells you nothing.
+        /// </para>
         /// <para>
-        /// Test your own token instead. It is untouched by a timeout, because the client never
-        /// cancels a token it does not own:
+        /// Your own token answers in one direction, which is the best available today. If it is
+        /// <b>not</b> cancelled, the operation timed out: the client never cancels a token it does
+        /// not own, so nothing else could have produced the cancellation.
+        /// </para>
         /// <code>
         /// catch (OperationCanceledException) when (false == myToken.IsCancellationRequested)
         /// {
         ///     // the operation outran ContinuationTimeout
         /// }
         /// </code>
-        /// One caveat: that is sound only where your token governs the operation, which is not true
-        /// of a close on an open channel or connection. Those deliberately ignore the caller's token
-        /// so a close already under way is not truncated, so a cancelled token of yours there does
-        /// not mean the request was never sent.
+        /// <para>
+        /// The converse does not hold, so treat a cancelled token of your own as "cannot tell"
+        /// rather than as "not a timeout". Cancelling it does not abort the wait for the reply:
+        /// nothing registers your token against the continuation, so once the request is on the wire
+        /// the operation runs its full budget and then completes as a timeout with your token
+        /// cancelled as well.
         /// </para>
+        /// <para>
+        /// A close on an open channel or connection is a further exception, because those
+        /// deliberately ignore the caller's token so that a close already under way is not
+        /// truncated: a cancelled token of yours there does not even mean the request was never
+        /// sent. Whether a timeout should be positively identifiable rather than inferred this way
+        /// is rabbitmq/rabbitmq-dotnet-client#2019.
         /// </para>
         /// <para>
         /// Some paths do not surface it as cancellation at all. Establishing a connection wraps it in
         /// <see cref="Exceptions.BrokerUnreachableException"/>; an abort swallows it, so
         /// <c>AbortAsync</c> can return successfully after waiting this long; and topology recovery
-        /// wraps it in a <c>TopologyRecoveryException</c> reported through
-        /// <c>ConnectionRecoveryErrorAsync</c>. Note also that waiting for a publisher confirmation
-        /// is not bounded by this timeout at all. See rabbitmq/rabbitmq-dotnet-client#1996.
+        /// wraps it in a <c>TopologyRecoveryException</c>, which is logged and fails the recovery
+        /// attempt rather than being raised to any event handler: <c>ConnectionRecoveryErrorAsync</c>
+        /// covers reconnection, not the topology phase. Note also that waiting for a publisher
+        /// confirmation is not bounded by this timeout at all. See
+        /// rabbitmq/rabbitmq-dotnet-client#1996.
         /// </para>
         /// </remarks>
         TimeSpan ContinuationTimeout { get; set; }

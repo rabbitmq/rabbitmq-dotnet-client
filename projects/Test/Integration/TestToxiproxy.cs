@@ -545,9 +545,10 @@ namespace Test.Integration
                 await _toxiproxyManager.AddToxicAsync(bandwidthToxic);
                 await Task.Delay(TimeSpan.FromSeconds(1));
 
-                // A graceful close rethrows, and the token on the exception is what distinguishes
-                // this from the caller cancelling: no caller token was passed, so it must not be the
-                // default one.
+                // A graceful close rethrows. The assertion below is only that the completing token is
+                // a real cancelled token rather than the default: it does not distinguish a timeout
+                // from a caller cancel, which reports a different internal token. No caller token was
+                // passed here anyway.
                 var gracefulStopwatch = Stopwatch.StartNew();
                 OperationCanceledException ex =
                     await Assert.ThrowsAnyAsync<OperationCanceledException>(() => gracefulCh.CloseAsync());
