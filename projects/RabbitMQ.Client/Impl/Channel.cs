@@ -211,6 +211,22 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
+        /*
+         * Drops the handlers this channel took over, so releasing an abandoned recovered channel
+         * cannot fire the application's ChannelShutdownAsync for a channel it never received - and
+         * that is still alive and recovering. Takeover assigns rather than moves. See issue #1988.
+         */
+        internal void DropTakenOverHandlers()
+        {
+            _basicAcksAsyncWrapper.ClearHandlers();
+            _basicNacksAsyncWrapper.ClearHandlers();
+            _basicReturnAsyncWrapper.ClearHandlers();
+            _callbackExceptionAsyncWrapper.ClearHandlers();
+            _flowControlAsyncWrapper.ClearHandlers();
+            _channelShutdownAsyncWrapper.ClearHandlers();
+            _recoveryAsyncWrapper.ClearHandlers();
+        }
+
         protected void TakeOver(Channel other)
         {
             _basicAcksAsyncWrapper.Takeover(other._basicAcksAsyncWrapper);
@@ -670,17 +686,18 @@ namespace RabbitMQ.Client.Impl
                     }
 
                     _serverOriginatedChannelCloseTcs?.Task.Wait(InternalConstants.DefaultChannelDisposeTimeout);
-
-                    ConsumerDispatcher.Dispose();
-
-                    _outstandingPublisherConfirmationsRateLimiter?.Dispose();
                 }
                 finally
                 {
+                    // In the finally for the same reason as the async path: Task.Wait throws an
+                    // AggregateException for a faulted close, which would otherwise skip this.
+                    ConsumerDispatcher.Dispose();
+
                     try
                     {
-                        // _rpcSemaphore and _confirmSemaphore are deliberately not
-                        // disposed here. See DisposeAsyncCoreAsync and issue #1976.
+                        // Neither _rpcSemaphore / _confirmSemaphore nor the
+                        // publisher-confirmation rate limiter are disposed here. See
+                        // DisposeAsyncCoreAsync, and issues #1976 and #1988.
                         MaybeSetExceptionOnConfirmsTcs();
                     }
                     catch
@@ -730,40 +747,25 @@ namespace RabbitMQ.Client.Impl
                     await _serverOriginatedChannelCloseTcs.Task.WaitAsync(InternalConstants.DefaultChannelDisposeTimeout)
                         .ConfigureAwait(false);
                 }
-
-                ConsumerDispatcher.Dispose();
-
-                if (_outstandingPublisherConfirmationsRateLimiter is not null)
-                {
-                    await _outstandingPublisherConfirmationsRateLimiter.DisposeAsync()
-                        .ConfigureAwait(false);
-                }
             }
             finally
             {
                 /*
-                 * _rpcSemaphore and _confirmSemaphore are deliberately NOT disposed.
-                 * Disposing a SemaphoreSlim while another task is parked in WaitAsync
-                 * leaves that waiter pending forever: it does not fault, it does not
-                 * cancel, and neither the waiter's own token nor its wait timeout
-                 * releases it.
-                 *
-                 * Both have concurrent waiters. _rpcSemaphore is awaited by every RPC
-                 * on this channel under the continuation's linked token, so disposing
-                 * it during an in-flight RPC strands that RPC permanently and the
-                 * ContinuationTimeout does not shake it loose. _confirmSemaphore is
-                 * awaited on the publish path and, during shutdown cleanup, with a 5s
-                 * timeout added specifically so a stuck semaphore cannot block
-                 * shutdown - reasoning that does not survive the semaphore being
-                 * disposed rather than merely held.
-                 *
-                 * Issue #1968 is the confirmed instance of this pattern: the same
-                 * dispose-without-release on SocketFrameHandler's semaphore stranded
-                 * MainLoop and cost a full connection-close timeout.
-                 *
-                 * SemaphoreSlim only needs disposal once AvailableWaitHandle has been
-                 * read, and neither of these ever exposes it, so there is nothing to
-                 * reclaim. See issue #1976.
+                 * In the finally, not at the end of the try: the abort or the wait for a
+                 * server-originated close can throw, which would skip this while _disposed still
+                 * latches, leaking the dispatcher with no way to retry. DisposeAsync rather than
+                 * Dispose because this path can afford to wait for the notifications to land.
+                 * See issue #1988.
+                 */
+                await ConsumerDispatcher.DisposeAsync()
+                    .ConfigureAwait(false);
+
+                /*
+                 * The publisher-confirmation rate limiter is deliberately NOT disposed: it belongs
+                 * to the CreateChannelOptions instance, is shared across every channel built from
+                 * those options, and a recovering channel reuses the same options, so disposing it
+                 * per channel breaks the survivors. The library-created default is left to the GC.
+                 * See issue #1988 and docs/internal/connection-shutdown-and-cancellation.md.
                  */
                 _disposed = true;
             }
