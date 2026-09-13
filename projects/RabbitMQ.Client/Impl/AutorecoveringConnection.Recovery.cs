@@ -760,8 +760,9 @@ namespace RabbitMQ.Client.Impl
                          * Channel.RunRecoveryEventHandlers (declared in Impl/Channel.cs, invoked
                          * from AutorecoveringChannel on _innerChannel), invoking user
                          * channel-recovery handlers. That is a pre-existing deadlock in its own
-                         * right - a handler that declares an exchange waits on this semaphore
-                         * untokenised and never returns.
+                         * right, tracked as issue #2038 - a handler that declares an exchange, or
+                         * registers a consumer, waits on this semaphore untokenised and never
+                         * returns.
                          *
                          * It cannot deadlock this wait, but not because it runs strictly after the
                          * consumer loop: the channel loop runs each channel's consumers and then
