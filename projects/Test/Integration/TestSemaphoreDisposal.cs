@@ -78,17 +78,27 @@ namespace Test.Integration
              * semaphore cannot block shutdown, which is reasoning that does not
              * survive the semaphore being disposed rather than merely held.
              *
-             * Note that AutorecoveringChannel.DisposeAsync does not dispose its inner
-             * channel, so disposing the IChannel handed back by CreateChannelAsync
-             * would never reach Channel's dispose path. Dispose the inner channel
-             * directly, which is what a non-recovering connection does.
+             * As of #1988, AutorecoveringChannel.DisposeAsync disposes its inner channel, so
+             * disposing the IChannel handed back by CreateChannelAsync does reach Channel's
+             * dispose path. The inner channel is captured beforehand so its semaphores can be
+             * inspected afterwards, and so this test can dispose it itself rather than depending
+             * on that coupling holding - see below.
              */
             IChannel channel = await _conn.CreateChannelAsync(_createChannelOptions);
             RecoveryAwareChannel inner = ((AutorecoveringChannel)channel).InnerChannel;
 
             await channel.CloseAsync();
-            await inner.DisposeAsync();
             await channel.DisposeAsync();
+
+            /*
+             * Dispose the inner channel directly as well. The line above already reaches it, but
+             * that is #1988's guarantee and this test is #1976's: if the wrapper ever stops
+             * disposing its inner channel, disposing only the wrapper would not reach Channel's
+             * dispose path at all and the assertion below would hold without exercising anything.
+             * Channel.DisposeAsync returns early once _disposed is set, so this is a no-op today
+             * and the load-bearing call if that coupling regresses.
+             */
+            await inner.DisposeAsync();
 
             AssertSemaphoresUsable(inner, "_rpcSemaphore", "_confirmSemaphore");
         }
