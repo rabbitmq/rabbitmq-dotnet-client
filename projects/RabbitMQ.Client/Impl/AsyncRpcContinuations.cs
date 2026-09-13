@@ -78,9 +78,10 @@ namespace RabbitMQ.Client.Impl
                 _continuationTimeoutCancellationToken.UnsafeRegister(
                     callback: HandleContinuationTimeout, state: _tcs);
 #else
+            // The continuation, not the TCS: this overload supplies no token to the callback.
             _continuationTimeoutCancellationTokenRegistration =
                 _continuationTimeoutCancellationToken.Register(
-                    callback: HandleContinuationTimeout, state: _tcs, useSynchronizationContext: false);
+                    callback: HandleContinuationTimeout, state: this, useSynchronizationContext: false);
 #endif
 
             _tcsConfiguredTaskAwaitable = _tcs.Task.ConfigureAwait(false);
@@ -164,27 +165,17 @@ namespace RabbitMQ.Client.Impl
             {
                 if (_rpcCancellationToken.IsCancellationRequested)
                 {
-#if NET
                     _tcs.TrySetCanceled(_rpcCancellationToken);
-#else
-                    _tcs.TrySetCanceled();
-#endif
                 }
                 else if (_continuationTimeoutCancellationToken.IsCancellationRequested)
                 {
-#if NET
-                    if (_tcs.TrySetCanceled(_continuationTimeoutCancellationToken))
-#else
-                    if (_tcs.TrySetCanceled())
-#endif
-                    {
-                        // Cancellation was successful, does this mean we set a TimeoutException
-                        // in the same manner as BlockingCell used to
-                        _tcs.TrySetException(GetTimeoutException());
-                    }
+                    // Every framework, so the completing token is never CancellationToken.None.
+                    // See docs/internal/connection-shutdown-and-cancellation.md, issue #1996.
+                    _tcs.TrySetCanceled(_continuationTimeoutCancellationToken);
                 }
                 else
                 {
+                    // Not a cancellation this continuation owns.
                     throw;
                 }
             }
@@ -223,34 +214,23 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
+        // Completes the continuation as cancelled. Does not always win the race with the linked
+        // token, and does not identify a timeout to the caller: see
+        // docs/internal/connection-shutdown-and-cancellation.md, issue #1996.
 #if NET
-        private void HandleContinuationTimeout(object? state, CancellationToken cancellationToken)
+        private static void HandleContinuationTimeout(object? state, CancellationToken cancellationToken)
         {
             var tcs = (TaskCompletionSource<T>)state!;
-            if (tcs.TrySetCanceled(cancellationToken))
-            {
-                tcs.TrySetException(GetTimeoutException());
-            }
+            tcs.TrySetCanceled(cancellationToken);
         }
 #else
-        private void HandleContinuationTimeout(object state)
+        private static void HandleContinuationTimeout(object state)
         {
-            var tcs = (TaskCompletionSource<T>)state;
-            if (tcs.TrySetCanceled())
-            {
-                tcs.TrySetException(GetTimeoutException());
-            }
+            // No token is supplied here, so read it from the continuation.
+            var k = (AsyncRpcContinuation<T>)state;
+            k._tcs.TrySetCanceled(k._continuationTimeoutCancellationToken);
         }
 #endif
-
-        private TimeoutException GetTimeoutException()
-        {
-            // TODO
-            // Cancellation was successful, does this mean we set a TimeoutException
-            // in the same manner as BlockingCell used to
-            string msg = $"operation '{GetType().FullName}' timed out after {_continuationTimeout}";
-            return new TimeoutException(msg);
-        }
     }
 
     internal sealed class ConnectionSecureOrTuneAsyncRpcContinuation : AsyncRpcContinuation<ConnectionSecureOrTune>
