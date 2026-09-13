@@ -189,12 +189,9 @@ namespace RabbitMQ.Client.Impl
         }
 
         /*
-         * Drops the event handlers this channel took over, so disposing it cannot invoke the
-         * application's callbacks. Takeover assigns the delegates rather than moving them, so a
-         * recovered channel that is abandoned before being installed still holds the application's
-         * ChannelShutdownAsync and CallbackExceptionAsync handlers; aborting it as part of releasing
-         * it would otherwise fire them for a channel the application never received, reporting a
-         * shutdown for a channel that is in fact alive and recovering. See issue #1988.
+         * Drops the handlers this channel took over, so releasing an abandoned recovered channel
+         * cannot fire the application's ChannelShutdownAsync for a channel it never received - and
+         * that is still alive and recovering. Takeover assigns rather than moves. See issue #1988.
          */
         internal void DropTakenOverHandlers()
         {
@@ -731,64 +728,21 @@ namespace RabbitMQ.Client.Impl
             finally
             {
                 /*
-                 * In the finally, not at the end of the try: the abort above can throw, and the wait
-                 * for a server-originated close rethrows a faulted close or times out, and either
-                 * would otherwise skip this while the flag below still latches _disposed, so the
-                 * dispatcher this exists to release would leak with no way to retry. See issue #1988.
-                 *
-                 * DisposeAsync rather than Dispose because this path can afford to wait: it queues
-                 * each consumer's shutdown notification and then gives the worker a short, bounded
-                 * window to deliver it, so a caller that awaits DisposeAsync and then inspects a
-                 * consumer does not see stale state. The synchronous Dispose cannot wait and only
-                 * queues them.
+                 * In the finally, not at the end of the try: the abort or the wait for a
+                 * server-originated close can throw, which would skip this while _disposed still
+                 * latches, leaking the dispatcher with no way to retry. DisposeAsync rather than
+                 * Dispose because this path can afford to wait for the notifications to land.
+                 * See issue #1988.
                  */
                 await ConsumerDispatcher.DisposeAsync()
                     .ConfigureAwait(false);
 
                 /*
-                 * The publisher-confirmation rate limiter is deliberately NOT disposed.
-                 * It belongs to the CreateChannelOptions instance it came from, not to any
-                 * one channel: a caller-supplied limiter is shared across every channel
-                 * created from those options, and for a recovering channel the same options
-                 * are reused for every recovery, so the replacement channel publishes
-                 * through the very limiter its predecessor would have disposed. Disposing
-                 * it per channel therefore breaks the survivors, and their next
-                 * confirm-tracked publish throws ObjectDisposedException. Present tense
-                 * deliberately: for the default limiter the old code was mostly inert,
-                 * because the async path routed to a DisposeAsyncCore that
-                 * ThrottlingRateLimiter did not override. A caller-supplied limiter that
-                 * did override it, or the synchronous dispose path, is where it bit.
-                 *
-                 * The lifetime is the caller's. The library-created default (the
-                 * ThrottlingRateLimiter on CreateChannelOptions, used when the caller
-                 * supplies no options) is left to the garbage collector: it wraps a
-                 * ConcurrencyLimiter, which holds no timer and no unmanaged handle, so
-                 * there is nothing to reclaim. This is the same reasoning as the
-                 * semaphores below, and it applies with more force here because the
-                 * limiter has concurrent waiters on the publish path. See issue #1988.
-                 *
-                 * _rpcSemaphore and _confirmSemaphore are deliberately NOT disposed.
-                 * Disposing a SemaphoreSlim while another task is parked in WaitAsync
-                 * leaves that waiter pending forever: it does not fault, it does not
-                 * cancel, and neither the waiter's own token nor its wait timeout
-                 * releases it.
-                 *
-                 * Both have concurrent waiters. _rpcSemaphore is awaited by every RPC
-                 * on this channel under the continuation's linked token, so disposing
-                 * it during an in-flight RPC strands that RPC permanently and the
-                 * ContinuationTimeout does not shake it loose. _confirmSemaphore is
-                 * awaited on the publish path and, during shutdown cleanup, with a 5s
-                 * timeout added specifically so a stuck semaphore cannot block
-                 * shutdown - reasoning that does not survive the semaphore being
-                 * disposed rather than merely held.
-                 *
-                 * Issue #1968 is the confirmed instance of this pattern: the same
-                 * dispose-without-release on SocketFrameHandler's semaphore stranded
-                 * MainLoop and cost a full connection-close timeout.
-                 *
-                 * SemaphoreSlim only needs disposal once AvailableWaitHandle has been
-                 * read, and neither of these ever exposes it, so there is nothing to
-                 * reclaim. See issue #1976.
+                 * The publisher-confirmation rate limiter is deliberately NOT disposed: it belongs
+                 * to the CreateChannelOptions instance, is shared across every channel built from
+                 * those options, and a recovering channel reuses the same options, so disposing it
+                 * per channel breaks the survivors. The library-created default is left to the GC.
+                 * See issue #1988 and docs/internal/connection-shutdown-and-cancellation.md.
                  */
                 _disposed = true;
             }
