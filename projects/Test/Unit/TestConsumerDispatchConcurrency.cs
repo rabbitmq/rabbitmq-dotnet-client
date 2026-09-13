@@ -30,6 +30,8 @@
 //---------------------------------------------------------------------------
 
 using System;
+using System.Diagnostics;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using RabbitMQ.Client;
@@ -177,12 +179,149 @@ namespace Test.Unit
                 consumerDispatchConcurrency: consumerDispatchConcurrency,
                 frameHandlerFactoryAsync: (_, __) => throw new NotSupportedException("not connected in this test"));
 
+        [Fact]
+        public async Task ADeliveryOnACompletedWorkChannelIsDroppedNotThrown_GH1988()
+        {
+            /*
+             * Dispose completes the work channel, and the `_disposed`/IsQuiescing check each
+             * Handle*Async makes is not atomic with the write that follows it, so a caller can pass
+             * the check and then find the channel completed. WriteAsync raises
+             * ChannelClosedException there, and for a delivery that unwinds through
+             * Channel.HandleCommandAsync - which has no catch - into the connection's frame-receive
+             * loop, tearing down the whole connection instead of the one channel and abandoning the
+             * delivery's pooled body.
+             *
+             * The race itself cannot be scheduled, but the state it produces can: complete the
+             * writer directly, leaving _disposed false so the guard is passed exactly as it would be
+             * mid-race. Without the catch this call throws.
+             */
+            var dispatcher = new AsyncConsumerDispatcher(null, 1);
+            try
+            {
+                object writer = typeof(ConsumerDispatcherChannelBase)
+                    .GetField("_writer", BindingFlags.Instance | BindingFlags.NonPublic)
+                    .GetValue(dispatcher);
+                Assert.NotNull(writer);
+                Assert.True((bool)writer.GetType().GetMethod("TryComplete").Invoke(writer, new object[] { null }),
+                    "could not complete the work channel, so this test never reaches the state it is about");
+
+                Assert.False((bool)typeof(ConsumerDispatcherChannelBase)
+                    .GetField("_disposed", BindingFlags.Instance | BindingFlags.NonPublic)
+                    .GetValue(dispatcher),
+                    "the dispatcher reports disposed, so the guard under test is short-circuited");
+
+                await dispatcher.HandleBasicDeliverAsync("tag", 1, false, "ex", "rk",
+                    new BasicProperties(), default, CancellationToken.None);
+            }
+            finally
+            {
+                await dispatcher.ShutdownAsync(new ShutdownEventArgs(ShutdownInitiator.Library, 0, "test over"));
+                dispatcher.Dispose();
+            }
+        }
+
+        [Fact]
+        public async Task DisposeStillTellsConsumersTheChannelDied_GH1988()
+        {
+            /*
+             * Disposal has to complete the work channel to release the worker, and completing it is
+             * also what stops anything more being written. ShutdownConsumer enqueues each consumer's
+             * notification with TryWrite and discards the result, so a Dispose that completed without
+             * first queuing them left a later ShutdownAsync - which is what OnSessionShutdownAsync
+             * runs when the socket finally drops - silently enqueueing nothing. Every consumer was
+             * then stuck reporting no shutdown reason with IsRunning true on a channel that was gone,
+             * and nothing surfaced it, because the channel's own ChannelShutdownAsync event does not
+             * go through the dispatcher.
+             *
+             * That ordering is reached by an ordinary DisposeAsync on an open channel whose close
+             * cannot complete: the abort inside disposal swallows its timeout, so the session is
+             * never shut down and Dispose runs first.
+             */
+            var consumer = new RecordingConsumer();
+            var dispatcher = new AsyncConsumerDispatcher(null, 1);
+
+            await dispatcher.HandleBasicConsumeOkAsync(consumer, "tag", CancellationToken.None);
+
+            dispatcher.Dispose();
+
+            var reason = new ShutdownEventArgs(ShutdownInitiator.Peer, 320, "CONNECTION_FORCED");
+            await dispatcher.ShutdownAsync(reason);
+
+            Task delivered = await Task.WhenAny(consumer.ShutdownReceived,
+                Task.Delay(TimeSpan.FromSeconds(10)));
+
+            Assert.True(ReferenceEquals(delivered, consumer.ShutdownReceived),
+                "the consumer was never told the channel died: disposal completed the work channel, "
+                + "so the shutdown that followed had nowhere to enqueue its notification");
+        }
+
+        [Fact]
+        public async Task AsyncDisposeDeliversTheShutdownBeforeItReturns_GH1988()
+        {
+            /*
+             * The synchronous Dispose can only queue the notifications - it runs on the caller's
+             * thread and a consumer callback may be arbitrarily slow. An async disposal is already
+             * being awaited, so it waits briefly for the worker to drain them. Without that wait a
+             * caller that awaits DisposeAsync and then reads a consumer still sees the stale state.
+             */
+            var consumer = new RecordingConsumer();
+            var dispatcher = new AsyncConsumerDispatcher(null, 1);
+
+            await dispatcher.HandleBasicConsumeOkAsync(consumer, "tag", CancellationToken.None);
+
+            await dispatcher.DisposeAsync();
+
+            Assert.True(consumer.ShutdownReceived.IsCompleted,
+                "DisposeAsync returned before the consumer's shutdown notification had been "
+                + "delivered, so a caller inspecting the consumer afterwards sees stale state");
+        }
+
+        [Fact]
+        public async Task AsyncDisposeIsNotHeldHostageByASlowConsumer_GH1988()
+        {
+            /*
+             * The drain above is bounded, and best effort. Delivering a shutdown notification must
+             * never stop a channel being disposed, so a consumer whose callback is slow or stuck
+             * costs the bound and no more.
+             */
+            var consumer = new RecordingConsumer(shutdownDelay: TimeSpan.FromSeconds(30));
+            var dispatcher = new AsyncConsumerDispatcher(null, 1);
+
+            await dispatcher.HandleBasicConsumeOkAsync(consumer, "tag", CancellationToken.None);
+
+            var stopwatch = Stopwatch.StartNew();
+            await dispatcher.DisposeAsync();
+            stopwatch.Stop();
+
+            Assert.False(consumer.ShutdownReceived.IsCompleted,
+                "the deliberately slow callback finished, so this test is not exercising the bound");
+
+            Assert.True(stopwatch.Elapsed < TimeSpan.FromSeconds(10),
+                $"DisposeAsync took {stopwatch.Elapsed} waiting on a stuck consumer callback, so the "
+                + "drain is not bounded");
+        }
+
         private sealed class RecordingConsumer : IAsyncBasicConsumer
         {
             private readonly TaskCompletionSource<bool> _consumeOk =
                 new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
 
+            private readonly TaskCompletionSource<ShutdownEventArgs> _shutdown =
+                new TaskCompletionSource<ShutdownEventArgs>(TaskCreationOptions.RunContinuationsAsynchronously);
+
+            private readonly TimeSpan _shutdownDelay;
+
+            public RecordingConsumer(TimeSpan shutdownDelay = default)
+            {
+                _shutdownDelay = shutdownDelay;
+            }
+
             public Task ConsumeOkReceived => _consumeOk.Task;
+
+            /// <summary>
+            /// Completes with the reason once this consumer has been told the channel shut down.
+            /// </summary>
+            public Task<ShutdownEventArgs> ShutdownReceived => _shutdown.Task;
 
             public IChannel Channel => null;
 
@@ -203,8 +342,15 @@ namespace Test.Unit
                 ReadOnlyMemory<byte> body, CancellationToken cancellationToken = default)
                 => Task.CompletedTask;
 
-            public Task HandleChannelShutdownAsync(object channel, ShutdownEventArgs reason)
-                => Task.CompletedTask;
+            public async Task HandleChannelShutdownAsync(object channel, ShutdownEventArgs reason)
+            {
+                if (_shutdownDelay > TimeSpan.Zero)
+                {
+                    await Task.Delay(_shutdownDelay);
+                }
+
+                _shutdown.TrySetResult(reason);
+            }
         }
     }
 }
