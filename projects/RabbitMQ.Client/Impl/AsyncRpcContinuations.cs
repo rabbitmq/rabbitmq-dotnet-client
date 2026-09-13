@@ -78,8 +78,7 @@ namespace RabbitMQ.Client.Impl
                 _continuationTimeoutCancellationToken.UnsafeRegister(
                     callback: HandleContinuationTimeout, state: _tcs);
 #else
-            // state is the continuation, not the TCS: the callback needs the timeout token, which
-            // this Register overload does not supply.
+            // The continuation, not the TCS: this overload supplies no token to the callback.
             _continuationTimeoutCancellationTokenRegistration =
                 _continuationTimeoutCancellationToken.Register(
                     callback: HandleContinuationTimeout, state: this, useSynchronizationContext: false);
@@ -170,27 +169,13 @@ namespace RabbitMQ.Client.Impl
                 }
                 else if (_continuationTimeoutCancellationToken.IsCancellationRequested)
                 {
-                    /*
-                     * A continuation that outran ContinuationTimeout completes as cancelled, so the
-                     * awaiter sees an OperationCanceledException rather than a TimeoutException.
-                     * The token is passed on every target framework, deliberately: not because it
-                     * distinguishes a timeout from a caller cancel - it does not, the public docs
-                     * explain why - but so that the completing token is a real cancelled token
-                     * rather than CancellationToken.None, which is what a defaulted caller token
-                     * also looks like. Passing it on one framework only made netstandard report
-                     * None.
-                     * See rabbitmq/rabbitmq-dotnet-client#1996.
-                     */
+                    // Every framework, so the completing token is never CancellationToken.None.
+                    // See docs/internal/connection-shutdown-and-cancellation.md, issue #1996.
                     _tcs.TrySetCanceled(_continuationTimeoutCancellationToken);
                 }
                 else
                 {
-                    /*
-                     * Not a cancellation this continuation owns, so let it propagate. This branch is
-                     * load-bearing for the two above rather than merely tidy: without them the
-                     * exception would escape into frame dispatch, which no caller on that path
-                     * catches, and tear down the whole connection.
-                     */
+                    // Not a cancellation this continuation owns.
                     throw;
                 }
             }
@@ -229,19 +214,9 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        /*
-         * Reports the timeout as cancellation, not as a TimeoutException. A TaskCompletionSource
-         * completes once, so this TrySetCanceled is the whole result; an attempt to also set an
-         * exception afterwards could never reach the awaiter, which is why the previous attempt to
-         * do so was dead code. Note this callback does not always win: the linked source is created
-         * after this registration and cancellation callbacks run last-registered-first, so an
-         * awaiter released by the linked token can complete the source first, in which case this
-         * TrySetCanceled returns false. It is still the only timeout path when the broker never
-         * replies at all. The token is always passed so that the completing token is a real
-         * cancelled token on every target framework; it does not identify a timeout, because a
-         * caller cancel also completes with an internal token. See
-         * rabbitmq/rabbitmq-dotnet-client#1996.
-         */
+        // Completes the continuation as cancelled. Does not always win the race with the linked
+        // token, and does not identify a timeout to the caller: see
+        // docs/internal/connection-shutdown-and-cancellation.md, issue #1996.
 #if NET
         private static void HandleContinuationTimeout(object? state, CancellationToken cancellationToken)
         {
@@ -251,10 +226,7 @@ namespace RabbitMQ.Client.Impl
 #else
         private static void HandleContinuationTimeout(object state)
         {
-            // The non-NET Register overload supplies no token, so the continuation is the state and
-            // the token is read from it. Completing without a token here would leave a netstandard
-            // consumer observing CancellationToken.None, which is indistinguishable from a defaulted
-            // caller token.
+            // No token is supplied here, so read it from the continuation.
             var k = (AsyncRpcContinuation<T>)state;
             k._tcs.TrySetCanceled(k._continuationTimeoutCancellationToken);
         }
