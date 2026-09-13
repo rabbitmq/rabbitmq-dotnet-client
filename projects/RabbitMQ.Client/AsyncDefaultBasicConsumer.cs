@@ -39,9 +39,8 @@ namespace RabbitMQ.Client
         /// Returns true while the consumer is registered and expecting deliveries from the broker.
         /// </summary>
         /// <remarks>
-        /// Read and written with <see cref="Volatile"/>, because these are set from a dispatcher
-        /// worker and read from application threads. Without that a polling loop can be optimised
-        /// into a single read and never observe a change.
+        /// Safe to poll from another thread. See <see cref="ShutdownReason"/> for the case where this
+        /// stays <c>true</c> on a channel that has shut down.
         /// </remarks>
         public bool IsRunning => Volatile.Read(ref _isRunning);
 
@@ -50,38 +49,20 @@ namespace RabbitMQ.Client
         /// shutdown. Otherwise it will contain null. See <see cref="ShutdownEventArgs"/>.
         /// </summary>
         /// <remarks>
-        /// The default implementation of <see cref="HandleBasicConsumeOkAsync"/> clears this when the
-        /// broker confirms a registration, which includes automatic recovery re-registering the
-        /// consumer after a connection drop. A subclass that overrides that method without calling
-        /// the base implementation does not clear it.
+        /// Cleared when the broker confirms a registration, which includes automatic recovery
+        /// re-registering the consumer after a connection drop. So unlike previous versions the value
+        /// can go from non-null back to null: copy it to a local before dereferencing it.
         /// <para>
-        /// A reason therefore survives whenever no registration was confirmed afterwards. That
-        /// includes the default configuration: consumer recovery can fail per consumer, for instance
-        /// when the queue is gone after the drop, and recovery still reports success, so a non-null
-        /// reason after a recovery is the signal that this consumer was not restored. It also
-        /// includes a consumer excluded from topology recovery, whether by disabling it or through a
-        /// <see cref="TopologyRecoveryFilter"/>. A registration confirmed after the channel has begun
-        /// shutting down does not clear it either, so a consumer on a dead channel keeps reporting
-        /// the shutdown. Note that <see cref="IsRunning"/> is set on that path and is <b>not</b> reset
-        /// again afterwards - the only thing that clears it is a cancel, cancel-ok or channel-shutdown
-        /// notification, and the shutdown has already been delivered by then - so the pair rests
-        /// permanently at a non-null reason with <see cref="IsRunning"/> true. The reason is the one
-        /// to trust; do not wait for <see cref="IsRunning"/> to go false.
+        /// A reason that survives a recovery is the signal that this consumer was not restored -
+        /// recovery reports success even when an individual consumer could not be recovered. It is per
+        /// consumer instance rather than per tag, so for an instance registered under several tags one
+        /// confirmed registration clears it.
         /// </para>
         /// <para>
-        /// Two cautions. The value is per consumer instance, not per consumer tag, so for an instance
-        /// registered under several tags a single confirmed registration clears the reason even if
-        /// the other registrations were not restored. And unlike previous versions the value can go
-        /// from non-null back to null, so do not test it and then dereference the result; copy it to
-        /// a local first.
-        /// </para>
-        /// <para>
-        /// This and <see cref="IsRunning"/> are written separately and never published as a pair, at
-        /// any dispatch concurrency, so a reader can observe one updated and not the other. Above a
-        /// concurrency of one they are also written from concurrent workers. Note that a channel's
-        /// concurrency comes from <see cref="CreateChannelOptions.ConsumerDispatchConcurrency"/> when
-        /// set, which takes precedence over <see cref="IConnectionFactory.ConsumerDispatchConcurrency"/>.
-        /// See rabbitmq/rabbitmq-dotnet-client#2006 and rabbitmq/rabbitmq-dotnet-client#2016.
+        /// <see cref="IsRunning"/> can be <c>true</c> at the same time as a non-null reason, and stays
+        /// that way: trust the reason and do not wait for <see cref="IsRunning"/> to go false. The two
+        /// are written separately, so above a <c>ConsumerDispatchConcurrency</c> of one they can also
+        /// be observed disagreeing transiently - see rabbitmq/rabbitmq-dotnet-client#2016.
         /// </para>
         /// </remarks>
         public ShutdownEventArgs? ShutdownReason => Volatile.Read(ref _shutdownReason);
@@ -124,25 +105,10 @@ namespace RabbitMQ.Client
             _consumerTags.Add(consumerTag);
 
             /*
-             * The broker has accepted this registration, so clear any reason left from an earlier
-             * shutdown; see the ShutdownReason docs for the full contract. The token is the
-             * dispatcher's shutdown token, cancelled by Quiesce(), and it is what keeps this reset
-             * fail-safe: a registration confirmed after the channel began shutting down must not
-             * clear the reason, or a consumer on a permanently dead channel would report a null
-             * reason with IsRunning true, which reads as fully healthy.
-             *
-             * Note that the dispatcher queue is what rules that interleaving *out* at a dispatch
-             * concurrency of one, rather than what makes it reachable: the queue is FIFO with a
-             * single reader, so a consume-ok already in it is processed before the shutdown items
-             * ShutdownAsync writes afterwards, and Quiesce() sets IsQuiescing so no new consume-ok
-             * is enqueued after that. Two things still reach it. Above a concurrency of one,
-             * separate workers take the consume-ok and the shutdown item concurrently and nothing
-             * orders them. And at any concurrency the dispatcher's IsQuiescing check and its write
-             * are not atomic, so a consume-ok can pass the check, be preempted, and land behind
-             * the shutdown items - ConsumerDispatcherBase.ShutdownAsync writes those and only then
-             * completes the channel, so there is a window where a late write still succeeds.
-             *
-             * See rabbitmq/rabbitmq-dotnet-client#2006.
+             * Skipped when the dispatcher's shutdown token is already cancelled, so a registration
+             * confirmed after the channel began shutting down cannot clear the reason and leave a
+             * dead channel reading as healthy. Reachable for reasons that are not the obvious ones:
+             * see docs/internal/connection-shutdown-and-cancellation.md, issue #2006.
              */
             if (false == cancellationToken.IsCancellationRequested)
             {
