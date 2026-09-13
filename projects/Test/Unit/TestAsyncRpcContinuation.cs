@@ -108,6 +108,41 @@ namespace Test.Unit
         }
 
         [Fact]
+        public async Task TestATimeoutCompletesWithAnInternalCancelledToken_GH1996()
+        {
+            /*
+             * A continuation that outruns ContinuationTimeout completes as cancelled, so a caller
+             * cannot tell a timeout from its own cancellation by exception type. Nor by the token:
+             * this pins that the completing token is internal rather than the caller's, which is
+             * exactly why the public documentation tells callers not to compare the two - the answer
+             * is the same for a caller cancel, which completes with a different internal token.
+             *
+             * Two properties are pinned, and neither is the one the guidance infers from. The
+             * guidance rests on the caller's own token being untouched by a timeout, and that cannot
+             * be asserted against: the library only ever receives a CancellationToken, never a
+             * source, so no change to production code could cancel the caller's source and the
+             * assertion would pass unconditionally. It reads as coverage without being any.
+             *
+             * What is pinnable: the token must be a real cancelled token rather than
+             * CancellationToken.None, which is what a defaulted caller token also looks like and
+             * what the netstandard2.0 arm reported before the fix; and it must not be the caller's.
+             * See issue #2019 for whether a timeout should be positively identifiable at all.
+             */
+            using var callerCts = new CancellationTokenSource();
+            using var k = new SimpleAsyncRpcContinuation(ProtocolCommandId.ExchangeDeclareOk,
+                s_continuationTimeout, callerCts.Token);
+
+            k.StartTimeout();
+
+            OperationCanceledException ex =
+                await Assert.ThrowsAnyAsync<OperationCanceledException>(async () => await k);
+
+            Assert.NotEqual(CancellationToken.None, ex.CancellationToken);
+            Assert.True(ex.CancellationToken.IsCancellationRequested);
+            Assert.NotEqual(callerCts.Token, ex.CancellationToken);
+        }
+
+        [Fact]
         public void TestStartTimeoutAfterDisposeDoesNotThrow()
         {
             var k = new SimpleAsyncRpcContinuation(ProtocolCommandId.ExchangeDeclareOk,
