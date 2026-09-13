@@ -154,6 +154,7 @@ namespace RabbitMQ.Client.Impl
                  * the confirmation await. See issue #1967.
                  */
                 Activity? sendActivity = null;
+                ResolvedTracingOptions tracing = default;
                 /*
                  * Tracks the exception (if any) already recorded on sendActivity by the
                  * catch below, so the finally's confirmation-await catch does not record
@@ -165,9 +166,12 @@ namespace RabbitMQ.Client.Impl
                 Exception? recordedSendError = null;
                 try
                 {
-                    sendActivity = RabbitMQActivitySource.PublisherHasListeners
-                        ? RabbitMQActivitySource.BasicPublish(routingKey, exchange, body.Length, basicProperties, TracingOptions)
-                        : default;
+                    if (RabbitMQActivitySource.PublisherHasListeners)
+                    {
+                        tracing = RabbitMQActivitySource.ResolveTracingOptions(TracingOptions);
+                        sendActivity = RabbitMQActivitySource.BasicPublish(routingKey, exchange, body.Length,
+                            basicProperties, tracing);
+                    }
 
                     publisherConfirmationInfo = MaybeStartPublisherConfirmationTracking();
 
@@ -176,7 +180,7 @@ namespace RabbitMQ.Client.Impl
 
                     ulong publishSequenceNumber = publisherConfirmationInfo?.PublishSequenceNumber ?? 0;
 
-                    BasicProperties? props = PopulateBasicPropertiesHeaders(basicProperties, sendActivity, publishSequenceNumber);
+                    BasicProperties? props = PopulateBasicPropertiesHeaders(basicProperties, tracing, sendActivity, publishSequenceNumber);
                     bodyOwnerTransferred = true;
                     if (props is null)
                     {
@@ -307,6 +311,7 @@ namespace RabbitMQ.Client.Impl
                  * the confirmation await. See issue #1967.
                  */
                 Activity? sendActivity = null;
+                ResolvedTracingOptions tracing = default;
                 /*
                  * Tracks the exception (if any) already recorded on sendActivity by the
                  * catch below, so the finally's confirmation-await catch does not record
@@ -318,9 +323,12 @@ namespace RabbitMQ.Client.Impl
                 Exception? recordedSendError = null;
                 try
                 {
-                    sendActivity = RabbitMQActivitySource.PublisherHasListeners
-                        ? RabbitMQActivitySource.BasicPublish(routingKey, exchange, (int)body.Length, basicProperties, TracingOptions)
-                        : default;
+                    if (RabbitMQActivitySource.PublisherHasListeners)
+                    {
+                        tracing = RabbitMQActivitySource.ResolveTracingOptions(TracingOptions);
+                        sendActivity = RabbitMQActivitySource.BasicPublish(routingKey, exchange, (int)body.Length,
+                            basicProperties, tracing);
+                    }
 
                     publisherConfirmationInfo = MaybeStartPublisherConfirmationTracking();
 
@@ -329,7 +337,7 @@ namespace RabbitMQ.Client.Impl
 
                     ulong publishSequenceNumber = publisherConfirmationInfo?.PublishSequenceNumber ?? 0;
 
-                    BasicProperties? props = PopulateBasicPropertiesHeaders(basicProperties, sendActivity, publishSequenceNumber);
+                    BasicProperties? props = PopulateBasicPropertiesHeaders(basicProperties, tracing, sendActivity, publishSequenceNumber);
                     bodyOwnerTransferred = true;
                     if (props is null)
                     {
@@ -424,6 +432,7 @@ namespace RabbitMQ.Client.Impl
         }
 
         private BasicProperties? PopulateBasicPropertiesHeaders<TProperties>(TProperties basicProperties,
+            ResolvedTracingOptions tracing,
             Activity? sendActivity, ulong publishSequenceNumber)
             where TProperties : IReadOnlyBasicProperties, IAmqpHeader
         {
@@ -446,7 +455,7 @@ namespace RabbitMQ.Client.Impl
                 headers = new Dictionary<string, object?>();
                 newHeaders = true;
             }
-            MaybeAddActivityToHeaders(headers, basicProperties.CorrelationId, sendActivity);
+            MaybeAddActivityToHeaders(headers, basicProperties.CorrelationId, sendActivity, tracing);
             MaybeAddPublishSequenceNumberToHeaders(headers);
 
             switch (basicProperties)
@@ -464,7 +473,7 @@ namespace RabbitMQ.Client.Impl
             }
 
             void MaybeAddActivityToHeaders(IDictionary<string, object?> headers,
-                string? correlationId, Activity? sendActivity)
+                string? correlationId, Activity? sendActivity, ResolvedTracingOptions tracing)
             {
                 if (sendActivity is not null)
                 {
@@ -478,7 +487,9 @@ namespace RabbitMQ.Client.Impl
                     }
 
                     // Inject the ActivityContext into the message headers to propagate trace context to the receiving service.
-                    RabbitMQActivitySource.ResolveTracingOptions(TracingOptions).ContextInjector(sendActivity, headers);
+                    // Resolved once by the caller: two resolves could give one span its name from one
+                    // configuration and its propagated context from another.
+                    tracing.ContextInjector(sendActivity, headers);
                 }
             }
 

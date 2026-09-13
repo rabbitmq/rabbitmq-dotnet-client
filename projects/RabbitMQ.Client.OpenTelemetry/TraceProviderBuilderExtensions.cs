@@ -38,26 +38,27 @@ namespace OpenTelemetry.Trace
         /// </para>
         /// </remarks>
         public static ConnectionFactory UseOpenTelemetryTracing(this ConnectionFactory connectionFactory,
-            Action<RabbitMQTracingOptions> configure = null)
+            Action<ConnectionTracingOptions> configure = null)
         {
             if (connectionFactory is null)
             {
                 throw new ArgumentNullException(nameof(connectionFactory));
             }
 
-            RabbitMQTracingOptions existing = connectionFactory.TracingOptions;
-            var options = new RabbitMQTracingOptions
+            /*
+             * Mutate the factory's own options rather than replacing them. Replacing is what made the
+             * two configuration points mutually exclusive: whatever the caller had already set was
+             * silently dropped. Members the caller left null keep inheriting the process-wide layer.
+             */
+            ConnectionTracingOptions options = connectionFactory.TracingOptions;
+            if (options is null)
             {
-                ContextInjector = OpenTelemetryContextInjector,
-                ContextExtractor = OpenTelemetryContextExtractor
-            };
-            if (existing != null)
-            {
-                options.UseRoutingKeyAsOperationName = existing.UseRoutingKeyAsOperationName;
-                options.UsePublisherAsParent = existing.UsePublisherAsParent;
+                options = new ConnectionTracingOptions();
+                connectionFactory.TracingOptions = options;
             }
+
+            options.Propagator = new OpenTelemetryPropagator();
             configure?.Invoke(options);
-            connectionFactory.TracingOptions = options;
 
             return connectionFactory;
         }
@@ -69,7 +70,7 @@ namespace OpenTelemetry.Trace
         /// separately.
         /// </summary>
         public static TracerProviderBuilder AddRabbitMQInstrumentation(this TracerProviderBuilder builder,
-            ConnectionFactory connectionFactory, Action<RabbitMQTracingOptions> configure = null)
+            ConnectionFactory connectionFactory, Action<ConnectionTracingOptions> configure = null)
         {
             connectionFactory.UseOpenTelemetryTracing(configure);
 
@@ -100,11 +101,10 @@ namespace OpenTelemetry.Trace
         public static TracerProviderBuilder AddRabbitMQInstrumentation(this TracerProviderBuilder builder, Action<RabbitMQTracingOptions> configure)
         {
             /*
-             * The OpenTelemetry delegates are applied before `configure` runs, so a caller that sets
-             * ContextInjector or ContextExtractor in `configure` replaces them - matching
-             * UseOpenTelemetryTracing. Applying them afterwards would silently discard a custom
-             * delegate, because assigning RabbitMQActivitySource.TracingOptions copies only the
-             * span-shaping flags out of the instance.
+             * One reference assignment, so the flags and the delegates become visible together. The
+             * previous version assigned the instance and then wrote the two delegate statics as well,
+             * which is three writes into live shared state for no gain: the instance already carries
+             * them.
              */
             var options = new RabbitMQTracingOptions
             {
@@ -115,8 +115,6 @@ namespace OpenTelemetry.Trace
 
 #pragma warning disable CS0618 // the statics are the process-wide default this overload exists to set
             RabbitMQActivitySource.TracingOptions = options;
-            RabbitMQActivitySource.ContextInjector = options.ContextInjector;
-            RabbitMQActivitySource.ContextExtractor = options.ContextExtractor;
 #pragma warning restore CS0618
 
             builder.AddSource(ActivitySourceNamePattern);
@@ -134,6 +132,10 @@ namespace OpenTelemetry.Trace
         {
             return AddRabbitMQInstrumentation(builder, (Action<RabbitMQTracingOptions>)null);
         }
+
+        // The process-wide layer is delegate-shaped, so drive the same bridge through it rather than
+        // keeping a second propagation implementation in this file.
+        private static readonly OpenTelemetryPropagator s_propagator = new OpenTelemetryPropagator();
 
         private static ActivityContext OpenTelemetryContextExtractor(IReadOnlyBasicProperties props)
         {

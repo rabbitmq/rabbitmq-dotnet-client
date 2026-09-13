@@ -1,3 +1,9 @@
+RabbitMQ.Client.OpenTelemetryPropagator
+RabbitMQ.Client.OpenTelemetryPropagator.OpenTelemetryPropagator() -> void
+override RabbitMQ.Client.OpenTelemetryPropagator.ExtractBaggage(object carrier, System.Diagnostics.DistributedContextPropagator.PropagatorGetterCallback getter) -> System.Collections.Generic.IEnumerable<System.Collections.Generic.KeyValuePair<string, string>>
+override RabbitMQ.Client.OpenTelemetryPropagator.ExtractTraceIdAndState(object carrier, System.Diagnostics.DistributedContextPropagator.PropagatorGetterCallback getter, out string traceId, out string traceState) -> void
+override RabbitMQ.Client.OpenTelemetryPropagator.Fields.get -> System.Collections.Generic.IReadOnlyCollection<string>
+override RabbitMQ.Client.OpenTelemetryPropagator.Inject(System.Diagnostics.Activity activity, object carrier, System.Diagnostics.DistributedContextPropagator.PropagatorSetterCallback setter) -> void
+~static OpenTelemetry.Trace.OpenTelemetryExtensions.AddRabbitMQInstrumentation(this OpenTelemetry.Trace.TracerProviderBuilder builder, RabbitMQ.Client.ConnectionFactory connectionFactory, System.Action<RabbitMQ.Client.ConnectionTracingOptions> configure = null) -> OpenTelemetry.Trace.TracerProviderBuilder
 ~static OpenTelemetry.Trace.OpenTelemetryExtensions.AddRabbitMQInstrumentation(this OpenTelemetry.Trace.TracerProviderBuilder builder, System.Action<RabbitMQ.Client.RabbitMQTracingOptions> configure) -> OpenTelemetry.Trace.TracerProviderBuilder
-~static OpenTelemetry.Trace.OpenTelemetryExtensions.AddRabbitMQInstrumentation(this OpenTelemetry.Trace.TracerProviderBuilder builder, RabbitMQ.Client.ConnectionFactory connectionFactory, System.Action<RabbitMQ.Client.RabbitMQTracingOptions> configure = null) -> OpenTelemetry.Trace.TracerProviderBuilder
-~static OpenTelemetry.Trace.OpenTelemetryExtensions.UseOpenTelemetryTracing(this RabbitMQ.Client.ConnectionFactory connectionFactory, System.Action<RabbitMQ.Client.RabbitMQTracingOptions> configure = null) -> RabbitMQ.Client.ConnectionFactory
+~static OpenTelemetry.Trace.OpenTelemetryExtensions.UseOpenTelemetryTracing(this RabbitMQ.Client.ConnectionFactory connectionFactory, System.Action<RabbitMQ.Client.ConnectionTracingOptions> configure = null) -> RabbitMQ.Client.ConnectionFactory

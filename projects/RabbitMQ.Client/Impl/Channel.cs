@@ -67,11 +67,24 @@ namespace RabbitMQ.Client.Impl
         /// <summary>
         /// The tracing configuration the owning connection captured at creation, or null when the
         /// factory set none and the deprecated process-wide statics apply. Read on the publish, get,
-        /// and deliver paths so those spans reflect this connection's configuration. Resolved lazily
-        /// through the session rather than captured in the constructor, so a channel built over a test
-        /// session that supplies no connection is not forced to touch it. See issue #1981.
+        /// and deliver paths so those spans reflect this connection's configuration. Captured in the
+        /// constructor from the channel options, which already copy the values a channel needs out of
+        /// ConnectionConfig. Walking Session.Connection instead put an unguarded dereference on the
+        /// deliver path and read Session before the constructor had assigned it. See issue #1981.
         /// </summary>
-        internal RabbitMQTracingOptions? TracingOptions => Session.Connection.TracingOptions;
+        internal ConnectionTracingOptions? TracingOptions { get; }
+
+        // One resolve per basic.get, shared by the hit and the empty branch. Two resolves could
+        // straddle a change to the process-wide default and give one span its name from one
+        // configuration and its context from another.
+        private Activity? BasicGetActivity(string queue, BasicGetResult? result)
+        {
+            ResolvedTracingOptions tracing = RabbitMQActivitySource.ResolveTracingOptions(TracingOptions);
+            return result != null
+                ? RabbitMQActivitySource.BasicGet(result.RoutingKey, result.Exchange, result.DeliveryTag,
+                    result.BasicProperties, result.Body.Length, tracing)
+                : RabbitMQActivitySource.BasicGetEmpty(queue, tracing);
+        }
 
         private bool _disposed;
         private int _isDisposing;
@@ -79,6 +92,7 @@ namespace RabbitMQ.Client.Impl
         public Channel(ISession session, CreateChannelOptions createChannelOptions)
         {
             ContinuationTimeout = createChannelOptions.ContinuationTimeout;
+            TracingOptions = createChannelOptions.TracingOptions;
             ConsumerDispatcher = new AsyncConsumerDispatcher(this, createChannelOptions.InternalConsumerDispatchConcurrency);
             Func<Exception, string, CancellationToken, Task> onExceptionAsync = (exception, context, cancellationToken) =>
                 OnCallbackExceptionAsync(CallbackExceptionEventArgs.Build(exception, context, cancellationToken));
@@ -1164,15 +1178,10 @@ namespace RabbitMQ.Client.Impl
                 {
                     BasicGetResult? result = await k;
 
-                    // Gate on listeners before reading TracingOptions (which walks Session.Connection),
-                    // matching the publish path and honouring the "no connection is touched when tracing
-                    // is off" contract on Channel.TracingOptions.
+                    // Resolve once for this operation and only after the listener gate, so a
+                    // no-listener get pays nothing.
                     using Activity? activity = RabbitMQActivitySource.SubscriberHasListeners
-                        ? (result != null
-                            ? RabbitMQActivitySource.BasicGet(result.RoutingKey,
-                                result.Exchange,
-                                result.DeliveryTag, result.BasicProperties, result.Body.Length, TracingOptions)
-                            : RabbitMQActivitySource.BasicGetEmpty(queue, TracingOptions))
+                        ? BasicGetActivity(queue, result)
                         : null;
 
                     activity?.SetStartTime(k.StartTime);

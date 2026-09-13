@@ -41,6 +41,7 @@ namespace RabbitMQ.Client
     {
         private ushort? _connectionConfigConsumerDispatchConcurrency;
         private TimeSpan _connectionConfigContinuationTimeout;
+        private ConnectionTracingOptions? _connectionConfigTracingOptions;
 
         /// <summary>
         /// Enable or disable publisher confirmations on this channel. Defaults to <c>false</c>
@@ -119,16 +120,20 @@ namespace RabbitMQ.Client
 
         internal TimeSpan ContinuationTimeout => _connectionConfigContinuationTimeout;
 
+        internal ConnectionTracingOptions? TracingOptions => _connectionConfigTracingOptions;
+
         internal CreateChannelOptions(ConnectionConfig connectionConfig)
         {
             _connectionConfigConsumerDispatchConcurrency = connectionConfig.ConsumerDispatchConcurrency;
             _connectionConfigContinuationTimeout = connectionConfig.ContinuationTimeout;
+            _connectionConfigTracingOptions = connectionConfig.TracingOptions;
         }
 
         private CreateChannelOptions WithConnectionConfig(ConnectionConfig connectionConfig)
         {
             _connectionConfigConsumerDispatchConcurrency = connectionConfig.ConsumerDispatchConcurrency;
             _connectionConfigContinuationTimeout = connectionConfig.ContinuationTimeout;
+            _connectionConfigTracingOptions = connectionConfig.TracingOptions;
             return this;
         }
 

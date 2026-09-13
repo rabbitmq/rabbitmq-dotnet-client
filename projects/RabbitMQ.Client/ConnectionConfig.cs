@@ -154,7 +154,7 @@ namespace RabbitMQ.Client
         /// connection falls back to the deprecated process-wide statics on
         /// <see cref="RabbitMQActivitySource"/>, read live at each operation.
         /// </summary>
-        internal readonly RabbitMQTracingOptions? TracingOptions;
+        internal readonly ConnectionTracingOptions? TracingOptions;
 
         internal ConnectionConfig(string virtualHost, string userName, string password,
             ICredentialsProvider? credentialsProvider,
@@ -163,7 +163,7 @@ namespace RabbitMQ.Client
             ushort maxChannelCount, uint maxFrameSize, uint maxInboundMessageBodySize, bool topologyRecoveryEnabled,
             TopologyRecoveryFilter topologyRecoveryFilter, TopologyRecoveryExceptionHandler topologyRecoveryExceptionHandler,
             TimeSpan networkRecoveryInterval, TimeSpan heartbeatInterval, TimeSpan continuationTimeout, TimeSpan handshakeContinuationTimeout, TimeSpan requestedConnectionTimeout,
-            ushort consumerDispatchConcurrency, RabbitMQTracingOptions? tracingOptions,
+            ushort consumerDispatchConcurrency, ConnectionTracingOptions? tracingOptions,
             Func<AmqpTcpEndpoint, CancellationToken, Task<IFrameHandler>> frameHandlerFactoryAsync)
         {
             VirtualHost = virtualHost;

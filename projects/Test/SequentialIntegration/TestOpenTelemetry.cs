@@ -195,12 +195,10 @@ namespace Test.SequentialIntegration
             ConnectionFactory returned = cf.UseOpenTelemetryTracing(options =>
             {
                 options.UseRoutingKeyAsOperationName = false;
-                var openTelemetryInjector = options.ContextInjector;
-                options.ContextInjector = (activity, headers) =>
-                {
-                    openTelemetryInjector(activity, headers);
-                    headers[markerHeader] = Encoding.UTF8.GetBytes(marker);
-                };
+                // Customising propagation means decorating the propagator, which is the extension
+                // point a library is supposed to offer. UseOpenTelemetryTracing has already installed
+                // the OpenTelemetry bridge, so wrap whatever it put there rather than assuming.
+                options.Propagator = new MarkerAddingPropagator(options.Propagator, markerHeader, marker);
             });
             Assert.Same(cf, returned);
 
@@ -662,6 +660,40 @@ namespace Test.SequentialIntegration
                 AssertStringTagEquals(sendActivity, RabbitMQActivitySource.MessageId, messageId);
                 AssertStringTagEquals(receiveActivity, RabbitMQActivitySource.MessageId, messageId);
             }
+        }
+
+        /*
+         * Adds one extra header on inject and defers everything else, including baggage handling, to
+         * the propagator it wraps. This is the shape of a caller extending propagation under the
+         * ConnectionTracingOptions.Propagator API.
+         */
+        private sealed class MarkerAddingPropagator : DistributedContextPropagator
+        {
+            private readonly DistributedContextPropagator _inner;
+            private readonly string _headerName;
+            private readonly string _headerValue;
+
+            public MarkerAddingPropagator(DistributedContextPropagator inner, string headerName, string headerValue)
+            {
+                _inner = inner ?? throw new ArgumentNullException(nameof(inner));
+                _headerName = headerName;
+                _headerValue = headerValue;
+            }
+
+            public override IReadOnlyCollection<string> Fields => _inner.Fields;
+
+            public override void Inject(Activity activity, object carrier, PropagatorSetterCallback setter)
+            {
+                _inner.Inject(activity, carrier, setter);
+                setter(carrier, _headerName, _headerValue);
+            }
+
+            public override void ExtractTraceIdAndState(object carrier, PropagatorGetterCallback getter,
+                out string traceId, out string traceState)
+                => _inner.ExtractTraceIdAndState(carrier, getter, out traceId, out traceState);
+
+            public override IEnumerable<KeyValuePair<string, string>> ExtractBaggage(object carrier,
+                PropagatorGetterCallback getter) => _inner.ExtractBaggage(carrier, getter);
         }
     }
 }

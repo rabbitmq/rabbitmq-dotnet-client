@@ -72,20 +72,16 @@ namespace RabbitMQ.Client
          * opt out, with no owner and no way to undo it, which is what #1981 reported. Configuration
          * that belongs to a connection now goes on ConnectionFactory.TracingOptions.
          *
-         * TracingOptions assigns by reference, as it always has. Note the tension that leaves, which
-         * is the unresolved part of #1981: because the delegates now live on RabbitMQTracingOptions,
-         * replacing the instance replaces them along with the span-shaping options. Copying only the
-         * flags out of the assigned instance would preserve a previously configured injector, but it
-         * permanently breaks save-then-restore, because the getter hands back the very instance the
-         * setter copies into - so a restore becomes a self-assignment and the process keeps the
-         * temporary values for its lifetime. Reference assignment is the lesser evil and
-         * TestTracingConfiguration pins it. The real fix is per-member fallback, which needs an API
-         * shape this type cannot express; see docs/internal/opentelemetry-tracing-review.md.
+         * TracingOptions assigns by reference, as it always has, so replacing the instance replaces
+         * the delegates with it. That is confined to this process-wide layer now: a connection
+         * inherits member by member from it, so setting one thing on a factory no longer discards
+         * the rest. See docs/internal/opentelemetry-tracing-review.md.
          */
         private const string ObsoleteMessage =
             "Setting tracing configuration directly on these process-wide statics is deprecated. " +
-            "Configure ConnectionFactory.TracingOptions instead, which is owned by the connection " +
-            "that performs the traced operations, or call AddRabbitMQInstrumentation from the " +
+            "Set ConnectionFactory.TracingOptions instead, which is owned by the connection that " +
+            "performs the traced operations; for propagation set ConnectionTracingOptions.Propagator " +
+            "rather than these delegates, or call AddRabbitMQInstrumentation from the " +
             "RabbitMQ.Client.OpenTelemetry package to set the process-wide default. These members " +
             "will be removed in a future major version. " +
             "See https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1981.";
@@ -96,10 +92,12 @@ namespace RabbitMQ.Client
         /// <see cref="DistributedContextPropagator.Current"/>.
         /// </summary>
         /// <remarks>
-        /// Process-wide: used by every connection whose factory set no
-        /// <see cref="ConnectionFactory.TracingOptions"/>, so the last assignment wins and nothing
+        /// Process-wide: used by every connection that set no
+        /// <see cref="ConnectionTracingOptions.Propagator"/>, so the last assignment wins and nothing
         /// restores a previous value. Assigning <see langword="null"/> throws
-        /// <see cref="ArgumentNullException"/>.
+        /// <see cref="ArgumentNullException"/>. Prefer
+        /// <see cref="ConnectionTracingOptions.Propagator"/>, which a library can express without an
+        /// OpenTelemetry dependency.
         /// </remarks>
         [Obsolete(ObsoleteMessage)]
         public static Action<Activity, IDictionary<string, object?>> ContextInjector
@@ -114,10 +112,12 @@ namespace RabbitMQ.Client
         /// <see cref="DistributedContextPropagator.Current"/>.
         /// </summary>
         /// <remarks>
-        /// Process-wide: used by every connection whose factory set no
-        /// <see cref="ConnectionFactory.TracingOptions"/>, so the last assignment wins and nothing
+        /// Process-wide: used by every connection that set no
+        /// <see cref="ConnectionTracingOptions.Propagator"/>, so the last assignment wins and nothing
         /// restores a previous value. Assigning <see langword="null"/> throws
-        /// <see cref="ArgumentNullException"/>.
+        /// <see cref="ArgumentNullException"/>. Prefer
+        /// <see cref="ConnectionTracingOptions.Propagator"/>, which a library can express without an
+        /// OpenTelemetry dependency.
         /// </remarks>
         [Obsolete(ObsoleteMessage)]
         public static Func<IReadOnlyBasicProperties, ActivityContext> ContextExtractor
@@ -161,13 +161,31 @@ namespace RabbitMQ.Client
         internal static bool SubscriberHasListeners => s_subscriberSource.HasListeners();
 
         /*
-         * A connection captures its factory's RabbitMQTracingOptions, or null when the factory set
-         * none. Null resolves to the process-wide default, read live at each operation, exactly as
-         * before per-connection configuration existed - this is what keeps the deprecated global path
-         * working. Callers resolve once and read all options from the returned instance. See #1981.
+         * Resolve per member, not per object. A whole-object fallback meant that setting one
+         * span-shaping flag on a factory also replaced the propagation delegates with a fresh
+         * object's defaults, silently switching that connection off whatever the process-wide layer
+         * had installed. See #1981 and docs/internal/opentelemetry-tracing-review.md.
+         *
+         * A propagator set by the owner wins over process-wide delegates: the more specific owner
+         * beats the process default, as it does for the flags.
          */
-        internal static RabbitMQTracingOptions ResolveTracingOptions(RabbitMQTracingOptions? tracing)
-            => tracing ?? s_tracingOptions;
+        internal static ResolvedTracingOptions ResolveTracingOptions(ConnectionTracingOptions? tracing)
+        {
+            RabbitMQTracingOptions process = s_tracingOptions;
+
+            bool useRoutingKey = tracing?.UseRoutingKeyAsOperationName ?? process.UseRoutingKeyAsOperationName;
+            bool usePublisherAsParent = tracing?.UsePublisherAsParent ?? process.UsePublisherAsParent;
+
+            if (tracing?.Propagator is not null)
+            {
+                PropagatorAdapter adapter = tracing.GetOrCreateAdapter();
+                return new ResolvedTracingOptions(useRoutingKey, usePublisherAsParent,
+                    adapter.Injector, adapter.Extractor);
+            }
+
+            return new ResolvedTracingOptions(useRoutingKey, usePublisherAsParent,
+                process.ContextInjector, process.ContextExtractor);
+        }
 
         /*
          * Both PopulateMessageEnvelopeSize and Connection.WriteAsync tag whatever
@@ -232,20 +250,19 @@ namespace RabbitMQ.Client
         }
 
         internal static Activity? BasicPublish(string routingKey, string exchange, int bodySize, IReadOnlyBasicProperties basicProperties,
-            RabbitMQTracingOptions? tracing, ActivityContext linkedContext = default)
+            ResolvedTracingOptions tracing, ActivityContext linkedContext = default)
         {
             if (!s_publisherSource.HasListeners())
             {
                 return null;
             }
 
-            RabbitMQTracingOptions effective = ResolveTracingOptions(tracing);
             Activity? activity = linkedContext == default
                 ? s_publisherSource.StartRabbitMQActivity(
-                    effective.UseRoutingKeyAsOperationName ? $"{MessagingOperationNameBasicPublish} {routingKey}" : MessagingOperationNameBasicPublish,
+                    tracing.UseRoutingKeyAsOperationName ? $"{MessagingOperationNameBasicPublish} {routingKey}" : MessagingOperationNameBasicPublish,
                     ActivityKind.Producer)
                 : s_publisherSource.StartLinkedRabbitMQActivity(
-                    effective.UseRoutingKeyAsOperationName ? $"{MessagingOperationNameBasicPublish} {routingKey}" : MessagingOperationNameBasicPublish,
+                    tracing.UseRoutingKeyAsOperationName ? $"{MessagingOperationNameBasicPublish} {routingKey}" : MessagingOperationNameBasicPublish,
                     ActivityKind.Producer, linkedContext);
             if (activity != null && activity.IsAllDataRequested)
             {
@@ -255,7 +272,7 @@ namespace RabbitMQ.Client
             return activity;
         }
 
-        internal static Activity? BasicGetEmpty(string queue, RabbitMQTracingOptions? tracing)
+        internal static Activity? BasicGetEmpty(string queue, ResolvedTracingOptions tracing)
         {
             if (!s_subscriberSource.HasListeners())
             {
@@ -263,7 +280,7 @@ namespace RabbitMQ.Client
             }
 
             Activity? activity = s_subscriberSource.StartRabbitMQActivity(
-                ResolveTracingOptions(tracing).UseRoutingKeyAsOperationName ? $"{MessagingOperationNameBasicGetEmpty} {queue}" : MessagingOperationNameBasicGetEmpty,
+                tracing.UseRoutingKeyAsOperationName ? $"{MessagingOperationNameBasicGetEmpty} {queue}" : MessagingOperationNameBasicGetEmpty,
                 ActivityKind.Consumer);
             if (activity != null && activity.IsAllDataRequested)
             {
@@ -277,7 +294,7 @@ namespace RabbitMQ.Client
         }
 
         internal static Activity? BasicGet(string routingKey, string exchange, ulong deliveryTag,
-            IReadOnlyBasicProperties readOnlyBasicProperties, int bodySize, RabbitMQTracingOptions? tracing)
+            IReadOnlyBasicProperties readOnlyBasicProperties, int bodySize, ResolvedTracingOptions tracing)
         {
             if (!s_subscriberSource.HasListeners())
             {
@@ -285,12 +302,11 @@ namespace RabbitMQ.Client
             }
 
             // Extract the PropagationContext of the upstream parent from the message headers.
-            RabbitMQTracingOptions effective = ResolveTracingOptions(tracing);
-            ActivityContext linkedContext = effective.ContextExtractor(readOnlyBasicProperties);
-            ActivityContext parentContext = effective.UsePublisherAsParent ? linkedContext : default;
+            ActivityContext linkedContext = tracing.ContextExtractor(readOnlyBasicProperties);
+            ActivityContext parentContext = tracing.UsePublisherAsParent ? linkedContext : default;
 
             Activity? activity = s_subscriberSource.StartLinkedRabbitMQActivity(
-                effective.UseRoutingKeyAsOperationName ? $"{MessagingOperationNameBasicGet} {routingKey}" : MessagingOperationNameBasicGet, ActivityKind.Consumer,
+                tracing.UseRoutingKeyAsOperationName ? $"{MessagingOperationNameBasicGet} {routingKey}" : MessagingOperationNameBasicGet, ActivityKind.Consumer,
                 linkedContext, parentContext);
 
 
@@ -304,7 +320,7 @@ namespace RabbitMQ.Client
         }
 
         internal static Activity? Deliver(string routingKey, string exchange, ulong deliveryTag,
-            IReadOnlyBasicProperties readOnlyBasicProperties, int bodySize, RabbitMQTracingOptions? tracing)
+            IReadOnlyBasicProperties readOnlyBasicProperties, int bodySize, ResolvedTracingOptions tracing)
         {
             if (!s_subscriberSource.HasListeners())
             {
@@ -312,12 +328,11 @@ namespace RabbitMQ.Client
             }
 
             // Extract the PropagationContext of the upstream parent from the message headers.
-            RabbitMQTracingOptions effective = ResolveTracingOptions(tracing);
-            ActivityContext linkedContext = effective.ContextExtractor(readOnlyBasicProperties);
-            ActivityContext parentContext = effective.UsePublisherAsParent ? linkedContext : default;
+            ActivityContext linkedContext = tracing.ContextExtractor(readOnlyBasicProperties);
+            ActivityContext parentContext = tracing.UsePublisherAsParent ? linkedContext : default;
 
             Activity? activity = s_subscriberSource.StartLinkedRabbitMQActivity(
-                effective.UseRoutingKeyAsOperationName ? $"{MessagingOperationNameBasicDeliver} {routingKey}" : MessagingOperationNameBasicDeliver,
+                tracing.UseRoutingKeyAsOperationName ? $"{MessagingOperationNameBasicDeliver} {routingKey}" : MessagingOperationNameBasicDeliver,
                 ActivityKind.Consumer, linkedContext, parentContext);
             if (activity != null && activity.IsAllDataRequested)
             {

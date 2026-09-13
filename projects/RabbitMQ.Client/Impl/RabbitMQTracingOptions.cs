@@ -49,7 +49,7 @@ namespace RabbitMQ.Client
         /// <see cref="DistributedContextPropagator.Current"/>. Assigning <see langword="null"/>
         /// throws <see cref="ArgumentNullException"/>.
         /// </summary>
-        public Action<Activity, IDictionary<string, object?>> ContextInjector
+        internal Action<Activity, IDictionary<string, object?>> ContextInjector
         {
             get => _contextInjector;
             set => _contextInjector = value ?? throw new ArgumentNullException(nameof(value));
@@ -61,7 +61,7 @@ namespace RabbitMQ.Client
         /// <see cref="DistributedContextPropagator.Current"/>. Assigning <see langword="null"/>
         /// throws <see cref="ArgumentNullException"/>.
         /// </summary>
-        public Func<IReadOnlyBasicProperties, ActivityContext> ContextExtractor
+        internal Func<IReadOnlyBasicProperties, ActivityContext> ContextExtractor
         {
             get => _contextExtractor;
             set => _contextExtractor = value ?? throw new ArgumentNullException(nameof(value));

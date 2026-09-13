@@ -235,7 +235,7 @@ The fix for all three is **per-member** fallback: each member `null` meaning "in
 
 Writes are unaffected; only reads break at source level, and an options object is written far more often than read. Binary compatibility breaks regardless, because the getter's return type is part of its signature. Within the client only the span factories and the static shortcut read them, and `RabbitMQActivitySource.UseRoutingKeyAsOperationName` can stay `bool` by resolving `null` to the default, so that shipped member need not change.
 
-Four candidate shapes, none of them settled:
+Four candidate shapes were weighed. **Option 2 was chosen; see "What shipped" below, and note that the framing above is superseded** - the factory layer turned out not to be constrained by compatibility at all.
 
 1. **`bool?` on `RabbitMQTracingOptions`.** One type, one mental model, one member list. Breaking, as above.
 2. **A new options type for the per-connection layer**, leaving the shipped type as the process-wide default. Non-breaking, but two near-identical types forever, and two member lists to keep in step - the drift risk that already produced a finding against `Clone()`.
@@ -249,6 +249,30 @@ Two further constraints for that work:
 - Deprecating the statics before their replacement exists would leave interface-typed consumers with a `CS0618` warning and nothing to migrate to, which is why nothing is marked `[Obsolete]` yet.
 - Resolving the configuration through `Session.Connection` from the channel put an unguarded dereference on the deliver path, load-bearing only because three separate `HasListeners()` gates happen to precede it, and opened a window in the `Channel` constructor where the consumer dispatcher's `Task.Run` starts before `Session` is assigned. `CreateChannelOptions.CreateOrUpdate` already copies `ConnectionConfig` values into the channel options, so a readonly field set in the constructor removes the walk, both gates and the hazard.
 - Resolve the options **once per operation**, into a local. The publish path resolved them twice - once for the span name and again for the injector - which breaks the "callers resolve once and read all options from the returned instance" rule that the resolver's own comment states, and lets a single span take its name from one configuration and its propagated context from another if the configuration changes in between. Passing the resolved instance into the header-population helper fixes the split read and removes a second `Session.Connection` walk per traced publish.
+
+### What shipped (attempt three)
+
+**The reference settles the API shape, and it is not a preference.** The OpenTelemetry .NET instrumentation guidance is explicit for library authors: use OpenTelemetry's `TextMapPropagator` "only when the built-in propagator cannot do the job, and only at the application root - never in libraries", and "libraries stay on `DistributedContextPropagator` regardless - bridging is an application-root concern", the named remedy being a small `DistributedContextPropagator` subclass wrapping the `TextMapPropagator`. The core client was already compliant: it has no OpenTelemetry package reference and propagates through `DistributedContextPropagator.Current`. What was *not* compliant was exposing `ContextInjector`/`ContextExtractor` as the public propagation extension point, because those exist precisely so an OpenTelemetry-shaped propagator can be substituted. **The shipped seam was the defect, not merely its fallback semantics.**
+
+@danielmarbach also dismantled the premise the four options rested on: `v7.2.0`'s `ConnectionFactory` had no tracing members at all, so the per-connection layer is entirely unshipped and unconstrained by compatibility. The shipped type is a *defaults* type - complete, standalone, delegates pre-seeded - while the connection layer wants an *override* type: partial, `null` meaning inherit, not usable standalone. One type playing both roles is what created the pre-seeding that caused the propagation loss.
+
+So: **`ConnectionTracingOptions`**, a new type for the connection layer, every member nullable. `bool? UseRoutingKeyAsOperationName`, `bool? UsePublisherAsParent`, and `DistributedContextPropagator? Propagator` - no delegates. `RabbitMQTracingOptions` is untouched as the process-wide defaults type, and its unshipped instance delegates become `internal` (they remain the storage the deprecated statics read and write). `RabbitMQ.Client.OpenTelemetry` ships `OpenTelemetryPropagator`, the bridge the guidance describes. Naming follows house style: `CreateChannelOptions` is already an override type in behaviour and does not encode that in its name.
+
+The statics are now `[Obsolete]` warnings, which the earlier constraint forbade only because no replacement existed. It does now.
+
+Measured before committing to any of it, because each could have invalidated the design:
+
+| Question | Answer |
+|---|---|
+| Is `DistributedContextPropagator` subclassable, and `Current` assignable, on **.NET Framework 4.8**? | Yes, at `DiagnosticSource` 9.0.4 and 10.0.0 both |
+| Does a bridge reproduce today's OpenTelemetry behaviour end to end? | Yes - header names, baggage value, consumer-side `Baggage.Current`, and publish/consume trace linkage all identical against a live broker |
+| Does `ActivityContext` -> traceparent string -> `TryParse` lose anything? | No, including `tracestate` and the `Recorded` flag |
+| Does `Propagator` need a `DiagnosticSource` bump? | No. `CreateW3CPropagator` is 10.x-only, but subclassing is not |
+| Is `Propagators.DefaultTextMapPropagator.Fields` safe to read? | **No** - it is a no-op propagator returning `null` when only `OpenTelemetry.Api` is referenced, so the bridge guards it |
+
+Two consequences worth knowing beyond this PR. `Baggage.Current` is OpenTelemetry state the client cannot reach, so the bridge sets it inside `ExtractTraceIdAndState` - a call the client already makes per delivery - and that is also where the header-less reset required by #1967 lives; a propagator supplied here must tolerate a null carrier. And `OpenTelemetry.Api` 1.15.3 depends on `System.Diagnostics.DiagnosticSource >= 10.0.0`, so installing `RabbitMQ.Client.OpenTelemetry` already lifts an application from 9.0.4 to 10.0.0, silently changing the client's emitted baggage header from `Correlation-Context=k=v` to `baggage=k = v` - a different header name *and* a different value encoding. Measured on `net8.0` and `net472`. That is independent of this PR and wants its own issue plus a release note.
+
+Both carry-over findings are now structural rather than conventional: the span methods take an already-resolved `ResolvedTracingOptions`, so resolving twice per operation is no longer expressible, and `Channel.TracingOptions` is a readonly property assigned in the constructor from `CreateChannelOptions`, so the `Session.Connection` walk is gone. The resolution matrix is pinned by `TestTracingOptionsResolution`, verified by two mutations because the flags and the delegates fall back independently and one mutation does not reach both.
 
 ### The two halves have to be separable (second review round)
 

@@ -200,7 +200,7 @@ namespace RabbitMQ.Client
         /// package.
         /// </para>
         /// </remarks>
-        public RabbitMQTracingOptions? TracingOptions { get; set; }
+        public ConnectionTracingOptions? TracingOptions { get; set; }
 
         /// <summary>The host to connect to.</summary>
         public string HostName { get; set; } = "localhost";
@@ -639,7 +639,7 @@ namespace RabbitMQ.Client
                 HandshakeContinuationTimeout,
                 RequestedConnectionTimeout,
                 ConsumerDispatchConcurrency,
-                TracingOptions?.Clone(),
+                TracingOptions,
                 CreateFrameHandlerAsync);
         }
 

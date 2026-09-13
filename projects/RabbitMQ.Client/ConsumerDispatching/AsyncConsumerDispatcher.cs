@@ -33,7 +33,8 @@ namespace RabbitMQ.Client.ConsumerDispatching
                                         // pays nothing (and does not walk Session.Connection) when tracing is off.
                                         Activity? activity = RabbitMQActivitySource.SubscriberHasListeners
                                             ? RabbitMQActivitySource.Deliver(work.RoutingKey!, work.Exchange!,
-                                                work.DeliveryTag, work.BasicProperties!, work.Body.Size, _channel.TracingOptions)
+                                                work.DeliveryTag, work.BasicProperties!, work.Body.Size,
+                                                RabbitMQActivitySource.ResolveTracingOptions(_channel.TracingOptions))
                                             : null;
                                         using (activity)
                                         {

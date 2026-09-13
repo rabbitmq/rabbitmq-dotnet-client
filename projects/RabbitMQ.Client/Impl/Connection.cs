@@ -115,7 +115,7 @@ namespace RabbitMQ.Client.Impl
         /// it so their publish, get, and deliver spans reflect this connection's configuration rather
         /// than the process-wide statics. See issue #1981.
         /// </summary>
-        internal RabbitMQTracingOptions? TracingOptions => _config.TracingOptions;
+        internal ConnectionTracingOptions? TracingOptions => _config.TracingOptions;
 
         public int LocalPort => _frameHandler.LocalPort;
         public int RemotePort => _frameHandler.RemotePort;

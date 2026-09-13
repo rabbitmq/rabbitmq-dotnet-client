@@ -175,6 +175,7 @@ namespace Test.Unit
                 handshakeContinuationTimeout: TimeSpan.FromSeconds(10),
                 requestedConnectionTimeout: TimeSpan.FromSeconds(30),
                 consumerDispatchConcurrency: consumerDispatchConcurrency,
+                tracingOptions: null,
                 frameHandlerFactoryAsync: (_, __) => throw new NotSupportedException("not connected in this test"));
 
         private sealed class RecordingConsumer : IAsyncBasicConsumer
