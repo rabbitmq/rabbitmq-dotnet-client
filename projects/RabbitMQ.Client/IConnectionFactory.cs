@@ -185,21 +185,15 @@ namespace RabbitMQ.Client
         /// timing out.
         /// </summary>
         /// <remarks>
-        /// An operation that reaches this limit completes as <b>cancelled</b>: the awaiter sees an
-        /// <see cref="System.OperationCanceledException"/> (in practice a
-        /// <see cref="System.Threading.Tasks.TaskCanceledException"/>), not a
-        /// <see cref="System.TimeoutException"/>. Note that 6.x threw
+        /// An operation that reaches this limit completes as <b>cancelled</b>, not as a
+        /// <see cref="System.TimeoutException"/>: the awaiter sees an
+        /// <see cref="System.OperationCanceledException"/>. Note that 6.x threw
         /// <see cref="System.TimeoutException"/> here.
         /// <para>
-        /// <b>Nothing on the exception tells a timeout from the caller cancelling.</b> The
-        /// <see cref="System.OperationCanceledException.CancellationToken"/> is an internal token in
-        /// both cases - the timeout's own token on a timeout, a linked token on a caller cancel - so
-        /// comparing it against your own reports a difference either way and tells you nothing.
-        /// </para>
-        /// <para>
-        /// Your own token answers in one direction, which is the best available today. If it is
-        /// <b>not</b> cancelled, the operation timed out: the client never cancels a token it does
-        /// not own, so nothing else could have produced the cancellation.
+        /// Nothing on the exception distinguishes a timeout from your own cancellation, because both
+        /// complete with a token the client owns. Your own token answers in one direction only: if it
+        /// is <b>not</b> cancelled the operation timed out, while if it is cancelled the answer is
+        /// "cannot tell" rather than "not a timeout".
         /// </para>
         /// <code>
         /// catch (OperationCanceledException) when (false == myToken.IsCancellationRequested)
@@ -208,28 +202,9 @@ namespace RabbitMQ.Client
         /// }
         /// </code>
         /// <para>
-        /// The converse does not hold, so treat a cancelled token of your own as "cannot tell"
-        /// rather than as "not a timeout". Cancelling it does not abort the wait for the reply:
-        /// nothing registers your token against the continuation, so once the request is on the wire
-        /// the operation runs its full budget and then completes as a timeout with your token
-        /// cancelled as well.
-        /// </para>
-        /// <para>
-        /// A close on an open channel or connection is a further exception, because those
-        /// deliberately ignore the caller's token so that a close already under way is not
-        /// truncated: a cancelled token of yours there does not even mean the request was never
-        /// sent. Whether a timeout should be positively identifiable rather than inferred this way
-        /// is rabbitmq/rabbitmq-dotnet-client#2019.
-        /// </para>
-        /// <para>
-        /// Some paths do not surface it as cancellation at all. Establishing a connection wraps it in
-        /// <see cref="Exceptions.BrokerUnreachableException"/>; an abort swallows it, so
-        /// <c>AbortAsync</c> can return successfully after waiting this long; and topology recovery
-        /// wraps it in a <c>TopologyRecoveryException</c>, which is logged and fails the recovery
-        /// attempt rather than being raised to any event handler: <c>ConnectionRecoveryErrorAsync</c>
-        /// covers reconnection, not the topology phase. Note also that waiting for a publisher
-        /// confirmation is not bounded by this timeout at all. See
-        /// rabbitmq/rabbitmq-dotnet-client#1996.
+        /// Some paths do not surface it as cancellation at all, notably connection establishment,
+        /// abort, and topology recovery. See <c>v7-MIGRATION.md</c> for the upgrade notes and
+        /// rabbitmq/rabbitmq-dotnet-client#2019 for making a timeout positively identifiable.
         /// </para>
         /// </remarks>
         TimeSpan ContinuationTimeout { get; set; }

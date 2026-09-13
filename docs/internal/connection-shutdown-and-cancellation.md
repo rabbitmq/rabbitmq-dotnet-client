@@ -308,6 +308,39 @@ All seven disposal calls were removed. Proving no waiter can be parked at each o
 
 Two things to know if you extend these tests. `AutorecoveringChannel.DisposeAsync` does not dispose its inner channel, so disposing the `IChannel` that `CreateChannelAsync` returns never reaches `Channel`'s dispose path at all - the test disposes `InnerChannel` directly. And use `BindingFlags.DeclaredOnly` when enumerating: `_rpcSemaphore` is `protected`, so `RecoveryAwareChannel` otherwise reports it a second time.
 
+## Issue #1996: a continuation timeout is cancellation, and cannot be told from a caller cancel
+
+`AsyncRpcContinuation` used to try to surface a `TimeoutException` on top of the cancellation:
+
+```csharp
+if (tcs.TrySetCanceled(...))
+{
+    tcs.TrySetException(GetTimeoutException());
+}
+```
+
+A `TaskCompletionSource` completes once, so the `TrySetCanceled` that guards the block is exactly what makes the `TrySetException` a no-op. It was dead from the first commit that introduced it (`cc16b1045`, #1750), whose own comment recorded the intent as an open question. 6.x did throw `TimeoutException`, from `BlockingCell.WaitForValue(TimeSpan)`, under a `// TODO do not use System.TimeoutException here`. The doubt was about that type specifically, in both generations, so the dead code is deleted rather than made live: whether an RPC timeout should be distinguishable at all, and by what type, is left open rather than settled by accident.
+
+**Why the completing token is passed on every target framework.** Not because it identifies a timeout - it does not. A caller cancel completes with an internal linked token, so *both* outcomes complete with a token the caller does not own, and comparing `ex.CancellationToken` against your own reports a difference either way. The token is passed so that the completing token is a *real cancelled token* rather than `CancellationToken.None`, which is what a defaulted caller token also looks like. Passing it only under `#if NET` made netstandard report `None`, which was the whole netstandard defect on this branch. The `#else` `Register` overload supplies no token to the callback, which is why `state` is the continuation rather than the `TaskCompletionSource`.
+
+**The timeout callback does not always win.** The linked source is created *after* the timeout registration, and cancellation callbacks run last-registered-first, so an awaiter released by the linked token can complete the source first and `HandleContinuationTimeout`'s `TrySetCanceled` then returns false. It is still the only timeout path when the broker never replies at all.
+
+**What a caller can actually determine, and it is one-directional.** Verified against the three cases:
+
+| scenario | `myToken.IsCancellationRequested` | verdict |
+|---|---|---|
+| timeout, no cancel | `false` | timed out - **correct** |
+| cancelled before the frame is written | `true` | cannot tell - correct |
+| cancelled mid-flight, then the budget expires | `true` | cannot tell - **conservative, was a timeout** |
+
+So an *uncancelled* token means the operation definitely timed out, because the client never cancels a token it does not own. A cancelled one means "cannot tell", not "not a timeout": cancelling it does not abort the wait for the reply, since only the timeout token is registered against the `TaskCompletionSource`, so once the request is on the wire the operation runs its full budget. No false positives, only false negatives. #2019 tracks making it positively knowable.
+
+A close on an open channel or connection is a further exception: those deliberately build the continuation with `CancellationToken.None` so a close already under way is not truncated, so a cancelled caller token there does not even imply the request was never sent.
+
+**Paths that do not surface it as cancellation at all.** `CreateConnectionAsync` wraps it in `BrokerUnreachableException`; an abort swallows it, so `AbortAsync` can return successfully after waiting out the full budget; and topology recovery wraps it in a `TopologyRecoveryException`, which is logged and fails the recovery attempt rather than reaching any event handler - `ConnectionRecoveryErrorAsync` covers reconnection, not the topology phase. Waiting for a publisher confirmation is not bounded by this timeout at all.
+
+Because `StartTimeout()` is the first statement inside the `try`, before `ModelSendAsync`, the budget is armed before the request is sent. Unless it is very small, a timeout therefore means the request reached the wire and the broker may still act on it.
+
 ## Relevant timeouts
 
 These are easy to confuse; distinguishing which one a hang tracks is the key diagnostic signal.
