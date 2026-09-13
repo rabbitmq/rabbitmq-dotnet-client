@@ -100,7 +100,8 @@ namespace RabbitMQ.Client
         /// break rather than a runtime one: C# bakes an optional parameter's default into the caller's
         /// assembly, so applications that upgraded without rebuilding would keep the old behaviour while
         /// rebuilt ones silently switched, and code reading this member back would see
-        /// <see cref="System.Nullable{T}.Value"/> throw where it previously returned 1. See #2027.
+        /// <see cref="System.Nullable{T}.Value"/> throw where it previously returned 1. See
+        /// rabbitmq/rabbitmq-dotnet-client#2027.
         /// </para>
         /// <para>
         /// For concurrency greater than one this removes the guarantee that consumers handle messages in
