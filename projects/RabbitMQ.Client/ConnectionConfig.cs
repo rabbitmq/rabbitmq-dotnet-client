@@ -139,6 +139,11 @@ namespace RabbitMQ.Client
         /// will be offloaded to the worker thread pool so it is important to choose the value for the concurrency wisely to avoid thread pool overloading.
         /// <see cref="IAsyncBasicConsumer"/> can handle concurrency much more efficiently due to the non-blocking nature of the consumer.
         /// </summary>
+        /// <summary>
+        /// The consumer dispatch concurrency configured on the connection factory. A value of 0 is
+        /// treated as 1 by the consumer dispatcher, so this field can report 0 while a channel built
+        /// from it runs one dispatch loop.
+        /// </summary>
         public readonly ushort ConsumerDispatchConcurrency;
 
         internal readonly Func<AmqpTcpEndpoint, CancellationToken, Task<IFrameHandler>> FrameHandlerFactoryAsync;

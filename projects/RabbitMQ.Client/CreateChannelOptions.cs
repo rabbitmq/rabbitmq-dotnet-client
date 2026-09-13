@@ -106,6 +106,10 @@ namespace RabbitMQ.Client
         /// For concurrency greater than one this removes the guarantee that consumers handle messages in
         /// the order they receive them. In addition to that consumers need to be thread/concurrency safe.
         /// </para>
+        /// <para>
+        /// A value of 0 is treated as 1. Zero would leave the channel's consumer dispatcher with no
+        /// worker at all, so consumers would register successfully and never receive anything.
+        /// </para>
         /// </summary>
         public readonly ushort? ConsumerDispatchConcurrency = null;
 
@@ -120,23 +124,17 @@ namespace RabbitMQ.Client
             ConsumerDispatchConcurrency = consumerDispatchConcurrency;
         }
 
+        // The dispatch concurrency requested for a channel built from these options: the caller's own
+        // value if set, otherwise the connection's, otherwise the library default. This is what was
+        // ASKED FOR and may be zero; the consumer dispatcher applies the floor, because that is the
+        // type whose invariant it is. See docs/internal/consumer-dispatch-concurrency.md.
+        //
+        // Deliberately `//` and not `///`: csc does not filter doc comments by accessibility, so
+        // `///` on an internal member ships in RabbitMQ.Client.xml inside the NuGet package.
         internal ushort InternalConsumerDispatchConcurrency
-        {
-            get
-            {
-                if (ConsumerDispatchConcurrency is not null)
-                {
-                    return ConsumerDispatchConcurrency.Value;
-                }
-
-                if (_connectionConfigConsumerDispatchConcurrency is not null)
-                {
-                    return _connectionConfigConsumerDispatchConcurrency.Value;
-                }
-
-                return Constants.DefaultConsumerDispatchConcurrency;
-            }
-        }
+            => ConsumerDispatchConcurrency
+               ?? _connectionConfigConsumerDispatchConcurrency
+               ?? Constants.DefaultConsumerDispatchConcurrency;
 
         internal TimeSpan ContinuationTimeout => _connectionConfigContinuationTimeout;
 
