@@ -490,9 +490,7 @@ namespace RabbitMQ.Client.Impl
                         }
                         finally
                         {
-                            // Not the recovery token: see RecoverConsumersAsync for why a cancelled
-                            // re-acquire here escapes without the semaphore and turns an orderly
-                            // shutdown into a 541 internal error.
+                            // Not the recovery token: see issue #1997 in the design doc.
                             await _recordedEntitiesSemaphore.WaitAsync(CancellationToken.None)
                                 .ConfigureAwait(false);
                         }
@@ -564,7 +562,7 @@ namespace RabbitMQ.Client.Impl
                             }
                             finally
                             {
-                                // Not the recovery token: see RecoverConsumersAsync.
+                                // Not the recovery token: see issue #1997 in the design doc.
                                 await _recordedEntitiesSemaphore.WaitAsync(CancellationToken.None)
                                     .ConfigureAwait(false);
                             }
@@ -590,9 +588,7 @@ namespace RabbitMQ.Client.Impl
                         }
                         finally
                         {
-                            // Not the recovery token: see RecoverConsumersAsync for why a cancelled
-                            // re-acquire here escapes without the semaphore and turns an orderly
-                            // shutdown into a 541 internal error.
+                            // Not the recovery token: see issue #1997 in the design doc.
                             await _recordedEntitiesSemaphore.WaitAsync(CancellationToken.None)
                                 .ConfigureAwait(false);
                         }
@@ -673,9 +669,7 @@ namespace RabbitMQ.Client.Impl
                         }
                         finally
                         {
-                            // Not the recovery token: see RecoverConsumersAsync for why a cancelled
-                            // re-acquire here escapes without the semaphore and turns an orderly
-                            // shutdown into a 541 internal error.
+                            // Not the recovery token: see issue #1997 in the design doc.
                             await _recordedEntitiesSemaphore.WaitAsync(CancellationToken.None)
                                 .ConfigureAwait(false);
                         }
@@ -688,9 +682,8 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        // No defaults on either parameter, unlike the sibling recovery loops which never had them.
-        // Omitting recordedEntitiesSemaphoreHeld throws below, but a defaulted token would silently
-        // substitute CancellationToken.None and reintroduce #1997 at a future second call site.
+        // Both parameters are deliberately non-optional: a defaulted token would silently
+        // reintroduce #1997 at a future call site.
         internal async ValueTask RecoverConsumersAsync(AutorecoveringChannel channelToRecover, IChannel channelToUse,
             bool recordedEntitiesSemaphoreHeld, CancellationToken cancellationToken)
         {
@@ -711,17 +704,9 @@ namespace RabbitMQ.Client.Impl
                     continue;
                 }
 
-                /*
-                 * Only release the semaphore if there is actually a handler to invoke, as the
-                 * sibling loops do. Releasing unconditionally meant the re-acquire ran for every
-                 * recorded consumer, and SemaphoreSlim.WaitAsync observes an already-cancelled token
-                 * before it looks at the count, so a recovery cancelled by close or dispose escaped
-                 * this loop without holding the semaphore. The outer finally then released one it
-                 * did not hold, raising SemaphoreFullException on a SemaphoreSlim(1, 1), which
-                 * replaced the real cancellation and turned an orderly shutdown into an
-                 * internal-error abort. With this guard that path needs a registered
-                 * RecoveringConsumerAsync handler rather than merely two recorded consumers.
-                 */
+                // Only release when there is a handler to invoke, as the sibling loops do:
+                // releasing unconditionally made the cancelled re-acquire below reachable from any
+                // two recorded consumers. See issue #1997 in the design doc.
                 if (false == _recoveringConsumerAsyncWrapper.IsEmpty)
                 {
                     try
@@ -733,44 +718,12 @@ namespace RabbitMQ.Client.Impl
                     finally
                     {
                         /*
-                         * Deliberately not the recovery token. This re-acquires a semaphore that the
-                         * try released, and the caller's finally releases it again unconditionally,
-                         * so a throw here escapes without holding it and the outer release then
-                         * raises SemaphoreFullException on a SemaphoreSlim(1, 1) - replacing the
-                         * real cancellation and turning an orderly shutdown into a 541 internal
-                         * error. WaitAsync throws on an already-cancelled token even when the
-                         * semaphore is free, so passing the recovery token here makes that certain
-                         * rather than unlikely once a close is in flight.
-                         *
-                         * Waiting untokenised is safe here. Apart from the initial acquisition in
-                         * TryPerformAutomaticRecoveryAsync - whose critical section is all of
-                         * topology recovery, and which this code is running inside - every acquirer
-                         * of this semaphore is one of the ten WaitAsync sites on it in
-                         * AutorecoveringConnection.Recording.cs. Each guards a read or write of
-                         * _recordedExchanges / _recordedQueues / _recordedBindings /
-                         * _recordedConsumers and nothing else, and where one of those awaits, it
-                         * awaits another Recording method passed recordedEntitiesSemaphoreHeld:
-                         * true, which does not re-acquire. None performs I/O or invokes
-                         * application code while holding it.
-                         *
-                         * One path does hold this semaphore across application code:
-                         * TryPerformAutomaticRecoveryAsync calls
-                         * RecoverChannelsAndItsConsumersAsync with recordedEntitiesSemaphoreHeld:
-                         * true, which loops over the recovered channels and reaches
-                         * Channel.RunRecoveryEventHandlers (declared in Impl/Channel.cs, invoked
-                         * from AutorecoveringChannel on _innerChannel), invoking user
-                         * channel-recovery handlers. That is a pre-existing deadlock in its own
-                         * right, tracked as issue #2038 - a handler that declares an exchange, or
-                         * registers a consumer, waits on this semaphore untokenised and never
-                         * returns.
-                         *
-                         * It cannot deadlock this wait, but not because it runs strictly after the
-                         * consumer loop: the channel loop runs each channel's consumers and then
-                         * that channel's handlers, so with two or more channels the first
-                         * channel's handlers run before the second channel's consumer loop. The
-                         * reason it is safe is that this is one sequential task, so there is never
-                         * a second holder to contend with - a wedged handler stops the remaining
-                         * consumer loops from starting rather than blocking them here.
+                         * Deliberately not the recovery token. A cancelled re-acquire escapes
+                         * without the semaphore, and the outer finally then releases one it does not
+                         * hold, raising SemaphoreFullException and replacing the real cancellation
+                         * with a 541. Waiting untokenised is bounded here, and issue #2038 is a
+                         * pre-existing deadlock that does not reach it. Both arguments are in
+                         * docs/internal/connection-shutdown-and-cancellation.md, issue #1997.
                          */
                         await _recordedEntitiesSemaphore.WaitAsync(CancellationToken.None)
                             .ConfigureAwait(false);
@@ -795,9 +748,7 @@ namespace RabbitMQ.Client.Impl
                         }
                         finally
                         {
-                            // Not the recovery token: see RecoverConsumersAsync for why a cancelled
-                            // re-acquire here escapes without the semaphore and turns an orderly
-                            // shutdown into a 541 internal error.
+                            // Not the recovery token: see issue #1997 in the design doc.
                             await _recordedEntitiesSemaphore.WaitAsync(CancellationToken.None)
                                 .ConfigureAwait(false);
                         }
@@ -821,9 +772,7 @@ namespace RabbitMQ.Client.Impl
                         }
                         finally
                         {
-                            // Not the recovery token: see RecoverConsumersAsync for why a cancelled
-                            // re-acquire here escapes without the semaphore and turns an orderly
-                            // shutdown into a 541 internal error.
+                            // Not the recovery token: see issue #1997 in the design doc.
                             await _recordedEntitiesSemaphore.WaitAsync(CancellationToken.None)
                                 .ConfigureAwait(false);
                         }
