@@ -225,9 +225,6 @@ namespace RabbitMQ.Client.Impl
                         await _connection.RecoverConsumersAsync(this, newChannel, recordedEntitiesSemaphoreHeld, cancellationToken)
                             .ConfigureAwait(false);
                     }
-
-                    await _innerChannel.RunRecoveryEventHandlers(this, cancellationToken)
-                        .ConfigureAwait(false);
                 }
                 finally
                 {
@@ -242,7 +239,6 @@ namespace RabbitMQ.Client.Impl
                     await SafeDisposeAsync(replacedChannel, "replaced", dropHandlers: true)
                         .ConfigureAwait(false);
                 }
-
                 return true;
             }
             finally
@@ -288,6 +284,16 @@ namespace RabbitMQ.Client.Impl
             {
                 ESLog.Warn($"Caught an exception while disposing the {which} channel: {e}");
             }
+        }
+
+        internal Task RunRecoveryEventHandlersAsync(CancellationToken cancellationToken)
+        {
+            if (_disposed)
+            {
+                return Task.CompletedTask;
+            }
+
+            return _innerChannel.RunRecoveryEventHandlers(this, cancellationToken);
         }
 
         public async Task CloseAsync(ushort replyCode, string replyText, bool abort,
