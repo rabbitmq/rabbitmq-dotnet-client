@@ -452,6 +452,11 @@ there. Current docs:
   classification (issue #1995, open), and why the obvious fix is a regression:
   read it before proposing one. Records that `basic.consume` *can* return 406,
   contrary to the assumption the abandoned attempt rested on.
+- `docs/internal/recovery-event-handler-invocation.md` - why user callbacks must
+  never run while `_recordedEntitiesSemaphore` is held, the permanent deadlock
+  that resulted when the channel `RecoveryAsync` event did (issue #2038), when
+  handlers fire now and what ordering is guaranteed. Read it before moving,
+  wrapping, or adding a callback inside automatic recovery.
 
 ## Development Guidelines
 

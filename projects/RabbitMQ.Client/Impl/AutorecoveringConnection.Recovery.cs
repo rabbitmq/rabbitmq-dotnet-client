@@ -333,6 +333,7 @@ namespace RabbitMQ.Client.Impl
                 ThrowIfDisposed();
                 if (await TryRecoverConnectionDelegateAsync(cancellationToken).ConfigureAwait(false))
                 {
+                    List<AutorecoveringChannel> recoveredChannels;
                     await _recordedEntitiesSemaphore.WaitAsync(cancellationToken)
                         .ConfigureAwait(false);
                     try
@@ -354,12 +355,23 @@ namespace RabbitMQ.Client.Impl
                                 .ConfigureAwait(false);
 
                         }
-                        await RecoverChannelsAndItsConsumersAsync(recordedEntitiesSemaphoreHeld: true, cancellationToken: cancellationToken)
+                        recoveredChannels = await RecoverChannelsAndItsConsumersAsync(recordedEntitiesSemaphoreHeld: true, cancellationToken: cancellationToken)
                             .ConfigureAwait(false);
                     }
                     finally
                     {
                         _recordedEntitiesSemaphore.Release();
+                    }
+
+                    /*
+                     * User code, so it runs only once _recordedEntitiesSemaphore is released:
+                     * holding it across a handler deadlocked recovery permanently (issue #2038).
+                     * See docs/internal/recovery-event-handler-invocation.md.
+                     */
+                    foreach (AutorecoveringChannel channel in recoveredChannels)
+                    {
+                        await channel.RunRecoveryEventHandlersAsync(cancellationToken)
+                            .ConfigureAwait(false);
                     }
 
                     ESLog.Info("Connection recovery completed");
@@ -792,7 +804,7 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        private async ValueTask RecoverChannelsAndItsConsumersAsync(bool recordedEntitiesSemaphoreHeld, CancellationToken cancellationToken)
+        private async ValueTask<List<AutorecoveringChannel>> RecoverChannelsAndItsConsumersAsync(bool recordedEntitiesSemaphoreHeld, CancellationToken cancellationToken)
         {
             if (false == recordedEntitiesSemaphoreHeld)
             {
@@ -811,6 +823,7 @@ namespace RabbitMQ.Client.Impl
                 _channelsSemaphore.Release();
             }
 
+            var recoveredChannels = new List<AutorecoveringChannel>();
             var notRecoveredChannels = new List<AutorecoveringChannel>();
             foreach (AutorecoveringChannel channel in channelsToRecover)
             {
@@ -819,7 +832,11 @@ namespace RabbitMQ.Client.Impl
                     cancellationToken: cancellationToken)
                     .ConfigureAwait(false);
 
-                if (false == recovered)
+                if (recovered)
+                {
+                    recoveredChannels.Add(channel);
+                }
+                else
                 {
                     notRecoveredChannels.Add(channel);
                 }
@@ -838,6 +855,8 @@ namespace RabbitMQ.Client.Impl
             {
                 _channelsSemaphore.Release();
             }
+
+            return recoveredChannels;
         }
     }
 }
