@@ -8,7 +8,7 @@ The RabbitMQ .NET Client is a comprehensive AMQP 0-9-1 client library for .NET, 
 - **Dual-licensed**: Apache License 2.0 and Mozilla Public License 2.0
 - **Target Frameworks**: .NET 8.0 and .NET Standard 2.0
 - **Language**: C# 12.0 with nullable reference types enabled
-- **Versioning**: Derived from git tags via MinVer (no static version file). The latest release tag is `v7.2.1`.
+- **Versioning**: Derived from git tags via MinVer (no static version file). The latest release tag is `v7.2.2`.
 
 ## Major Version 7.x Changes
 
