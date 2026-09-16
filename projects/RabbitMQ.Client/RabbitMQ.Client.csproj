@@ -52,8 +52,6 @@
     <None Remove="icon.png" />
     <Content Include="icon.png" PackagePath="" />
     <None Include="README.md" Pack="true" PackagePath="/" />
-    <!-- First-party companion package: it constructs the process-wide tracing default, which has to
-         become visible as one reference assignment rather than several writes into live state. -->
     <InternalsVisibleTo Include="RabbitMQ.Client.OpenTelemetry" />
     <InternalsVisibleTo Include="Common" />
     <InternalsVisibleTo Include="Unit" />

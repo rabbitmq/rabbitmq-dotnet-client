@@ -111,8 +111,19 @@ namespace RabbitMQ.Client
                 return;
             }
 
-            // The client reparses this with ActivityContext.TryParse, so emit W3C traceparent form.
-            string flags = (context.TraceFlags & ActivityTraceFlags.Recorded) != 0 ? "01" : "00";
+            /*
+             * The client reparses this with ActivityContext.TryParse, so emit W3C traceparent form.
+             * The two values W3C defines take a literal, since this runs once per delivery. The
+             * fallback carries any other bit rather than flattening it to Recorded: OpenTelemetry's
+             * own W3C propagator masks those away, but a custom TextMapPropagator need not, and
+             * TryParse round-trips whatever it is given.
+             */
+            string flags = context.TraceFlags switch
+            {
+                ActivityTraceFlags.None => "00",
+                ActivityTraceFlags.Recorded => "01",
+                _ => ((int)context.TraceFlags).ToString("x2")
+            };
             traceId = $"00-{context.TraceId}-{context.SpanId}-{flags}";
             traceState = context.TraceState;
         }
