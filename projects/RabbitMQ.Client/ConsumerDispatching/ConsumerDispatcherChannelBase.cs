@@ -49,12 +49,9 @@ namespace RabbitMQ.Client.ConsumerDispatching
         private readonly CancellationTokenSource _shutdownCts = new CancellationTokenSource();
 
         /*
-         * Captured once, here, rather than read from _shutdownCts on every work item.
-         * CancellationTokenSource.Token throws ObjectDisposedException once the source has been
-         * disposed, even if it was cancelled first, while a token already copied out stays
-         * usable. Reading it per work item meant a Dispose() racing an inbound frame threw from
-         * the frame-receive loop, which no caller on that path catches, tearing down the whole
-         * connection rather than the one channel. See issue #1988.
+         * Captured once: CancellationTokenSource.Token throws ObjectDisposedException after the
+         * source is disposed, so reading it per work item let a Dispose() racing an inbound frame
+         * tear down the whole connection. Issue #1988.
          */
         private readonly CancellationToken _shutdownToken;
 
@@ -105,17 +102,11 @@ namespace RabbitMQ.Client.ConsumerDispatching
         public ushort Concurrency => _concurrency;
 
         /*
-         * The _disposed/IsQuiescing check and the write below are not atomic, so a caller can pass
-         * the check and find the channel completed. Each site drops the work item rather than
-         * letting ChannelClosedException unwind into the frame-receive loop and tear down the whole
-         * connection. The delivery path also returns the dropped item's pooled body, because it owns
-         * it - TakeoverBody() has already cleared cmd.Body upstream.
-         *
-         * These catches cover only the rare exits. Measured, the guard above drops hundreds of
-         * bodies per ordinary channel close while neither catch fires at all; that gap is issue
-         * #2039 and is not fixed here. For which threads actually race, why a cancelled token needs
-         * its own catch, and the measurements, see
-         * docs/internal/consumer-dispatch-concurrency.md.
+         * The guard and the write are not atomic, so drop the work item rather than let
+         * ChannelClosedException unwind into the frame-receive loop and tear down the connection.
+         * The delivery path owns the pooled body once TakeoverBody() has cleared cmd.Body upstream.
+         * These catches cover only the rare exits; the guard above drops far more, which is issue
+         * #2039. See docs/internal/consumer-dispatch-concurrency.md.
          */
         public async ValueTask HandleBasicConsumeOkAsync(IAsyncBasicConsumer consumer, string consumerTag, CancellationToken cancellationToken)
         {
@@ -166,12 +157,9 @@ namespace RabbitMQ.Client.ConsumerDispatching
                 catch (OperationCanceledException)
                 {
                     /*
-                     * WriteAsync observes the token before the channel's completion, so a token
-                     * cancelled at the same moment the dispatcher is disposed lands here rather
-                     * than above - which is the ordinary teardown ordering, not a corner case.
-                     * The item still never reaches a consumer, so its pooled body still has to be
-                     * returned. Rethrow afterwards: cancellation propagated before this catch
-                     * existed and the method already throws on a token cancelled at entry.
+                     * WriteAsync observes the token before the channel's completion, so ordinary
+                     * teardown lands here rather than above. The item never reaches a consumer, so
+                     * return its body; rethrow, because cancellation propagated before this catch.
                      */
                     work.Dispose();
                     throw;
@@ -423,13 +411,10 @@ namespace RabbitMQ.Client.ConsumerDispatching
                         Quiesce();
 
                         /*
-                         * Run the WHOLE shutdown, not just TryComplete. Completing the writer alone
-                         * makes a later session-driven ShutdownAsync enqueue nothing, leaving every
-                         * consumer with a null ShutdownReason and IsRunning true on a dead channel.
-                         * ShutdownAsync is not async, so the notifications are queued ahead of the
-                         * completion. The returned task is _worker, deliberately not awaited here.
-                         *
-                         * _shutdownCts is deliberately NOT disposed - see issue #1976 and
+                         * Run the WHOLE shutdown, not just TryComplete: completing the writer alone
+                         * leaves every consumer with a null ShutdownReason and IsRunning true on a
+                         * dead channel. The returned task is _worker, deliberately not awaited.
+                         * _shutdownCts is deliberately NOT disposed - read issue #1976 and
                          * docs/internal/consumer-dispatch-concurrency.md before "fixing" that.
                          */
                         _ = ShutdownAsync(DisposalReason());
@@ -447,13 +432,10 @@ namespace RabbitMQ.Client.ConsumerDispatching
         }
 
         /*
-         * The reason handed to consumers when disposal is what shuts the dispatcher down.
-         *
-         * Channel.CloseAsync sets the channel's close reason before it transmits channel.close, so
-         * it is already published on every path that reaches disposal, including an abort whose
-         * handshake never completed. The fallback covers a dispatcher built without a channel, which
-         * the unit tests do; it is deliberately not an error code, because a consumer callback
-         * should not be told the channel failed when nothing failed.
+         * The reason handed to consumers when disposal shuts the dispatcher down. Channel.CloseAsync
+         * publishes the close reason before transmitting channel.close, so it is already set on every
+         * path here. The fallback covers a dispatcher built without a channel, as the unit tests do,
+         * and is deliberately not an error code.
          */
         private ShutdownEventArgs DisposalReason()
         {

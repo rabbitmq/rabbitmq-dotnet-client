@@ -167,25 +167,11 @@ namespace RabbitMQ.Client.Impl
             _connection = conn;
 
             /*
-             * A recovered channel owns a consumer dispatcher and a broker-side channel. Until it is
-             * installed as _innerChannel it belongs to this method, so every path that leaves before
-             * installing it must release it, or each flaky recovery cycle abandons one. Disposing the
-             * channel rather than reaching into its dispatcher also closes it on the broker, and is
-             * safe now that a channel no longer disposes the publisher-confirmation rate limiter it
-             * shares with its replacement.
-             *
-             * The creation is inside the try so that a failure in the setup that follows it - the
-             * TakeOver, the basic.qos, the tx.select, or the disposed check - still releases the
-             * channel it produced. newChannel stays null until it exists, which the finally accounts
-             * for. See issue #1988.
-             *
-             * This does not cover a failure inside CreateNonRecoveringChannelAsync itself. The
-             * dispatcher and its worker tasks are built by the Channel constructor before
-             * CreateAndOpenAsync awaits channel.open, and neither that RPC nor confirm.select
-             * disposes the half-built channel on the way out, so recovering against a node that has
-             * just restarted still abandons one dispatcher per attempt. The exception propagates
-             * with newChannel still null, so the finally cannot help; the fix belongs in OpenAsync
-             * or CreateAndOpenAsync, and is not attempted here.
+             * Until it is installed as _innerChannel, this channel belongs to this method: every path
+             * that leaves before installing it must release it, or a flaky recovery abandons one
+             * dispatcher per cycle. A failure inside CreateNonRecoveringChannelAsync itself is not
+             * covered and still abandons one. Issue #1988 and
+             * docs/internal/connection-shutdown-and-cancellation.md have the reasoning.
              */
             RecoveryAwareChannel? newChannel = null;
             bool newChannelInstalled = false;
@@ -246,11 +232,9 @@ namespace RabbitMQ.Client.Impl
                 finally
                 {
                     /*
-                     * Release the replaced channel now that it has been swapped out; otherwise
-                     * every recovery cycle abandons another one. In a finally so a recovery step
-                     * that throws still releases it. Disposing the replaced channel cannot disturb
-                     * the new channel's recovery: the two are independent, and the rate limiter
-                     * they share is no longer disposed with either. See issue #1988.
+                     * Release the replaced channel now it is swapped out, or every recovery cycle
+                     * abandons one. In a finally so a throwing recovery step still releases it.
+                     * Independent of the new channel's recovery. Issue #1988.
                      */
                     await SafeDisposeAsync(replacedChannel, "replaced")
                         .ConfigureAwait(false);
@@ -269,22 +253,12 @@ namespace RabbitMQ.Client.Impl
         }
 
         /*
-         * The call sites dispose from a finally, where a throw would either mask the exception that
-         * is already unwinding or fail an otherwise-successful recovery, so a failure is logged and
-         * swallowed. Channel disposal can throw: the wait for a server-originated channel.close
-         * times out after DefaultChannelDisposeTimeout.
-         *
-         * It is also time-bounded, because these run inside the recovery critical section that holds
-         * the connection's recorded-entity semaphore. Disposing a channel that is still open performs
-         * a real broker close whose reply wait is bounded only by ContinuationTimeout, 20 seconds by
-         * default, and every application call that records or deletes a channel or consumer waits on
-         * that same semaphore with no token and no timeout. Waiting no longer than the channel
-         * dispose timeout keeps a failed recovery attempt from stalling recovery and the application
-         * with it; the dispose itself continues in the background, which is acceptable for cleanup
-         * whose result nothing depends on.
-         *
-         * dropHandlers is for a channel that was never installed. See DropTakenOverHandlers.
-         * See issue #1988.
+         * Callers dispose from a finally, so a failure is logged rather than thrown: it would mask an
+         * unwinding exception or fail an otherwise-successful recovery. It is also time-bounded,
+         * because this runs while the connection's recorded-entity semaphore is held and an open
+         * channel's close waits on ContinuationTimeout; the dispose continues in the background.
+         * dropHandlers is for a channel that was never installed. Issue #1988 and
+         * docs/internal/connection-shutdown-and-cancellation.md.
          */
         private static async Task SafeDisposeAsync(RecoveryAwareChannel channel, string which,
             bool dropHandlers = false)
@@ -378,14 +352,10 @@ namespace RabbitMQ.Client.Impl
             }
 
             /*
-             * Snapshot the inner channel once, and latch _disposed before disposing it. AbortAsync
-             * below can park for a long time - its cleanup waits on the connection's recorded-entity
-             * semaphore with no token and no timeout, which a recovery holds for the whole of
-             * topology recovery - and a recovery that completes during that window installs a
-             * different channel. Re-reading the field afterwards would then dispose the channel the
-             * application is now using, mid-recovery, and leave the aborted one registered. This
-             * narrows that window rather than closing it: the remaining dispose-versus-recovery race
-             * needs shared synchronization and is tracked as #2020.
+             * Snapshot the inner channel once and latch _disposed first. AbortAsync can park for a
+             * long time, and a recovery completing in that window installs a different channel, so
+             * re-reading the field afterwards would dispose the one the application is now using.
+             * This narrows the race rather than closing it; the rest is #2020.
              */
             RecoveryAwareChannel channelToDispose = _innerChannel;
 
@@ -410,12 +380,9 @@ namespace RabbitMQ.Client.Impl
                 }
 
                 /*
-                 * Dispose the inner channel. Nothing else reaches it when automatic recovery is
-                 * enabled, which is the default, so without this its consumer dispatcher was
-                 * abandoned. Disposing the channel rather than reaching into its dispatcher is safe
-                 * now that a channel no longer disposes the publisher-confirmation rate limiter,
-                 * which belongs to the CreateChannelOptions it came from and is shared with sibling
-                 * channels and with every recovery. See issue #1988.
+                 * Nothing else reaches the inner channel when automatic recovery is enabled, so
+                 * without this its consumer dispatcher was abandoned. Safe now that a channel no
+                 * longer disposes the shared publisher-confirmation rate limiter. Issue #1988.
                  */
                 await SafeDisposeAsync(channelToDispose, "inner")
                     .ConfigureAwait(false);
