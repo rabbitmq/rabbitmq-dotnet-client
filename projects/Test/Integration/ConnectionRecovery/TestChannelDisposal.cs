@@ -170,7 +170,6 @@ namespace Test.Integration.ConnectionRecovery
                     // The recovered consumer must actually receive it. This is what proves the
                     // surviving dispatcher still dispatches, rather than only that a flag is unset.
                     await deliveredTcs.Task.WaitAsync(WaitSpan);
-                    Assert.True(await deliveredTcs.Task);
 
                     // The shared limiter must still be usable directly: a disposed RateLimiter
                     // throws ObjectDisposedException from AcquireAsync. See #1988.

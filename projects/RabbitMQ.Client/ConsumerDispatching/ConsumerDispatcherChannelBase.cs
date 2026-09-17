@@ -417,7 +417,7 @@ namespace RabbitMQ.Client.ConsumerDispatching
                          * _shutdownCts is deliberately NOT disposed - read issue #1976 and
                          * docs/internal/consumer-dispatch-concurrency.md before "fixing" that.
                          */
-                        _ = ShutdownAsync(DisposalReason());
+                        ObserveFault(ShutdownAsync(DisposalReason()));
                     }
                 }
                 catch
@@ -437,6 +437,17 @@ namespace RabbitMQ.Client.ConsumerDispatching
          * path here. The fallback covers a dispatcher built without a channel, as the unit tests do,
          * and is deliberately not an error code.
          */
+        // The task returned by ShutdownAsync is _worker, which can fault, and no caller on the
+        // dispose paths awaits it. Left unobserved that reaches TaskScheduler.UnobservedTaskException,
+        // which is fatal for a host configured with ThrowUnobservedTaskExceptions.
+        private static void ObserveFault(Task task)
+        {
+            _ = task.ContinueWith(static t => _ = t.Exception,
+                CancellationToken.None,
+                TaskContinuationOptions.OnlyOnFaulted | TaskContinuationOptions.ExecuteSynchronously,
+                TaskScheduler.Default);
+        }
+
         private ShutdownEventArgs DisposalReason()
         {
             return _channel?.CloseReason
@@ -457,7 +468,7 @@ namespace RabbitMQ.Client.ConsumerDispatching
             try
             {
                 Quiesce();
-                _ = ShutdownAsync(DisposalReason());
+                ObserveFault(ShutdownAsync(DisposalReason()));
 
                 using var cts = new CancellationTokenSource(InternalConstants.ConsumerDispatcherDrainTimeout);
                 await WaitForShutdownAsync(cts.Token)

@@ -696,8 +696,10 @@ namespace RabbitMQ.Client.Impl
                     try
                     {
                         // Neither _rpcSemaphore / _confirmSemaphore nor the
-                        // publisher-confirmation rate limiter are disposed here. See
-                        // DisposeAsyncCoreAsync, and issues #1976 and #1988.
+                        // publisher-confirmation rate limiter are disposed here. Disposing a
+                        // SemaphoreSlim with concurrent waiters strands them (#1976); the limiter
+                        // is shared with sibling and recovered channels (#1988). Reasoning in
+                        // docs/internal/connection-shutdown-and-cancellation.md.
                         MaybeSetExceptionOnConfirmsTcs();
                     }
                     catch

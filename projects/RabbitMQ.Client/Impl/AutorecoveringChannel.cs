@@ -234,9 +234,12 @@ namespace RabbitMQ.Client.Impl
                     /*
                      * Release the replaced channel now it is swapped out, or every recovery cycle
                      * abandons one. In a finally so a throwing recovery step still releases it.
-                     * Independent of the new channel's recovery. Issue #1988.
+                     * Independent of the new channel's recovery. Drop its handlers: TakeOver has
+                     * already given them to the survivor, and a replaced channel that still held
+                     * them could invoke application code while the recorded-entity semaphore is
+                     * held, which is the #2038 deadlock. Issue #1988.
                      */
-                    await SafeDisposeAsync(replacedChannel, "replaced")
+                    await SafeDisposeAsync(replacedChannel, "replaced", dropHandlers: true)
                         .ConfigureAwait(false);
                 }
 

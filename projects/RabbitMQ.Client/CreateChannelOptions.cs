@@ -78,8 +78,9 @@ namespace RabbitMQ.Client
         /// <b>Its lifetime belongs to you.</b> Disposing an <see cref="IChannel"/> does not dispose
         /// this limiter: it is shared by every channel created from these options, and a recovering
         /// channel reuses them, so a channel disposing it would break the survivors. This changed in
-        /// 7.3.0, where earlier versions had the channel dispose it. The default above needs no
-        /// disposal; a limiter that owns a timer does.
+        /// 7.3.0: earlier versions disposed it, though only on the synchronous path or for a limiter
+        /// that overrode <c>DisposeAsyncCore</c>, which <see cref="ThrottlingRateLimiter"/> did not.
+        /// The default above needs no disposal; a limiter that owns a timer does.
         /// </para>
         /// </remarks>
         public readonly RateLimiter? OutstandingPublisherConfirmationsRateLimiter = new ThrottlingRateLimiter(128);
