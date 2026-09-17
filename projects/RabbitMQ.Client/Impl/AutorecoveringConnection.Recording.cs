@@ -50,6 +50,8 @@ namespace RabbitMQ.Client.Impl
 
         internal int RecordedExchangesCount => _recordedExchanges.Count;
 
+        internal int RecordedChannelsCount => _channels.Count;
+
         internal async ValueTask RecordExchangeAsync(RecordedExchange exchange,
             bool recordedEntitiesSemaphoreHeld)
         {
