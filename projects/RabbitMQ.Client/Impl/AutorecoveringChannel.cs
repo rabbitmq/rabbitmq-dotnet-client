@@ -211,11 +211,18 @@ namespace RabbitMQ.Client.Impl
                         .ConfigureAwait(false);
                 }
 
-                await _innerChannel.RunRecoveryEventHandlers(this, cancellationToken)
-                    .ConfigureAwait(false);
-
                 return true;
             }
+        }
+
+        internal Task RunRecoveryEventHandlersAsync(CancellationToken cancellationToken)
+        {
+            if (_disposed)
+            {
+                return Task.CompletedTask;
+            }
+
+            return _innerChannel.RunRecoveryEventHandlers(this, cancellationToken);
         }
 
         public async Task CloseAsync(ushort replyCode, string replyText, bool abort,

@@ -29,9 +29,11 @@
 //  Copyright (c) 2007-2026 Broadcom. All Rights Reserved.
 //---------------------------------------------------------------------------
 
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using RabbitMQ.Client;
+using RabbitMQ.Client.Impl;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -99,6 +101,41 @@ namespace Test.Integration.ConnectionRecovery
             Assert.True(_channel.IsOpen);
             await CloseAndWaitForRecoveryAsync();
             Assert.True(_channel.IsOpen);
+        }
+
+        [Fact]
+        public async Task TestChannelDisposedWhileConnectionIsDownIsDroppedFromRecovery()
+        {
+            /*
+             * A channel disposed while the connection is down stays recorded: IsOpen is false, so
+             * DisposeAsync skips AbortAsync and with it the DeleteRecordedChannelAsync in
+             * CloseAsync's finally. Recovery is what drops it, and this is the only path on which
+             * AutomaticallyRecoverAsync returns false. The interval is long enough that disposal
+             * lands before recovery takes its snapshot, so nothing here races.
+             */
+            AutorecoveringConnection conn = await CreateAutorecoveringConnectionAsync(TimeSpan.FromSeconds(8));
+            IChannel disposedChannel = await conn.CreateChannelAsync();
+            IChannel survivingChannel = await conn.CreateChannelAsync();
+            Assert.Equal(2, conn.RecordedChannelsCount);
+
+            TaskCompletionSource<bool> shutdown = PrepareForShutdown(conn);
+            TaskCompletionSource<bool> recovered = PrepareForRecovery(conn);
+            await CloseConnectionAsync(conn);
+            await WaitAsync(shutdown, "connection shutdown");
+
+            Assert.False(disposedChannel.IsOpen);
+            await disposedChannel.DisposeAsync();
+            Assert.Equal(2, conn.RecordedChannelsCount);
+
+            await WaitAsync(recovered, "connection recovery");
+
+            Assert.True(survivingChannel.IsOpen);
+            Assert.Equal(1, conn.RecordedChannelsCount);
+
+            await survivingChannel.CloseAsync();
+            await conn.CloseAsync();
+            await survivingChannel.DisposeAsync();
+            await conn.DisposeAsync();
         }
 
         [Fact]
