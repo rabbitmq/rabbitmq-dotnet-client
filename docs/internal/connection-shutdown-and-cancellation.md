@@ -81,12 +81,17 @@ AssertResultIsTrue(await k);   // <-- waits here
 
 If the connection is already dead and channel 0 was never shut down, neither (1) nor (2) happens, so `await k` blocks for the **entire `ContinuationTimeout`** before failing. That is the observed "hang".
 
-The continuation timeout is a self-contained `CancellationTokenSource`; note that `k`'s cancellation token deliberately does **not** include the user's token when the channel `IsOpen` ("we should really try to close the channel"), which is why a cancelled user token does not shorten this wait:
+The continuation timeout is a self-contained `CancellationTokenSource`; note that `k`'s cancellation token deliberately does **not** include the user's token when the channel `IsOpen` ("we should really try to close the channel"), which is why a cancelled user token does not shorten this wait.
+
+The source is created **unarmed** and armed only by `StartTimeout()`, which runs after the channel's RPC semaphore has been acquired, so that queueing behind another RPC is not charged against this operation's budget (#1964):
 
 ```csharp
 // projects/RabbitMQ.Client/Impl/AsyncRpcContinuations.cs (AsyncRpcContinuation ctor)
-_continuationTimeoutCancellationTokenSource = new CancellationTokenSource(continuationTimeout);
+// Deliberately unarmed: StartTimeout() arms it once the operation can actually be issued.
+_continuationTimeoutCancellationTokenSource = new CancellationTokenSource();
 ```
+
+Measure an expected stall from `StartTimeout`, not from the continuation's construction. When the budget elapses the continuation completes as **cancelled**, so the awaiter sees an `OperationCanceledException` rather than a `TimeoutException`; the token on that exception is the internal timeout token. That does *not* distinguish it from a caller cancel, which completes with a different internal token; the only signal available to a caller is its own token, and only in one direction (#1996, #2019).
 
 ## Issue #1921: hang when a CancellationToken fires during connection open
 
@@ -329,13 +334,46 @@ The exception is a pre-existing bug rather than a property of this change, and i
 
 It still cannot deadlock the seven re-acquires, but **not** because it runs strictly after them: the channel loop runs each channel's `RecoverConsumersAsync` and then that channel's recovery handlers, so with two or more channels the first channel's handlers run *before* the second channel's consumer loop. The reason it is safe is simply that this is all one sequential task - there is never a second holder to contend with, and a wedged handler means the remaining consumer loops never start rather than blocking on a semaphore.
 
+## Issue #1996: a continuation timeout is cancellation, and cannot be told from a caller cancel
+
+`AsyncRpcContinuation` used to try to surface a `TimeoutException` on top of the cancellation:
+
+```csharp
+if (tcs.TrySetCanceled(...))
+{
+    tcs.TrySetException(GetTimeoutException());
+}
+```
+
+A `TaskCompletionSource` completes once, so the `TrySetCanceled` that guards the block is exactly what makes the `TrySetException` a no-op. It was dead from the first commit that introduced it (`cc16b1045`, #1750), whose own comment recorded the intent as an open question. 6.x did throw `TimeoutException`, from `BlockingCell.WaitForValue(TimeSpan)`, under a `// TODO do not use System.TimeoutException here`. The doubt was about that type specifically, in both generations, so the dead code is deleted rather than made live: whether an RPC timeout should be distinguishable at all, and by what type, is left open rather than settled by accident.
+
+**Why the completing token is passed on every target framework.** Not because it identifies a timeout - it does not. A caller cancel completes with an internal linked token, so *both* outcomes complete with a token the caller does not own, and comparing `ex.CancellationToken` against your own reports a difference either way. The token is passed so that the completing token is a *real cancelled token* rather than `CancellationToken.None`, which is what a defaulted caller token also looks like. Passing it only under `#if NET` made netstandard report `None`, which was the whole netstandard defect on this branch. The `#else` `Register` overload supplies no token to the callback, which is why `state` is the continuation rather than the `TaskCompletionSource`.
+
+**The timeout callback does not always win.** The linked source is created *after* the timeout registration, and cancellation callbacks run last-registered-first, so an awaiter released by the linked token can complete the source first and `HandleContinuationTimeout`'s `TrySetCanceled` then returns false. It is still the only timeout path when the broker never replies at all.
+
+**What a caller can actually determine, and it is one-directional.** Verified against the three cases:
+
+| scenario | `myToken.IsCancellationRequested` | verdict |
+|---|---|---|
+| timeout, no cancel | `false` | timed out - **correct** |
+| cancelled before the frame is written | `true` | cannot tell - correct |
+| cancelled mid-flight, then the budget expires | `true` | cannot tell - **conservative, was a timeout** |
+
+So an *uncancelled* token means the operation definitely timed out, because the client never cancels a token it does not own. A cancelled one means "cannot tell", not "not a timeout": cancelling it does not abort the wait for the reply, since only the timeout token is registered against the `TaskCompletionSource`, so once the request is on the wire the operation runs its full budget. No false positives, only false negatives. #2019 tracks making it positively knowable.
+
+A close on an open channel or connection is a further exception: those deliberately build the continuation with `CancellationToken.None` so a close already under way is not truncated, so a cancelled caller token there does not even imply the request was never sent.
+
+**Paths that do not surface it as cancellation at all.** `CreateConnectionAsync` wraps it in `BrokerUnreachableException`; an abort swallows it, so `AbortAsync` can return successfully after waiting out the full budget; and topology recovery wraps it in a `TopologyRecoveryException`, which is logged and fails the recovery attempt rather than reaching any event handler - `ConnectionRecoveryErrorAsync` covers reconnection, not the topology phase. Waiting for a publisher confirmation is not bounded by this timeout at all.
+
+Because `StartTimeout()` is the first statement inside the `try`, before `ModelSendAsync`, the budget is armed before the request is sent. Unless it is very small, a timeout therefore means the request reached the wire and the broker may still act on it.
+
 ## Relevant timeouts
 
 These are easy to confuse; distinguishing which one a hang tracks is the key diagnostic signal.
 
 | Constant / setting                         | Default | Meaning                                             |
 | ------------------------------------------ | ------- | --------------------------------------------------- |
-| `ContinuationTimeout`                      | 20s     | Max wait for an RPC reply (e.g. `channel.close-ok`) |
+| `ContinuationTimeout`                      | 20s     | Max wait for an RPC reply (e.g. `channel.close-ok`), armed by `StartTimeout`; surfaces as cancellation, not `TimeoutException` |
 | `HandshakeContinuationTimeout`             | 10s     | Continuation timeout during the AMQP handshake      |
 | `InternalConstants.DefaultConnectionAbortTimeout` | 5s | Default abort budget, and the floor an abort is raised to |
 | `InternalConstants.MaxConnectionAbortTimeout` | 10s | Ceiling an abort is capped at, however much was asked for (#1973) |
