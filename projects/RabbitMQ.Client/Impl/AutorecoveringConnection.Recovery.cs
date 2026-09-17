@@ -333,7 +333,7 @@ namespace RabbitMQ.Client.Impl
                 ThrowIfDisposed();
                 if (await TryRecoverConnectionDelegateAsync(cancellationToken).ConfigureAwait(false))
                 {
-                    List<AutorecoveringChannel> recoveredChannels;
+                    IReadOnlyCollection<AutorecoveringChannel> recoveredChannels;
                     await _recordedEntitiesSemaphore.WaitAsync(cancellationToken)
                         .ConfigureAwait(false);
                     try
@@ -804,7 +804,7 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        private async ValueTask<List<AutorecoveringChannel>> RecoverChannelsAndItsConsumersAsync(bool recordedEntitiesSemaphoreHeld, CancellationToken cancellationToken)
+        private async ValueTask<IReadOnlyCollection<AutorecoveringChannel>> RecoverChannelsAndItsConsumersAsync(bool recordedEntitiesSemaphoreHeld, CancellationToken cancellationToken)
         {
             if (false == recordedEntitiesSemaphoreHeld)
             {
