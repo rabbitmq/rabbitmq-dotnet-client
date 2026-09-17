@@ -265,6 +265,15 @@ namespace RabbitMQ.Client.Impl
             {
                 throw e;
             }
+            if (recoveryCancellationToken.IsCancellationRequested)
+            {
+                // Recovery was cancelled by close or dispose. Saying this is "not a known problem
+                // with connectivity" would send an operator chasing a broker or topology fault
+                // during an ordinary shutdown, once per entity still being recovered.
+                ESLog.Info($"Recovery of a topology entity was abandoned because the connection is closing: {e.Message}");
+                return;
+            }
+
             ESLog.Info($"Will not retry recovery because of {e.InnerException?.GetType().FullName}: it's not a known problem with connectivity, ignoring it", e);
         }
 
@@ -481,7 +490,8 @@ namespace RabbitMQ.Client.Impl
                         }
                         finally
                         {
-                            await _recordedEntitiesSemaphore.WaitAsync(cancellationToken)
+                            // Not the recovery token: see issue #1997 in the design doc.
+                            await _recordedEntitiesSemaphore.WaitAsync(CancellationToken.None)
                                 .ConfigureAwait(false);
                         }
                     }
@@ -552,7 +562,8 @@ namespace RabbitMQ.Client.Impl
                             }
                             finally
                             {
-                                await _recordedEntitiesSemaphore.WaitAsync(cancellationToken)
+                                // Not the recovery token: see issue #1997 in the design doc.
+                                await _recordedEntitiesSemaphore.WaitAsync(CancellationToken.None)
                                     .ConfigureAwait(false);
                             }
                         }
@@ -577,7 +588,8 @@ namespace RabbitMQ.Client.Impl
                         }
                         finally
                         {
-                            await _recordedEntitiesSemaphore.WaitAsync(cancellationToken)
+                            // Not the recovery token: see issue #1997 in the design doc.
+                            await _recordedEntitiesSemaphore.WaitAsync(CancellationToken.None)
                                 .ConfigureAwait(false);
                         }
                     }
@@ -657,7 +669,8 @@ namespace RabbitMQ.Client.Impl
                         }
                         finally
                         {
-                            await _recordedEntitiesSemaphore.WaitAsync(cancellationToken)
+                            // Not the recovery token: see issue #1997 in the design doc.
+                            await _recordedEntitiesSemaphore.WaitAsync(CancellationToken.None)
                                 .ConfigureAwait(false);
                         }
                     }
@@ -669,8 +682,10 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
+        // Both parameters are deliberately non-optional: a defaulted token would silently
+        // reintroduce #1997 at a future call site.
         internal async ValueTask RecoverConsumersAsync(AutorecoveringChannel channelToRecover, IChannel channelToUse,
-            bool recordedEntitiesSemaphoreHeld = false, CancellationToken cancellationToken = default)
+            bool recordedEntitiesSemaphoreHeld, CancellationToken cancellationToken)
         {
             if (_disposed)
             {
@@ -689,22 +704,36 @@ namespace RabbitMQ.Client.Impl
                     continue;
                 }
 
-                try
+                // Only release when there is a handler to invoke, as the sibling loops do:
+                // releasing unconditionally made the cancelled re-acquire below reachable from any
+                // two recorded consumers. See issue #1997 in the design doc.
+                if (false == _recoveringConsumerAsyncWrapper.IsEmpty)
                 {
-                    _recordedEntitiesSemaphore.Release();
-                    await _recoveringConsumerAsyncWrapper.InvokeAsync(this, new RecoveringConsumerEventArgs(consumer.ConsumerTag, consumer.Arguments, cancellationToken))
-                        .ConfigureAwait(false);
-                }
-                finally
-                {
-                    await _recordedEntitiesSemaphore.WaitAsync(cancellationToken)
-                        .ConfigureAwait(false);
+                    try
+                    {
+                        _recordedEntitiesSemaphore.Release();
+                        await _recoveringConsumerAsyncWrapper.InvokeAsync(this, new RecoveringConsumerEventArgs(consumer.ConsumerTag, consumer.Arguments, cancellationToken))
+                            .ConfigureAwait(false);
+                    }
+                    finally
+                    {
+                        /*
+                         * Deliberately not the recovery token. A cancelled re-acquire escapes
+                         * without the semaphore, and the outer finally then releases one it does not
+                         * hold, raising SemaphoreFullException and replacing the real cancellation
+                         * with a 541. Waiting untokenised is bounded here, and issue #2038 is a
+                         * pre-existing deadlock that does not reach it. Both arguments are in
+                         * docs/internal/connection-shutdown-and-cancellation.md, issue #1997.
+                         */
+                        await _recordedEntitiesSemaphore.WaitAsync(CancellationToken.None)
+                            .ConfigureAwait(false);
+                    }
                 }
 
                 string oldTag = consumer.ConsumerTag;
                 try
                 {
-                    string newTag = await consumer.RecoverAsync(channelToUse)
+                    string newTag = await consumer.RecoverAsync(channelToUse, cancellationToken)
                         .ConfigureAwait(false);
                     RecordedConsumer consumerWithNewConsumerTag = RecordedConsumer.WithNewConsumerTag(newTag, consumer);
                     UpdateConsumer(oldTag, newTag, consumerWithNewConsumerTag);
@@ -719,7 +748,8 @@ namespace RabbitMQ.Client.Impl
                         }
                         finally
                         {
-                            await _recordedEntitiesSemaphore.WaitAsync(cancellationToken)
+                            // Not the recovery token: see issue #1997 in the design doc.
+                            await _recordedEntitiesSemaphore.WaitAsync(CancellationToken.None)
                                 .ConfigureAwait(false);
                         }
                     }
@@ -742,7 +772,8 @@ namespace RabbitMQ.Client.Impl
                         }
                         finally
                         {
-                            await _recordedEntitiesSemaphore.WaitAsync(cancellationToken)
+                            // Not the recovery token: see issue #1997 in the design doc.
+                            await _recordedEntitiesSemaphore.WaitAsync(CancellationToken.None)
                                 .ConfigureAwait(false);
                         }
                     }
