@@ -85,17 +85,39 @@ provider does not restore what it replaced.
 
 This is a property of the model rather than an implementation shortcut: one `ActivitySource`
 produces a single `Activity` shared by every listener, and one publish injects a single set of
-headers, so neither span shape nor propagated context can differ per provider. Configuration owned
-by something narrower than the process is tracked in
-[#1981](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1981).
+headers, so neither span shape nor propagated context can differ per provider.
 
-Two consequences worth planning around:
+**A connection can own its configuration, though, and that is the recommended way.** Set
+`ConnectionFactory.TracingOptions`, or call `UseOpenTelemetryTracing` on the factory, and the
+connections it creates use that instead of the process-wide default:
+
+```csharp
+factory.UseOpenTelemetryTracing(options =>
+    options.UseRoutingKeyAsOperationName = true);
+```
+
+Every member of `ConnectionTracingOptions` is nullable and `null` means inherit, resolved **per
+member**, so setting one span-shaping flag leaves whatever propagation is configured process-wide
+untouched. `Propagator` takes a `System.Diagnostics.DistributedContextPropagator`; this package
+supplies `OpenTelemetryPropagator`, which bridges OpenTelemetry's own `TextMapPropagator` and is
+what `UseOpenTelemetryTracing` installs for you. To extend it rather than replace it, decorate what
+is already there:
+
+```csharp
+factory.UseOpenTelemetryTracing(options =>
+    options.Propagator = new MyDecorator(options.Propagator));
+```
+
+Three consequences worth planning around:
 
 - Call `AddRabbitMQInstrumentation` from one place. Two providers configured with different options
   will not each get their own.
-- If you configure the client directly through `RabbitMQActivitySource`, save and restore the
-  previous values yourself if you need them back. Assigning `null` to `ContextInjector`,
-  `ContextExtractor`, or `TracingOptions` throws `ArgumentNullException`.
+- `RabbitMQActivitySource.ContextInjector`, `ContextExtractor`, `UseRoutingKeyAsOperationName` and
+  `TracingOptions` are `[Obsolete]` as of 7.3.0. They still work and will be removed in a future
+  major version; prefer `ConnectionFactory.TracingOptions`.
+- If you do configure the process-wide default directly, save and restore the previous values
+  yourself if you need them back. Assigning `null` to `ContextInjector`, `ContextExtractor`, or
+  `TracingOptions` throws `ArgumentNullException`.
 
 ## What is emitted
 
