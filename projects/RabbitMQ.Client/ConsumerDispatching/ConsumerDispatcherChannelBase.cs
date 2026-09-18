@@ -48,6 +48,13 @@ namespace RabbitMQ.Client.ConsumerDispatching
         private bool _disposed;
         private readonly CancellationTokenSource _shutdownCts = new CancellationTokenSource();
 
+        /*
+         * Captured once: CancellationTokenSource.Token throws ObjectDisposedException after the
+         * source is disposed, so reading it per work item let a Dispose() racing an inbound frame
+         * tear down the whole connection. Issue #1988.
+         */
+        private readonly CancellationToken _shutdownToken;
+
         internal ConsumerDispatcherChannelBase(Impl.Channel channel, ushort concurrency)
         {
             _channel = channel;
@@ -61,6 +68,7 @@ namespace RabbitMQ.Client.ConsumerDispatching
              * See docs/internal/consumer-dispatch-concurrency.md and #2035.
              */
             _concurrency = concurrency == 0 ? InternalConstants.MinConsumerDispatchConcurrency : concurrency;
+            _shutdownToken = _shutdownCts.Token;
 
             var channelOpts = new System.Threading.Channels.UnboundedChannelOptions
             {
@@ -93,6 +101,13 @@ namespace RabbitMQ.Client.ConsumerDispatching
 
         public ushort Concurrency => _concurrency;
 
+        /*
+         * The guard and the write are not atomic, so drop the work item rather than let
+         * ChannelClosedException unwind into the frame-receive loop and tear down the connection.
+         * The delivery path owns the pooled body once TakeoverBody() has cleared cmd.Body upstream.
+         * These catches cover only the rare exits; the guard above drops far more, which is issue
+         * #2039. See docs/internal/consumer-dispatch-concurrency.md.
+         */
         public async ValueTask HandleBasicConsumeOkAsync(IAsyncBasicConsumer consumer, string consumerTag, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
@@ -102,9 +117,14 @@ namespace RabbitMQ.Client.ConsumerDispatching
                 try
                 {
                     AddConsumer(consumer, consumerTag);
-                    WorkStruct work = WorkStruct.CreateConsumeOk(consumer, consumerTag, _shutdownCts);
+                    WorkStruct work = WorkStruct.CreateConsumeOk(consumer, consumerTag, _shutdownToken);
                     await _writer.WriteAsync(work, cancellationToken)
                         .ConfigureAwait(false);
+                }
+                catch (System.Threading.Channels.ChannelClosedException)
+                {
+                    // The dispatcher was disposed after the check above; drop the registration.
+                    _ = GetAndRemoveConsumer(consumerTag);
                 }
                 catch
                 {
@@ -123,9 +143,27 @@ namespace RabbitMQ.Client.ConsumerDispatching
             if (false == _disposed && false == IsQuiescing)
             {
                 IAsyncBasicConsumer consumer = GetConsumerOrDefault(consumerTag);
-                var work = WorkStruct.CreateDeliver(consumer, consumerTag, deliveryTag, redelivered, exchange, routingKey, basicProperties, body, _shutdownCts);
-                await _writer.WriteAsync(work, cancellationToken)
-                    .ConfigureAwait(false);
+                var work = WorkStruct.CreateDeliver(consumer, consumerTag, deliveryTag, redelivered, exchange, routingKey, basicProperties, body, _shutdownToken);
+                try
+                {
+                    await _writer.WriteAsync(work, cancellationToken)
+                        .ConfigureAwait(false);
+                }
+                catch (System.Threading.Channels.ChannelClosedException)
+                {
+                    // Nothing will drain this item, so return its pooled body to the pool here.
+                    work.Dispose();
+                }
+                catch (OperationCanceledException)
+                {
+                    /*
+                     * WriteAsync observes the token before the channel's completion, so ordinary
+                     * teardown lands here rather than above. The item never reaches a consumer, so
+                     * return its body; rethrow, because cancellation propagated before this catch.
+                     */
+                    work.Dispose();
+                    throw;
+                }
             }
         }
 
@@ -136,9 +174,16 @@ namespace RabbitMQ.Client.ConsumerDispatching
             if (false == _disposed && false == IsQuiescing)
             {
                 IAsyncBasicConsumer consumer = GetAndRemoveConsumer(consumerTag);
-                WorkStruct work = WorkStruct.CreateCancelOk(consumer, consumerTag, _shutdownCts);
-                await _writer.WriteAsync(work, cancellationToken)
-                    .ConfigureAwait(false);
+                WorkStruct work = WorkStruct.CreateCancelOk(consumer, consumerTag, _shutdownToken);
+                try
+                {
+                    await _writer.WriteAsync(work, cancellationToken)
+                        .ConfigureAwait(false);
+                }
+                catch (System.Threading.Channels.ChannelClosedException)
+                {
+                    // The dispatcher was disposed after the check above; the item has no body.
+                }
             }
         }
 
@@ -149,9 +194,16 @@ namespace RabbitMQ.Client.ConsumerDispatching
             if (false == _disposed && false == IsQuiescing)
             {
                 IAsyncBasicConsumer consumer = GetAndRemoveConsumer(consumerTag);
-                WorkStruct work = WorkStruct.CreateCancel(consumer, consumerTag, _shutdownCts);
-                await _writer.WriteAsync(work, cancellationToken)
-                    .ConfigureAwait(false);
+                WorkStruct work = WorkStruct.CreateCancel(consumer, consumerTag, _shutdownToken);
+                try
+                {
+                    await _writer.WriteAsync(work, cancellationToken)
+                        .ConfigureAwait(false);
+                }
+                catch (System.Threading.Channels.ChannelClosedException)
+                {
+                    // The dispatcher was disposed after the check above; the item has no body.
+                }
             }
         }
 
@@ -298,19 +350,19 @@ namespace RabbitMQ.Client.ConsumerDispatching
                 CancellationToken = cancellationToken;
             }
 
-            public static WorkStruct CreateCancel(IAsyncBasicConsumer consumer, string consumerTag, CancellationTokenSource cancellationTokenSource)
+            public static WorkStruct CreateCancel(IAsyncBasicConsumer consumer, string consumerTag, CancellationToken cancellationToken)
             {
-                return new WorkStruct(WorkType.Cancel, consumer, consumerTag, cancellationTokenSource.Token);
+                return new WorkStruct(WorkType.Cancel, consumer, consumerTag, cancellationToken);
             }
 
-            public static WorkStruct CreateCancelOk(IAsyncBasicConsumer consumer, string consumerTag, CancellationTokenSource cancellationTokenSource)
+            public static WorkStruct CreateCancelOk(IAsyncBasicConsumer consumer, string consumerTag, CancellationToken cancellationToken)
             {
-                return new WorkStruct(WorkType.CancelOk, consumer, consumerTag, cancellationTokenSource.Token);
+                return new WorkStruct(WorkType.CancelOk, consumer, consumerTag, cancellationToken);
             }
 
-            public static WorkStruct CreateConsumeOk(IAsyncBasicConsumer consumer, string consumerTag, CancellationTokenSource cancellationTokenSource)
+            public static WorkStruct CreateConsumeOk(IAsyncBasicConsumer consumer, string consumerTag, CancellationToken cancellationToken)
             {
-                return new WorkStruct(WorkType.ConsumeOk, consumer, consumerTag, cancellationTokenSource.Token);
+                return new WorkStruct(WorkType.ConsumeOk, consumer, consumerTag, cancellationToken);
             }
 
             public static WorkStruct CreateShutdown(IAsyncBasicConsumer consumer, ShutdownEventArgs reason)
@@ -324,12 +376,15 @@ namespace RabbitMQ.Client.ConsumerDispatching
             }
 
             public static WorkStruct CreateDeliver(IAsyncBasicConsumer consumer, string consumerTag, ulong deliveryTag, bool redelivered,
-                string exchange, string routingKey, IReadOnlyBasicProperties basicProperties, RentedMemory body, CancellationTokenSource cancellationTokenSource)
+                string exchange, string routingKey, IReadOnlyBasicProperties basicProperties, RentedMemory body, CancellationToken cancellationToken)
             {
                 return new WorkStruct(consumer, consumerTag, deliveryTag, redelivered,
-                    exchange, routingKey, basicProperties, body, cancellationTokenSource.Token);
+                    exchange, routingKey, basicProperties, body, cancellationToken);
             }
 
+            // NOT idempotent: a readonly struct field means RentedMemory.Dispose() runs on a
+            // defensive copy, so a second call returns the same array to the pool twice. Dispose a
+            // given work item exactly once. See docs/internal/consumer-dispatch-concurrency.md.
             public void Dispose()
             {
                 Body.Dispose();
@@ -354,7 +409,15 @@ namespace RabbitMQ.Client.ConsumerDispatching
                     if (disposing)
                     {
                         Quiesce();
-                        _shutdownCts.Dispose();
+
+                        /*
+                         * Run the WHOLE shutdown, not just TryComplete: completing the writer alone
+                         * leaves every consumer with a null ShutdownReason and IsRunning true on a
+                         * dead channel. The returned task is _worker, deliberately not awaited.
+                         * _shutdownCts is deliberately NOT disposed - read issue #1976 and
+                         * docs/internal/consumer-dispatch-concurrency.md before "fixing" that.
+                         */
+                        ObserveFault(ShutdownAsync(DisposalReason()));
                     }
                 }
                 catch
@@ -365,6 +428,59 @@ namespace RabbitMQ.Client.ConsumerDispatching
                 {
                     _disposed = true;
                 }
+            }
+        }
+
+        /*
+         * The reason handed to consumers when disposal shuts the dispatcher down. Channel.CloseAsync
+         * publishes the close reason before transmitting channel.close, so it is already set on every
+         * path here. The fallback covers a dispatcher built without a channel, as the unit tests do,
+         * and is deliberately not an error code.
+         */
+        // The task returned by ShutdownAsync is _worker, which can fault, and no caller on the
+        // dispose paths awaits it. Left unobserved that reaches TaskScheduler.UnobservedTaskException,
+        // which is fatal for a host configured with ThrowUnobservedTaskExceptions.
+        private static void ObserveFault(Task task)
+        {
+            _ = task.ContinueWith(static t => _ = t.Exception,
+                CancellationToken.None,
+                TaskContinuationOptions.OnlyOnFaulted | TaskContinuationOptions.ExecuteSynchronously,
+                TaskScheduler.Default);
+        }
+
+        private ShutdownEventArgs DisposalReason()
+        {
+            return _channel?.CloseReason
+                ?? new ShutdownEventArgs(ShutdownInitiator.Library,
+                    Constants.ReplySuccess, "consumer dispatcher disposed");
+        }
+
+        // Async disposal additionally waits for the queued notifications to reach their consumers,
+        // bounded by ConsumerDispatcherDrainTimeout and best effort. Reuses WaitForShutdownAsync for
+        // its #1751 AggregateException filtering. See docs/internal/consumer-dispatch-concurrency.md.
+        public async ValueTask DisposeAsync()
+        {
+            if (_disposed)
+            {
+                return;
+            }
+
+            try
+            {
+                Quiesce();
+                ObserveFault(ShutdownAsync(DisposalReason()));
+
+                using var cts = new CancellationTokenSource(InternalConstants.ConsumerDispatcherDrainTimeout);
+                await WaitForShutdownAsync(cts.Token)
+                    .ConfigureAwait(false);
+            }
+            catch
+            {
+                // CHOMP
+            }
+            finally
+            {
+                _disposed = true;
             }
         }
 
