@@ -89,19 +89,39 @@ namespace RabbitMQ.Client
         /// Set to a value greater than one to enable concurrent processing. For a concurrency greater than one <see cref="IAsyncBasicConsumer"/>
         /// will be offloaded to the worker thread pool so it is important to choose the value for the concurrency wisely to avoid thread pool overloading.
         /// <see cref="IAsyncBasicConsumer"/> can handle concurrency much more efficiently due to the non-blocking nature of the consumer.
-        ///
-        /// The field's own default is <c>null</c>, which uses the value from
-        /// <see cref="IConnectionFactory.ConsumerDispatchConcurrency"/>. Note that the public constructor
-        /// defaults its parameter to 1 rather than <c>null</c> and assigns it unconditionally, so options
-        /// built through the constructor do NOT inherit the connection's value unless you pass
-        /// <c>null</c> explicitly. Only <see cref="IConnection.CreateChannelAsync"/> with no options
-        /// inherits it.
-        ///
-        /// For concurrency greater than one this removes the guarantee that consumers handle messages in the order they receive them.
-        /// In addition to that consumers need to be thread/concurrency safe.
-        ///
+        /// <para>
+        /// <c>null</c> means "use <see cref="IConnectionFactory.ConsumerDispatchConcurrency"/>", but note which
+        /// default you actually get, because the two entry points differ and the difference is easy to
+        /// miss:
+        /// </para>
+        /// <list type="bullet">
+        /// <item><description>
+        /// <see cref="IConnection.CreateChannelAsync"/> with no options inherits the factory value.
+        /// </description></item>
+        /// <item><description>
+        /// The <see cref="CreateChannelOptions(bool, bool, RateLimiter, ushort?)"/> constructor defaults
+        /// this parameter to <see cref="Constants.DefaultConsumerDispatchConcurrency"/> (1) and assigns it
+        /// unconditionally, so a channel created from explicitly constructed options is serialized unless
+        /// you pass <c>null</c> yourself. Passing <c>consumerDispatchConcurrency: null</c> is what opts
+        /// that channel into the factory value.
+        /// </description></item>
+        /// </list>
+        /// <para>
+        /// The constructor default is deliberately not <c>null</c>. Changing it would be a compile-time
+        /// break rather than a runtime one: C# bakes an optional parameter's default into the caller's
+        /// assembly, so applications that upgraded without rebuilding would keep the old behaviour while
+        /// rebuilt ones silently switched, and code reading this member back would see
+        /// <see cref="System.Nullable{T}.Value"/> throw where it previously returned 1. See
+        /// rabbitmq/rabbitmq-dotnet-client#2027.
+        /// </para>
+        /// <para>
+        /// For concurrency greater than one this removes the guarantee that consumers handle messages in
+        /// the order they receive them. In addition to that consumers need to be thread/concurrency safe.
+        /// </para>
+        /// <para>
         /// A value of 0 is treated as 1. Zero would leave the channel's consumer dispatcher with no
         /// worker at all, so consumers would register successfully and never receive anything.
+        /// </para>
         /// </summary>
         public readonly ushort? ConsumerDispatchConcurrency = null;
 
