@@ -39,14 +39,14 @@ namespace RabbitMQ.Client
         /// Returns true while the consumer is registered and expecting deliveries from the broker.
         /// </summary>
         /// <remarks>
-        /// Safe to poll from another thread. See <see cref="ShutdownReason"/> for the case where this
-        /// stays <c>true</c> on a channel that has shut down.
+        /// Safe to poll from another thread. Goes <c>false</c> both when the channel shuts down and when
+        /// the consumer is cancelled from either side; <see cref="ShutdownReason"/> tells those apart.
         /// </remarks>
         public bool IsRunning => Volatile.Read(ref _isRunning);
 
         /// <summary>
-        /// If our <see cref="IChannel"/> shuts down, this property will contain a description of the reason for the
-        /// shutdown. Otherwise it will contain null. See <see cref="ShutdownEventArgs"/>.
+        /// Describes why our <see cref="IChannel"/> shut down, or null if it has not shut down since this
+        /// consumer was last registered. See <see cref="ShutdownEventArgs"/> and the remarks below.
         /// </summary>
         /// <remarks>
         /// Cleared when the broker confirms a registration, which includes automatic recovery
@@ -59,10 +59,11 @@ namespace RabbitMQ.Client
         /// confirmed registration clears it.
         /// </para>
         /// <para>
-        /// <see cref="IsRunning"/> can be <c>true</c> at the same time as a non-null reason, and stays
-        /// that way: trust the reason and do not wait for <see cref="IsRunning"/> to go false. The two
-        /// are written separately, so above a <c>ConsumerDispatchConcurrency</c> of one they can also
-        /// be observed disagreeing transiently - see rabbitmq/rabbitmq-dotnet-client#2016.
+        /// This reports channel shutdown only. A cancelled consumer - whether the broker sent
+        /// <c>basic.cancel</c> or the application called <c>BasicCancelAsync</c> - leaves this null and
+        /// sets <see cref="IsRunning"/> <c>false</c>, so a health check that only reads this one cannot
+        /// see a cancellation. The two are written separately, so they can be observed disagreeing while
+        /// a registration or a shutdown is in flight - see rabbitmq/rabbitmq-dotnet-client#2016.
         /// </para>
         /// </remarks>
         public ShutdownEventArgs? ShutdownReason => Volatile.Read(ref _shutdownReason);
@@ -99,23 +100,29 @@ namespace RabbitMQ.Client
         /// Called upon successful registration of the consumer with the broker.
         /// </summary>
         /// <param name="consumerTag">Consumer tag this consumer is registered.</param>
-        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <param name="cancellationToken">
+        /// The dispatcher's shutdown token. A cancelled one means the channel is already going down, so
+        /// this registration is not recorded; an override must forward it or that protection is lost.
+        /// </param>
         public virtual Task HandleBasicConsumeOkAsync(string consumerTag, CancellationToken cancellationToken = default)
         {
-            _consumerTags.Add(consumerTag);
-
             /*
-             * Skipped when the dispatcher's shutdown token is already cancelled, so a registration
-             * confirmed after the channel began shutting down cannot clear the reason and leave a
-             * dead channel reading as healthy. Reachable for reasons that are not the obvious ones:
-             * see docs/internal/connection-shutdown-and-cancellation.md, issue #2006.
+             * Record nothing once the channel is going down: a registration confirmed now never
+             * delivers, so clearing the reason would leave a dead channel reading as healthy and
+             * adding the tag would advertise a consumer that only throws when cancelled. Reachable
+             * for reasons that are not the obvious ones - see issue #2006 and
+             * docs/internal/connection-shutdown-and-cancellation.md.
              */
-            if (false == cancellationToken.IsCancellationRequested)
+            if (cancellationToken.IsCancellationRequested)
             {
-                Volatile.Write(ref _shutdownReason, null);
+                return Task.CompletedTask;
             }
 
+            _consumerTags.Add(consumerTag);
+
+            // Running first, so the only pair observable midway is the documented one: reason set, running true.
             Volatile.Write(ref _isRunning, true);
+            Volatile.Write(ref _shutdownReason, null);
             return Task.CompletedTask;
         }
 
