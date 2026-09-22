@@ -31,7 +31,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Threading;
 using System.Threading.Tasks;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Impl;
@@ -48,15 +47,18 @@ namespace Test.Unit
              * Pins the constructor's default rather than the field initializer's. The field is
              * declared `= null` and its documentation describes null as "inherit from the factory",
              * but the public constructor defaults the parameter to 1 and assigns it unconditionally,
-             * so options built through the constructor are serialized whatever the factory says.
-             * That divergence is what #2027 set out to remove; it stays deliberately, because the
-             * fix would be a compile-time break rather than a runtime one (see the remarks on the
-             * member). This test exists so the two cannot drift apart silently again.
+             * so options built through the constructor never inherit unless null is passed.
+             * That divergence is what #2027 set out to remove; it stays deliberately, because
+             * changing the default would compile everywhere and split behaviour by rebuild rather
+             * than break a build (see the remarks on the member). This test exists so the two cannot
+             * drift apart silently again.
              */
             var options = new CreateChannelOptions(publisherConfirmationsEnabled: false,
                 publisherConfirmationTrackingEnabled: false);
 
-            Assert.Equal(Constants.DefaultConsumerDispatchConcurrency, options.ConsumerDispatchConcurrency);
+            // Literal, not Constants.DefaultConsumerDispatchConcurrency: that is the expression producing
+            // the value, so asserting it cannot fail if the number this test is named after changes.
+            Assert.Equal((ushort?)1, options.ConsumerDispatchConcurrency);
         }
 
         [Fact]
@@ -73,7 +75,7 @@ namespace Test.Unit
 
             options = CreateChannelOptions.CreateOrUpdate(options, config);
 
-            Assert.Equal(Constants.DefaultConsumerDispatchConcurrency,
+            Assert.Equal((ushort)1,
                 options.InternalConsumerDispatchConcurrency);
         }
 
@@ -127,9 +129,9 @@ namespace Test.Unit
                 authMechanisms: Array.Empty<IAuthMechanismFactory>(),
                 clientProperties: new Dictionary<string, object>(),
                 clientProvidedName: null,
-                maxChannelCount: 2047,
+                maxChannelCount: ConnectionFactory.DefaultChannelMax,
                 maxFrameSize: 0,
-                maxInboundMessageBodySize: 134217728,
+                maxInboundMessageBodySize: ConnectionFactory.DefaultMaxInboundMessageBodySize,
                 topologyRecoveryEnabled: true,
                 topologyRecoveryFilter: new TopologyRecoveryFilter(),
                 topologyRecoveryExceptionHandler: new TopologyRecoveryExceptionHandler(),
@@ -140,7 +142,7 @@ namespace Test.Unit
                 requestedConnectionTimeout: TimeSpan.FromSeconds(30),
                 consumerDispatchConcurrency: consumerDispatchConcurrency,
                 tracingOptions: null,
-                frameHandlerFactoryAsync: (_, _) => Task.FromResult<IFrameHandler>(null!));
+                frameHandlerFactoryAsync: (_, _) => throw new NotSupportedException("not connected in this test"));
         }
     }
 }
