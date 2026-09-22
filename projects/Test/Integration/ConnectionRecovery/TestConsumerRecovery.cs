@@ -29,7 +29,6 @@
 //  Copyright (c) 2007-2026 Broadcom. All Rights Reserved.
 //---------------------------------------------------------------------------
 
-using System.Threading;
 using System.Threading.Tasks;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
@@ -101,6 +100,14 @@ namespace Test.Integration.ConnectionRecovery
              * consumer therefore went on reporting a shutdown that was over, indefinitely, which is
              * misleading for anything using it to decide whether the consumer is healthy.
              */
+            /*
+             * The delivery barrier below proves the preceding consume-ok ran only because the
+             * dispatcher is a single-reader FIFO queue, which holds at a concurrency of one and not
+             * above it. The fixture takes the default; pin it so raising that default surfaces here
+             * rather than as a flake.
+             */
+            Assert.Equal((ushort)1, _consumerDispatchConcurrency);
+
             string q = (await _channel.QueueDeclareAsync(GenerateQueueName(), false, true, false)).QueueName;
             var consumer = new AsyncEventingBasicConsumer(_channel);
 
