@@ -226,7 +226,9 @@ var options = new CreateChannelOptions(
     publisherConfirmationsEnabled: true,
     publisherConfirmationTrackingEnabled: true,
     outstandingPublisherConfirmationsRateLimiter: rateLimiter,
-    consumerDispatchConcurrency: 1
+    // Pass null to inherit IConnectionFactory.ConsumerDispatchConcurrency. Omitting the
+    // argument does NOT inherit it - the constructor's own default is 1.
+    consumerDispatchConcurrency: null
 );
 ```
 
