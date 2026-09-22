@@ -139,6 +139,7 @@ namespace Test.Unit
                 handshakeContinuationTimeout: TimeSpan.FromSeconds(10),
                 requestedConnectionTimeout: TimeSpan.FromSeconds(30),
                 consumerDispatchConcurrency: consumerDispatchConcurrency,
+                tracingOptions: null,
                 frameHandlerFactoryAsync: (_, _) => Task.FromResult<IFrameHandler>(null!));
         }
     }
