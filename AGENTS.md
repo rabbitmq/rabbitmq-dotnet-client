@@ -444,7 +444,10 @@ there. Current docs:
   channel-0 shutdown model, why cancellation during connection open could hang
   (issue #1921), why shutdown handlers could deadlock on the main loop token
   when MainLoop wins the close-reason race (issue #1960), which cancellation
-  token a shutdown handler actually receives on each close path, and the
+  token a shutdown handler actually receives on each close path, why a
+  consumer's `ShutdownReason` may be cleared on re-registration but never on a
+  late one (issue #2006), what the unsynchronised `IsRunning` / `ShutdownReason`
+  pair can and cannot be relied on for (issue #2016), and the
   memory-dump-based diagnostic workflow used to find these.
 - `docs/internal/topology-recovery-exception-handling.md` - which broker refusals
   are actually final during topology recovery and which only look it, why a
