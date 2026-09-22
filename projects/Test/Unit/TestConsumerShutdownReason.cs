@@ -63,14 +63,19 @@ namespace Test.Unit
         {
             var consumer = new AsyncDefaultBasicConsumer(channel: null);
 
-            await consumer.HandleChannelShutdownAsync(this, Reason());
-            Assert.NotNull(consumer.ShutdownReason);
+            await consumer.HandleBasicConsumeOkAsync("tag", CancellationToken.None);
+            Assert.True(consumer.IsRunning);
+
+            ShutdownEventArgs reason = Reason();
+            await consumer.HandleChannelShutdownAsync(this, reason);
+            Assert.Same(reason, consumer.ShutdownReason);
             Assert.False(consumer.IsRunning);
 
             await consumer.HandleBasicConsumeOkAsync("tag", CancellationToken.None);
 
             Assert.Null(consumer.ShutdownReason);
             Assert.True(consumer.IsRunning);
+            Assert.Equal(new[] { "tag" }, consumer.ConsumerTags);
         }
 
         [Fact]
@@ -78,49 +83,56 @@ namespace Test.Unit
         {
             /*
              * The token is the dispatcher's shutdown token, cancelled by Quiesce(). A consume-ok
-             * processed after the shutdown work item must not clear the reason: the channel is
-             * permanently dead, and a null reason together with IsRunning true reads as fully
-             * healthy, which is worse than the stale reason this fix set out to remove. Before the
-             * guard the reset was unconditional and this case reported healthy.
+             * processed after the shutdown work item records nothing at all: the channel is
+             * permanently dead, so clearing the reason would read as fully healthy, and adding the
+             * tag would advertise a consumer that can only throw when cancelled.
              */
             var consumer = new AsyncDefaultBasicConsumer(channel: null);
             using var quiesced = new CancellationTokenSource();
             quiesced.Cancel();
 
-            await consumer.HandleChannelShutdownAsync(this, Reason());
-            ShutdownEventArgs reason = consumer.ShutdownReason;
-            Assert.NotNull(reason);
+            await consumer.HandleBasicConsumeOkAsync("tag", CancellationToken.None);
+            ShutdownEventArgs reason = Reason();
+            await consumer.HandleChannelShutdownAsync(this, reason);
 
             await consumer.HandleBasicConsumeOkAsync("tag", quiesced.Token);
 
             Assert.Same(reason, consumer.ShutdownReason);
-
-            /*
-             * Pin the state the ShutdownReason docs describe, because it is the part that is easy to
-             * get wrong in prose: IsRunning is written outside the guard, so it goes back to true and
-             * nothing resets it again. OnCancelAsync is the only writer of false and is reached only
-             * from the three dispatcher-driven handlers, and by this point the shutdown item has
-             * already been consumed and the work channel completed. So this pair is where the
-             * consumer rests, permanently - not a window that later reconciles.
-             */
-            Assert.True(consumer.IsRunning,
-                "IsRunning is expected to be true here, disagreeing with the retained reason. If " +
-                "this now fails, something resets IsRunning after a post-shutdown registration and " +
-                "the ShutdownReason remarks - which tell callers not to wait for IsRunning to go " +
-                "false - need updating with it.");
+            Assert.False(consumer.IsRunning,
+                "a registration confirmed after the channel began shutting down must not report the " +
+                "consumer as running; it never delivers.");
+            Assert.Empty(consumer.ConsumerTags);
         }
 
         [Fact]
         public async Task ReasonSurvivesWhenNoRegistrationFollows_GH2006()
         {
-            // A consumer that recovery never re-registered, for whatever reason, keeps the reason.
-            // That is the signal that this consumer was not restored.
+            // A consumer that shut down and had no registration afterwards keeps the reason, which is
+            // the signal that recovery did not restore it.
             var consumer = new AsyncDefaultBasicConsumer(channel: null);
 
             await consumer.HandleBasicConsumeOkAsync("tag", CancellationToken.None);
-            await consumer.HandleChannelShutdownAsync(this, Reason());
+            ShutdownEventArgs reason = Reason();
+            await consumer.HandleChannelShutdownAsync(this, reason);
 
-            Assert.NotNull(consumer.ShutdownReason);
+            Assert.Same(reason, consumer.ShutdownReason);
+            Assert.False(consumer.IsRunning);
+        }
+
+        [Fact]
+        public async Task CancellationLeavesNoShutdownReason_GH2006()
+        {
+            /*
+             * Cancellation is not shutdown: neither a broker basic.cancel nor the application's own
+             * BasicCancelAsync records a reason, so a health check reading only ShutdownReason cannot
+             * see a cancelled consumer. The XML remarks say so; this keeps them honest.
+             */
+            var consumer = new AsyncDefaultBasicConsumer(channel: null);
+
+            await consumer.HandleBasicConsumeOkAsync("tag", CancellationToken.None);
+            await consumer.HandleBasicCancelAsync("tag");
+
+            Assert.Null(consumer.ShutdownReason);
             Assert.False(consumer.IsRunning);
         }
 
