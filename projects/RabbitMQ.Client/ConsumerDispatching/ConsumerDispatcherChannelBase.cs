@@ -103,10 +103,9 @@ namespace RabbitMQ.Client.ConsumerDispatching
 
         /*
          * The guard and the write are not atomic, so drop the work item rather than let
-         * ChannelClosedException unwind into the frame-receive loop and tear down the connection.
-         * The delivery path owns the pooled body once TakeoverBody() has cleared cmd.Body upstream.
-         * These catches cover only the rare exits; the guard above drops far more, which is issue
-         * #2039. See docs/internal/consumer-dispatch-concurrency.md.
+         * ChannelClosedException unwind into the frame-receive loop and tear down the connection
+         * (#1988). None of these methods carries a pooled body; the delivery path below does,
+         * and owns it. See docs/internal/consumer-dispatch-concurrency.md.
          */
         public async ValueTask HandleBasicConsumeOkAsync(IAsyncBasicConsumer consumer, string consumerTag, CancellationToken cancellationToken)
         {
@@ -138,31 +137,45 @@ namespace RabbitMQ.Client.ConsumerDispatching
             string exchange, string routingKey, IReadOnlyBasicProperties basicProperties, RentedMemory body,
             CancellationToken cancellationToken)
         {
-            cancellationToken.ThrowIfCancellationRequested();
-
-            if (false == _disposed && false == IsQuiescing)
+            /*
+             * This method owns the pooled body, so every exit that does not hand it to the work
+             * channel returns it - and exactly one exit may, or the same array goes back to the pool
+             * twice. Issue #2039 and docs/internal/consumer-dispatch-concurrency.md.
+             */
+            bool handedOver = false;
+            try
             {
-                IAsyncBasicConsumer consumer = GetConsumerOrDefault(consumerTag);
-                var work = WorkStruct.CreateDeliver(consumer, consumerTag, deliveryTag, redelivered, exchange, routingKey, basicProperties, body, _shutdownToken);
-                try
+                cancellationToken.ThrowIfCancellationRequested();
+
+                if (false == _disposed && false == IsQuiescing)
                 {
-                    await _writer.WriteAsync(work, cancellationToken)
-                        .ConfigureAwait(false);
+                    IAsyncBasicConsumer consumer = GetConsumerOrDefault(consumerTag);
+                    var work = WorkStruct.CreateDeliver(consumer, consumerTag, deliveryTag, redelivered, exchange, routingKey, basicProperties, body, _shutdownToken);
+
+                    try
+                    {
+                        // An unbounded channel either accepts the item or throws, never both.
+                        await _writer.WriteAsync(work, cancellationToken)
+                            .ConfigureAwait(false);
+                        handedOver = true;
+                    }
+                    catch (System.Threading.Channels.ChannelClosedException)
+                    {
+                        /*
+                         * Swallowed, not just accounted for: this would otherwise unwind through
+                         * Channel.HandleCommandAsync into the frame-receive loop and tear down the
+                         * whole connection rather than the one channel (#1988). The finally returns
+                         * the body. Cancellation is deliberately not caught here - it propagated
+                         * before, and the finally returns the body just the same.
+                         */
+                    }
                 }
-                catch (System.Threading.Channels.ChannelClosedException)
+            }
+            finally
+            {
+                if (false == handedOver)
                 {
-                    // Nothing will drain this item, so return its pooled body to the pool here.
-                    work.Dispose();
-                }
-                catch (OperationCanceledException)
-                {
-                    /*
-                     * WriteAsync observes the token before the channel's completion, so ordinary
-                     * teardown lands here rather than above. The item never reaches a consumer, so
-                     * return its body; rethrow, because cancellation propagated before this catch.
-                     */
-                    work.Dispose();
-                    throw;
+                    body.Dispose();
                 }
             }
         }
