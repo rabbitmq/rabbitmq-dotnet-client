@@ -226,10 +226,9 @@ var options = new CreateChannelOptions(
     publisherConfirmationsEnabled: true,
     publisherConfirmationTrackingEnabled: true,
     outstandingPublisherConfirmationsRateLimiter: rateLimiter,
-    // 1 is this constructor's default, so this line is not redundant boilerplate:
-    // omitting it also yields 1, which is NOT the same as inheriting
-    // IConnectionFactory.ConsumerDispatchConcurrency. Pass null to inherit that.
-    consumerDispatchConcurrency: 1
+    // Pass null to inherit IConnectionFactory.ConsumerDispatchConcurrency. Omitting the
+    // argument does NOT inherit it - the constructor's own default is 1.
+    consumerDispatchConcurrency: null
 );
 ```
 
