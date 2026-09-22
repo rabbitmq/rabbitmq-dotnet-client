@@ -87,5 +87,16 @@ namespace RabbitMQ.Client.Impl
             _context = other._context;
             _onException = other._onException;
         }
+
+        /*
+         * Drops the handlers without touching the context or the exception callback. Takeover
+         * assigns rather than moves, so two wrappers can reference one handler list; this lets the
+         * holder that must not invoke them let go without disturbing the one that must.
+         */
+        public void ClearHandlers()
+        {
+            _eventHandler = null;
+            _handlers = null;
+        }
     }
 }

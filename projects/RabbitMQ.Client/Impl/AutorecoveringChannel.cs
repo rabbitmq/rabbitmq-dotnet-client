@@ -39,6 +39,7 @@ using System.Threading.Tasks;
 using RabbitMQ.Client.ConsumerDispatching;
 using RabbitMQ.Client.Events;
 using RabbitMQ.Client.Framing;
+using RabbitMQ.Client.Logging;
 
 namespace RabbitMQ.Client.Impl
 {
@@ -165,57 +166,134 @@ namespace RabbitMQ.Client.Impl
 
             _connection = conn;
 
-            RecoveryAwareChannel newChannel = await conn.CreateNonRecoveringChannelAsync(_createChannelOptions, cancellationToken)
-                .ConfigureAwait(false);
-
-            newChannel.TakeOver(_innerChannel);
-
-            if (_prefetchCountConsumer != 0)
-            {
-                await newChannel.BasicQosAsync(0, _prefetchCountConsumer, false, cancellationToken)
-                    .ConfigureAwait(false);
-            }
-
-            if (_prefetchCountGlobal != 0)
-            {
-                await newChannel.BasicQosAsync(0, _prefetchCountGlobal, true, cancellationToken)
-                    .ConfigureAwait(false);
-            }
-
-            if (_usesTransactions)
-            {
-                await newChannel.TxSelectAsync(cancellationToken)
-                    .ConfigureAwait(false);
-            }
-
             /*
-             * https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1140
-             * If this assignment is not done before recovering consumers, there is a good
-             * chance that an invalid Channel will be used to handle a basic.deliver frame,
-             * with the resulting basic.ack never getting sent out.
+             * Until it is installed as _innerChannel, this channel belongs to this method: every path
+             * that leaves before installing it must release it, or a flaky recovery abandons one
+             * dispatcher per cycle. A failure inside CreateNonRecoveringChannelAsync itself is not
+             * covered and still abandons one. Issue #1988 and
+             * docs/internal/connection-shutdown-and-cancellation.md have the reasoning.
              */
-
-            if (_disposed)
+            RecoveryAwareChannel? newChannel = null;
+            bool newChannelInstalled = false;
+            try
             {
-                await newChannel.AbortAsync(CancellationToken.None)
+                newChannel = await conn.CreateNonRecoveringChannelAsync(_createChannelOptions, cancellationToken)
                     .ConfigureAwait(false);
-                return false;
-            }
-            else
-            {
-                _innerChannel = newChannel;
 
-                if (recoverConsumers)
+                newChannel.TakeOver(_innerChannel);
+
+                if (_prefetchCountConsumer != 0)
                 {
-                    await _connection.RecoverConsumersAsync(this, newChannel, recordedEntitiesSemaphoreHeld, cancellationToken)
+                    await newChannel.BasicQosAsync(0, _prefetchCountConsumer, false, cancellationToken)
                         .ConfigureAwait(false);
                 }
 
-                await _innerChannel.RunRecoveryEventHandlers(this, cancellationToken)
-                    .ConfigureAwait(false);
+                if (_prefetchCountGlobal != 0)
+                {
+                    await newChannel.BasicQosAsync(0, _prefetchCountGlobal, true, cancellationToken)
+                        .ConfigureAwait(false);
+                }
 
+                if (_usesTransactions)
+                {
+                    await newChannel.TxSelectAsync(cancellationToken)
+                        .ConfigureAwait(false);
+                }
+
+                /*
+                 * https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1140
+                 * If this assignment is not done before recovering consumers, there is a good
+                 * chance that an invalid Channel will be used to handle a basic.deliver frame,
+                 * with the resulting basic.ack never getting sent out.
+                 */
+
+                if (_disposed)
+                {
+                    // The wrapper was disposed while this recovery was in flight, so the new
+                    // channel will never be used. The finally aborts and releases it.
+                    return false;
+                }
+
+                RecoveryAwareChannel replacedChannel = _innerChannel;
+                _innerChannel = newChannel;
+                newChannelInstalled = true;
+
+                try
+                {
+                    if (recoverConsumers)
+                    {
+                        await _connection.RecoverConsumersAsync(this, newChannel, recordedEntitiesSemaphoreHeld, cancellationToken)
+                            .ConfigureAwait(false);
+                    }
+                }
+                finally
+                {
+                    /*
+                     * Release the replaced channel now it is swapped out, or every recovery cycle
+                     * abandons one. In a finally so a throwing recovery step still releases it.
+                     * Independent of the new channel's recovery. Drop its handlers: TakeOver has
+                     * already given them to the survivor, and a replaced channel that still held
+                     * them could invoke application code while the recorded-entity semaphore is
+                     * held, which is the #2038 deadlock. Issue #1988.
+                     */
+                    await SafeDisposeAsync(replacedChannel, "replaced", dropHandlers: true)
+                        .ConfigureAwait(false);
+                }
                 return true;
             }
+            finally
+            {
+                if (newChannel is not null && false == newChannelInstalled)
+                {
+                    await SafeDisposeAsync(newChannel, "unused recovered", dropHandlers: true)
+                        .ConfigureAwait(false);
+                }
+            }
+        }
+
+        /*
+         * Callers dispose from a finally, so a failure is logged rather than thrown: it would mask an
+         * unwinding exception or fail an otherwise-successful recovery. It is also time-bounded,
+         * because this runs while the connection's recorded-entity semaphore is held and an open
+         * channel's close waits on ContinuationTimeout; the dispose continues in the background.
+         * dropHandlers is for a channel that was never installed. Issue #1988 and
+         * docs/internal/connection-shutdown-and-cancellation.md.
+         */
+        private static async Task SafeDisposeAsync(RecoveryAwareChannel channel, string which,
+            bool dropHandlers = false)
+        {
+            try
+            {
+                if (dropHandlers)
+                {
+                    channel.DropTakenOverHandlers();
+                }
+
+                Task disposeTask = channel.DisposeAsync().AsTask();
+
+                // Never leave a faulted background dispose unobserved if the wait below gives up.
+                _ = disposeTask.ContinueWith(static t => _ = t.Exception,
+                    CancellationToken.None,
+                    TaskContinuationOptions.OnlyOnFaulted | TaskContinuationOptions.ExecuteSynchronously,
+                    TaskScheduler.Default);
+
+                await disposeTask.WaitAsync(InternalConstants.DefaultChannelDisposeTimeout)
+                    .ConfigureAwait(false);
+            }
+            catch (Exception e)
+            {
+                ESLog.Warn($"Caught an exception while disposing the {which} channel: {e}");
+            }
+        }
+
+        internal Task RunRecoveryEventHandlersAsync(CancellationToken cancellationToken)
+        {
+            if (_disposed)
+            {
+                return Task.CompletedTask;
+            }
+
+            return _innerChannel.RunRecoveryEventHandlers(this, cancellationToken);
         }
 
         public async Task CloseAsync(ushort replyCode, string replyText, bool abort,
@@ -282,6 +360,14 @@ namespace RabbitMQ.Client.Impl
                 return;
             }
 
+            /*
+             * Snapshot the inner channel once and latch _disposed first. AbortAsync can park for a
+             * long time, and a recovery completing in that window installs a different channel, so
+             * re-reading the field afterwards would dispose the one the application is now using.
+             * This narrows the race rather than closing it; the rest is #2020.
+             */
+            RecoveryAwareChannel channelToDispose = _innerChannel;
+
             try
             {
                 if (IsOpen)
@@ -292,6 +378,8 @@ namespace RabbitMQ.Client.Impl
             }
             finally
             {
+                _disposed = true;
+
                 try
                 {
                     _recordedConsumerTags.Clear();
@@ -300,7 +388,13 @@ namespace RabbitMQ.Client.Impl
                 {
                 }
 
-                _disposed = true;
+                /*
+                 * Nothing else reaches the inner channel when automatic recovery is enabled, so
+                 * without this its consumer dispatcher was abandoned. Safe now that a channel no
+                 * longer disposes the shared publisher-confirmation rate limiter. Issue #1988.
+                 */
+                await SafeDisposeAsync(channelToDispose, "inner")
+                    .ConfigureAwait(false);
             }
         }
 

@@ -41,6 +41,7 @@ namespace RabbitMQ.Client
     {
         private ushort? _connectionConfigConsumerDispatchConcurrency;
         private TimeSpan _connectionConfigContinuationTimeout;
+        private ConnectionTracingOptions? _connectionConfigTracingOptions;
 
         /// <summary>
         /// Enable or disable publisher confirmations on this channel. Defaults to <c>false</c>
@@ -71,7 +72,17 @@ namespace RabbitMQ.Client
         ///
         /// Defaults to a <see cref="ThrottlingRateLimiter"/> with a limit of 128 and a throttling percentage of 50% with a delay during throttling.
         /// </summary>
-        /// <remarks>Setting the rate limiter to <c>null</c> disables the rate limiting entirely.</remarks>
+        /// <remarks>
+        /// Setting the rate limiter to <c>null</c> disables the rate limiting entirely.
+        /// <para>
+        /// <b>Its lifetime belongs to you.</b> Disposing an <see cref="IChannel"/> does not dispose
+        /// this limiter: it is shared by every channel created from these options, and a recovering
+        /// channel reuses them, so a channel disposing it would break the survivors. This changed in
+        /// 7.3.0: earlier versions disposed it, though only on the synchronous path or for a limiter
+        /// that overrode <c>DisposeAsyncCore</c>, which <see cref="ThrottlingRateLimiter"/> did not.
+        /// The default above needs no disposal; a limiter that owns a timer does.
+        /// </para>
+        /// </remarks>
         public readonly RateLimiter? OutstandingPublisherConfirmationsRateLimiter = new ThrottlingRateLimiter(128);
 
         /// <summary>
@@ -139,16 +150,20 @@ namespace RabbitMQ.Client
 
         internal TimeSpan ContinuationTimeout => _connectionConfigContinuationTimeout;
 
+        internal ConnectionTracingOptions? TracingOptions => _connectionConfigTracingOptions;
+
         internal CreateChannelOptions(ConnectionConfig connectionConfig)
         {
             _connectionConfigConsumerDispatchConcurrency = connectionConfig.ConsumerDispatchConcurrency;
             _connectionConfigContinuationTimeout = connectionConfig.ContinuationTimeout;
+            _connectionConfigTracingOptions = connectionConfig.TracingOptions;
         }
 
         private CreateChannelOptions WithConnectionConfig(ConnectionConfig connectionConfig)
         {
             _connectionConfigConsumerDispatchConcurrency = connectionConfig.ConsumerDispatchConcurrency;
             _connectionConfigContinuationTimeout = connectionConfig.ContinuationTimeout;
+            _connectionConfigTracingOptions = connectionConfig.TracingOptions;
             return this;
         }
 
