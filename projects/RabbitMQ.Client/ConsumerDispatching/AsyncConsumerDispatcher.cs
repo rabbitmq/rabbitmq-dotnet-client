@@ -34,7 +34,8 @@ namespace RabbitMQ.Client.ConsumerDispatching
                                         Activity? activity = RabbitMQActivitySource.SubscriberHasListeners
                                             ? RabbitMQActivitySource.Deliver(work.RoutingKey!, work.Exchange!,
                                                 work.DeliveryTag, work.BasicProperties!, work.Body.Size,
-                                                RabbitMQActivitySource.ResolveTracingOptions(_channel.TracingOptions))
+                                                RabbitMQActivitySource.ResolveTracingOptions(_channel.TracingOptions),
+                                                _channel.VirtualHost, _channel.ClusterName)
                                             : null;
                                         using (activity)
                                         {

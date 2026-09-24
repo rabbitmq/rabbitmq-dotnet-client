@@ -58,6 +58,17 @@ namespace RabbitMQ.Client
         public bool? UsePublisherAsParent { get; set; }
 
         /// <summary>
+        /// Tag publish, fetch, and delivery spans with <c>messaging.rabbitmq.vhost.name</c> and
+        /// <c>messaging.rabbitmq.cluster.name</c>. <see langword="null"/> inherits.
+        /// </summary>
+        /// <remarks>
+        /// Neither attribute is part of the OpenTelemetry messaging semantic conventions yet
+        /// (open-telemetry/semantic-conventions#3997), which is why this opts in rather than
+        /// enabling it unconditionally.
+        /// </remarks>
+        public bool? CaptureVirtualHostAndClusterName { get; set; }
+
+        /// <summary>
         /// Propagates trace context into published messages and out of received ones.
         /// <see langword="null"/> inherits, which ultimately means
         /// <see cref="DistributedContextPropagator.Current"/>.
