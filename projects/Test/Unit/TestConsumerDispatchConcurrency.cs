@@ -143,7 +143,7 @@ namespace Test.Unit
              * explicit options, which pins the first arm.
              */
             CreateChannelOptions options =
-                CreateChannelOptions.CreateOrUpdate(null, ConnectionConfigWithConcurrency(configured));
+                CreateChannelOptions.CreateOrUpdate(null, ConnectionConfigWithConcurrency(configured), serverProperties: null);
 
             Assert.Equal(configured, options.InternalConsumerDispatchConcurrency);
 

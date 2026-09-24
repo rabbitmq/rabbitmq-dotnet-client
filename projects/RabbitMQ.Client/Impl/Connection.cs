@@ -82,7 +82,7 @@ namespace RabbitMQ.Client.Impl
 
             _sessionManager = new SessionManager(this, 0, config.MaxInboundMessageBodySize);
             _session0 = new MainSession(this, config.MaxInboundMessageBodySize);
-            _channel0 = new Channel(_session0, new CreateChannelOptions(config));
+            _channel0 = new Channel(_session0, new CreateChannelOptions(config, ServerProperties));
 
             ClientProperties = new Dictionary<string, object?>(_config.ClientProperties)
             {
@@ -316,7 +316,7 @@ namespace RabbitMQ.Client.Impl
         {
             EnsureIsOpen();
 
-            createChannelOptions = CreateChannelOptions.CreateOrUpdate(createChannelOptions, _config);
+            createChannelOptions = CreateChannelOptions.CreateOrUpdate(createChannelOptions, _config, ServerProperties);
             ISession session = CreateSession();
             return Channel.CreateAndOpenAsync(createChannelOptions, session, cancellationToken);
         }

@@ -94,8 +94,8 @@ namespace RabbitMQ.Client.Impl
 
         public Channel(ISession session, CreateChannelOptions createChannelOptions)
         {
-            VirtualHost = session.Connection.VirtualHost;
-            ClusterName = ExtractClusterName(session.Connection.ServerProperties);
+            VirtualHost = createChannelOptions.VirtualHost;
+            ClusterName = createChannelOptions.ClusterName;
 
             ContinuationTimeout = createChannelOptions.ContinuationTimeout;
             TracingOptions = createChannelOptions.TracingOptions;
@@ -573,20 +573,6 @@ namespace RabbitMQ.Client.Impl
             {
                 throw new InvalidOperationException(InternalConstants.BugFound);
             }
-        }
-
-        // Server-properties table entries decode to their raw AMQP wire representation; long
-        // strings (like cluster_name) arrive as UTF-8 byte[], not string.
-        private static string? ExtractClusterName(IDictionary<string, object?>? serverProperties)
-        {
-            if (serverProperties != null &&
-                serverProperties.TryGetValue("cluster_name", out object? clusterNameValue) &&
-                clusterNameValue is byte[] clusterNameBytes)
-            {
-                return Encoding.UTF8.GetString(clusterNameBytes);
-            }
-
-            return null;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
