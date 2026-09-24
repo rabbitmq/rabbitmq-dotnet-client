@@ -100,6 +100,8 @@ namespace RabbitMQ.Client.Impl
 
         public string? ClientProvidedName => _config.ClientProvidedName;
 
+        internal string? VirtualHost => _config.VirtualHost;
+
         public ushort ChannelMax => _sessionManager.ChannelMax;
 
         public IDictionary<string, object?> ClientProperties { get; private set; }

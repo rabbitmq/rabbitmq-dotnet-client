@@ -82,15 +82,21 @@ namespace RabbitMQ.Client.Impl
             ResolvedTracingOptions tracing = RabbitMQActivitySource.ResolveTracingOptions(TracingOptions);
             return result != null
                 ? RabbitMQActivitySource.BasicGet(result.RoutingKey, result.Exchange, result.DeliveryTag,
-                    result.BasicProperties, result.Body.Length, tracing)
-                : RabbitMQActivitySource.BasicGetEmpty(queue, tracing);
+                    result.BasicProperties, result.Body.Length, tracing, VirtualHost, ClusterName)
+                : RabbitMQActivitySource.BasicGetEmpty(queue, tracing, VirtualHost, ClusterName);
         }
 
         private bool _disposed;
         private int _isDisposing;
 
+        internal string? VirtualHost { get; }
+        internal string? ClusterName { get; }
+
         public Channel(ISession session, CreateChannelOptions createChannelOptions)
         {
+            VirtualHost = session.Connection.VirtualHost;
+            ClusterName = ExtractClusterName(session.Connection.ServerProperties);
+
             ContinuationTimeout = createChannelOptions.ContinuationTimeout;
             TracingOptions = createChannelOptions.TracingOptions;
             ConsumerDispatcher = new AsyncConsumerDispatcher(this, createChannelOptions.InternalConsumerDispatchConcurrency);
@@ -567,6 +573,20 @@ namespace RabbitMQ.Client.Impl
             {
                 throw new InvalidOperationException(InternalConstants.BugFound);
             }
+        }
+
+        // Server-properties table entries decode to their raw AMQP wire representation; long
+        // strings (like cluster_name) arrive as UTF-8 byte[], not string.
+        private static string? ExtractClusterName(IDictionary<string, object?>? serverProperties)
+        {
+            if (serverProperties != null &&
+                serverProperties.TryGetValue("cluster_name", out object? clusterNameValue) &&
+                clusterNameValue is byte[] clusterNameBytes)
+            {
+                return Encoding.UTF8.GetString(clusterNameBytes);
+            }
+
+            return null;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

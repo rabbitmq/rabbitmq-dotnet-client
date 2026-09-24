@@ -33,6 +33,9 @@ namespace RabbitMQ.Client
         internal const string ProtocolVersion = "network.protocol.version";
         internal const string RabbitMQDeliveryTag = "messaging.rabbitmq.delivery_tag";
 
+        internal const string RabbitMQVirtualHost = "messaging.rabbitmq.vhost.name";
+        internal const string RabbitMQClusterName = "messaging.rabbitmq.cluster.name";
+
         // error.type is Stable in the messaging convention, and is Conditionally
         // Required "if and only if the messaging operation has failed".
         internal const string ErrorType = "error.type";
@@ -175,16 +178,18 @@ namespace RabbitMQ.Client
 
             bool useRoutingKey = tracing?.UseRoutingKeyAsOperationName ?? process.UseRoutingKeyAsOperationName;
             bool usePublisherAsParent = tracing?.UsePublisherAsParent ?? process.UsePublisherAsParent;
+            bool captureVirtualHostAndClusterName =
+                tracing?.CaptureVirtualHostAndClusterName ?? process.CaptureVirtualHostAndClusterName;
 
             if (tracing?.Propagator is not null)
             {
                 PropagatorAdapter adapter = tracing.GetOrCreateAdapter();
                 return new ResolvedTracingOptions(useRoutingKey, usePublisherAsParent,
-                    adapter.Injector, adapter.Extractor);
+                    captureVirtualHostAndClusterName, adapter.Injector, adapter.Extractor);
             }
 
             return new ResolvedTracingOptions(useRoutingKey, usePublisherAsParent,
-                process.ContextInjector, process.ContextExtractor);
+                captureVirtualHostAndClusterName, process.ContextInjector, process.ContextExtractor);
         }
 
         /*
@@ -250,7 +255,7 @@ namespace RabbitMQ.Client
         }
 
         internal static Activity? BasicPublish(string routingKey, string exchange, int bodySize, IReadOnlyBasicProperties basicProperties,
-            ResolvedTracingOptions tracing, ActivityContext linkedContext = default)
+            ResolvedTracingOptions tracing, string? virtualHost, string? clusterName, ActivityContext linkedContext = default)
         {
             if (!s_publisherSource.HasListeners())
             {
@@ -267,12 +272,13 @@ namespace RabbitMQ.Client
             if (activity != null && activity.IsAllDataRequested)
             {
                 PopulateMessagingTags(MessagingOperationTypeSend, MessagingOperationNameBasicPublish, routingKey, exchange, 0, basicProperties, bodySize, activity);
+                activity.SetIdentityTags(tracing.CaptureVirtualHostAndClusterName, virtualHost, clusterName);
             }
 
             return activity;
         }
 
-        internal static Activity? BasicGetEmpty(string queue, ResolvedTracingOptions tracing)
+        internal static Activity? BasicGetEmpty(string queue, ResolvedTracingOptions tracing, string? virtualHost, string? clusterName)
         {
             if (!s_subscriberSource.HasListeners())
             {
@@ -288,13 +294,15 @@ namespace RabbitMQ.Client
                     .SetTag(MessagingOperationType, MessagingOperationTypeReceive)
                     .SetTag(MessagingOperationName, MessagingOperationNameBasicGetEmpty)
                     .SetTag(MessagingDestination, "amq.default");
+                activity.SetIdentityTags(tracing.CaptureVirtualHostAndClusterName, virtualHost, clusterName);
             }
 
             return activity;
         }
 
         internal static Activity? BasicGet(string routingKey, string exchange, ulong deliveryTag,
-            IReadOnlyBasicProperties readOnlyBasicProperties, int bodySize, ResolvedTracingOptions tracing)
+            IReadOnlyBasicProperties readOnlyBasicProperties, int bodySize, ResolvedTracingOptions tracing,
+            string? virtualHost, string? clusterName)
         {
             if (!s_subscriberSource.HasListeners())
             {
@@ -314,13 +322,15 @@ namespace RabbitMQ.Client
             {
                 PopulateMessagingTags(MessagingOperationTypeReceive, MessagingOperationNameBasicGet, routingKey, exchange, deliveryTag, readOnlyBasicProperties,
                     bodySize, activity);
+                activity.SetIdentityTags(tracing.CaptureVirtualHostAndClusterName, virtualHost, clusterName);
             }
 
             return activity;
         }
 
         internal static Activity? Deliver(string routingKey, string exchange, ulong deliveryTag,
-            IReadOnlyBasicProperties readOnlyBasicProperties, int bodySize, ResolvedTracingOptions tracing)
+            IReadOnlyBasicProperties readOnlyBasicProperties, int bodySize, ResolvedTracingOptions tracing,
+            string? virtualHost, string? clusterName)
         {
             if (!s_subscriberSource.HasListeners())
             {
@@ -338,6 +348,7 @@ namespace RabbitMQ.Client
             {
                 PopulateMessagingTags(MessagingOperationTypeProcess, MessagingOperationNameBasicDeliver, routingKey, exchange,
                     deliveryTag, readOnlyBasicProperties, bodySize, activity);
+                activity.SetIdentityTags(tracing.CaptureVirtualHostAndClusterName, virtualHost, clusterName);
             }
 
             return activity;
@@ -490,6 +501,39 @@ namespace RabbitMQ.Client
             activity.AddException(exception);
             activity.SetStatus(ActivityStatusCode.Error, exception.Message);
             activity.SetTag(ErrorType, exception.GetType().FullName);
+        }
+
+        /*
+         * Unlike SetNetworkTags/PopulateMessageEnvelopeSize, this takes the activity it should tag
+         * directly rather than reading Activity.Current - there is no frame-writing-path timing
+         * problem to work around here. virtualHost and clusterName are resolved once, at Channel
+         * construction (see Channel.VirtualHost / Channel.ClusterName), not per operation: both are
+         * stable for the lifetime of a channel, and resolving them here from Session.Connection
+         * per call would reintroduce the same live-walk hazard that motivated caching them there.
+         *
+         * captureVirtualHostAndClusterName comes from the caller's already-resolved
+         * ResolvedTracingOptions rather than being resolved again here, for the same reason
+         * ResolveTracingOptions exists at all: resolving twice per operation could straddle a
+         * concurrent change to the process-wide default and disagree with the rest of the span. See
+         * #1981.
+         */
+        internal static void SetIdentityTags(this Activity? activity, bool captureVirtualHostAndClusterName,
+            string? virtualHost, string? clusterName)
+        {
+            if (!captureVirtualHostAndClusterName || !(activity?.IsAllDataRequested ?? false))
+            {
+                return;
+            }
+
+            if (!string.IsNullOrEmpty(virtualHost))
+            {
+                activity.SetTag(RabbitMQVirtualHost, virtualHost);
+            }
+
+            if (!string.IsNullOrEmpty(clusterName))
+            {
+                activity.SetTag(RabbitMQClusterName, clusterName);
+            }
         }
 
         internal static void SetNetworkTags(this Activity? activity, IFrameHandler frameHandler)
