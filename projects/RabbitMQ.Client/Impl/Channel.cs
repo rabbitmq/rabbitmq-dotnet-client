@@ -836,6 +836,14 @@ namespace RabbitMQ.Client.Impl
             string consumerTag = new BasicCancel(cmd.MethodSpan)._consumerTag;
             await ConsumerDispatcher.HandleBasicCancelAsync(consumerTag, cancellationToken)
                 .ConfigureAwait(false);
+
+            if (IsOpen && Session.ServerAcceptsConsumerCancelOk)
+            {
+                var method = new BasicCancelOk(consumerTag);
+                await ModelSendAsync(in method, cancellationToken)
+                    .ConfigureAwait(false);
+            }
+
             return true;
         }
 
