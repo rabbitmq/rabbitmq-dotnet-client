@@ -70,7 +70,8 @@ namespace RabbitMQ.Client
         /// If the publisher confirmation tracking is enabled, this represents the rate limiter used to
         /// throttle additional attempts to publish once the threshold is reached.
         ///
-        /// Defaults to a <see cref="ThrottlingRateLimiter"/> with a limit of 128 and a throttling percentage of 50% with a delay during throttling.
+        /// This field initializes to a <see cref="ThrottlingRateLimiter"/> with a limit of 128 and a throttling
+        /// percentage of 50%, but see the remarks: that is not what the constructor gives you.
         /// </summary>
         /// <remarks>
         /// Setting the rate limiter to <c>null</c> disables the rate limiting entirely.
@@ -82,6 +83,15 @@ namespace RabbitMQ.Client
         /// one. This is the same divergence between field initializer and constructor default described on
         /// <see cref="ConsumerDispatchConcurrency"/>, but with a safety mechanism rather than a number on
         /// the other side of it.
+        /// </para>
+        /// <para>
+        /// <b>What a limiter of 128 does, if you pass one.</b> <see cref="ThrottlingRateLimiter"/> uses the
+        /// limit as both its permit and its queue limit, and begins throttling at the given percentage of
+        /// it - so at 128 and 50% it delays every publish once more than 64 confirmations are outstanding,
+        /// and beyond 256 in flight it refuses a lease, which surfaces as an
+        /// <see cref="System.InvalidOperationException"/> from the publish. Size it against how many
+        /// confirmations your application really keeps outstanding; it is a backpressure mechanism, not a
+        /// safety net you can leave at any value. See rabbitmq/rabbitmq-dotnet-client#2054.
         /// </para>
         /// <para>
         /// <b>Its lifetime belongs to you.</b> Disposing an <see cref="IChannel"/> does not dispose

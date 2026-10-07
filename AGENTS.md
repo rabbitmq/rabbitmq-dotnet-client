@@ -439,7 +439,10 @@ there. Current docs:
 
 - `docs/internal/consumer-dispatch-concurrency.md` - how the dispatch concurrency value reaches the
   consumer dispatcher, why zero broke it (#2035), where the floor lives and why it is not at the
-  callers, plus the open holes in that area (no ceiling, channel 0, the `ContinuationTimeout` mirror).
+  callers, why two `CreateChannelOptions` members declare a default twice and disagree - documented in
+  7.3.0 (#2027, #2032), redesign deferred to 8.x (#2054), with the measurements showing why no
+  7.x-compatible fix works - plus the open holes in that area (no ceiling, channel 0, the
+  `ContinuationTimeout` mirror).
 - `docs/internal/opentelemetry-tracing-review.md` - the OpenTelemetry tracing audit; read it before
   touching `RabbitMQActivitySource`, the OTel package, or the `Activity.Current` call sites.
 - `docs/internal/connection-shutdown-and-cancellation.md` - the connection /
