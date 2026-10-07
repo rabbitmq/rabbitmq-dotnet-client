@@ -50,6 +50,8 @@ namespace RabbitMQ.Client.Impl
 
         Connection Connection { get; }
 
+        bool ServerAcceptsConsumerCancelOk { get; }
+
         bool IsOpen { get; }
 
         event AsyncEventHandler<ShutdownEventArgs> SessionShutdownAsync;

@@ -110,6 +110,7 @@ namespace RabbitMQ.Client.Impl
             }
 
             ServerProperties = connectionStart.m_serverProperties;
+            ServerAcceptsConsumerCancelOk = ServerHasCapability(ServerProperties, AcceptConsumerCancelOkCapability);
 
             var serverVersion = new AmqpVersion(connectionStart.m_versionMajor, connectionStart.m_versionMinor);
             if (!serverVersion.Equals(Protocol.Version))

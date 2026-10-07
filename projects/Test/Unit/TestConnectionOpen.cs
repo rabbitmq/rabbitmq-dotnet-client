@@ -230,6 +230,8 @@ namespace Test.Unit
 
             public Connection Connection => throw new NotSupportedException();
 
+            public bool ServerAcceptsConsumerCancelOk => false;
+
             public bool IsOpen => CloseReason is null;
 
             public int TransmittedCommandCount => _transmittedCommands.Count;
