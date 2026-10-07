@@ -230,6 +230,10 @@ namespace RabbitMQ.Client
         /// Amount of time protocol operations (e.g. <code>queue.declare</code>) are allowed to take before
         /// timing out.
         /// </summary>
+        /// <remarks>
+        /// Completes as <b>cancelled</b>, not as a <see cref="System.TimeoutException"/> as in 6.x.
+        /// See <see cref="IConnectionFactory.ContinuationTimeout"/>.
+        /// </remarks>
         public TimeSpan ContinuationTimeout
         {
             get { return _continuationTimeout; }

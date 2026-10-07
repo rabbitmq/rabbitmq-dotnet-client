@@ -122,6 +122,10 @@ namespace RabbitMQ.Client
         /// <summary>
         /// Amount of time protocol operations (e.g. <code>queue.declare</code>) are allowed to take before timing out.
         /// </summary>
+        /// <remarks>
+        /// Completes as <b>cancelled</b>, not as a <see cref="System.TimeoutException"/> as in 6.x.
+        /// See <see cref="IConnectionFactory.ContinuationTimeout"/>.
+        /// </remarks>
         public readonly TimeSpan ContinuationTimeout;
 
         /// <summary>

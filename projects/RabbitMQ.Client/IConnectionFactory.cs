@@ -184,6 +184,29 @@ namespace RabbitMQ.Client
         /// Amount of time protocol  operations (e.g. <code>queue.declare</code>) are allowed to take before
         /// timing out.
         /// </summary>
+        /// <remarks>
+        /// An operation that reaches this limit completes as <b>cancelled</b>, not as a
+        /// <see cref="System.TimeoutException"/>: the awaiter sees an
+        /// <see cref="System.OperationCanceledException"/>. Note that 6.x threw
+        /// <see cref="System.TimeoutException"/> here.
+        /// <para>
+        /// Nothing on the exception distinguishes a timeout from your own cancellation, because both
+        /// complete with a token the client owns. Your own token answers in one direction only: if it
+        /// is <b>not</b> cancelled the operation timed out, while if it is cancelled the answer is
+        /// "cannot tell" rather than "not a timeout".
+        /// </para>
+        /// <code>
+        /// catch (OperationCanceledException) when (false == myToken.IsCancellationRequested)
+        /// {
+        ///     // the operation outran ContinuationTimeout
+        /// }
+        /// </code>
+        /// <para>
+        /// Some paths do not surface it as cancellation at all, notably connection establishment,
+        /// abort, and topology recovery. See <c>v7-MIGRATION.md</c> for the upgrade notes and
+        /// rabbitmq/rabbitmq-dotnet-client#2019 for making a timeout positively identifiable.
+        /// </para>
+        /// </remarks>
         TimeSpan ContinuationTimeout { get; set; }
 
         /// <summary>
