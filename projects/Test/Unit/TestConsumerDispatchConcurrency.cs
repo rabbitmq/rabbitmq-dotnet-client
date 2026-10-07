@@ -222,6 +222,29 @@ namespace Test.Unit
         }
 
         [Fact]
+        public async Task ACancelledTokenIsObservedBeforeTheQuiescingGuard_GH2039()
+        {
+            /*
+             * HandleBasicDeliverAsync observes the token before it looks at _disposed/IsQuiescing, and
+             * that order is the only thing this pins. Cancellation alone does not distinguish it,
+             * because WriteAsync would throw the same exception a few lines later - but a dispatcher
+             * that is BOTH quiescing and handed a cancelled token does: with the entry check the call
+             * throws, and without it the guard short-circuits and the call returns quietly. The body
+             * is returned either way, so a pool assertion cannot tell them apart.
+             */
+            using var dispatcher = new AsyncConsumerDispatcher(null, 1);
+            dispatcher.Quiesce();
+            Assert.True(dispatcher.IsShutdown, "the guard under test is not engaged, so this test proves nothing");
+
+            using var cts = new CancellationTokenSource();
+            cts.Cancel();
+
+            await Assert.ThrowsAnyAsync<OperationCanceledException>(() =>
+                dispatcher.HandleBasicDeliverAsync("tag", 1, false, "ex", "rk",
+                    new BasicProperties(), default, cts.Token).AsTask());
+        }
+
+        [Fact]
         public async Task DisposeStillTellsConsumersTheChannelDied_GH1988()
         {
             /*

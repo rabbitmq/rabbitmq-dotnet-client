@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Buffers;
 using System.Threading;
 using System.Threading.Tasks;
 using BenchmarkDotNet.Attributes;
@@ -48,16 +49,21 @@ namespace RabbitMQ.Benchmarks
         [Benchmark]
         public async Task AsyncConsumerDispatcher()
         {
-            using (RentedMemory body = new RentedMemory(_body))
+            /*
+             * One pooled body per delivery, and the dispatcher owns each one: it hands the body to a
+             * work item that the reader disposes, which is what returns the array. Sharing a single
+             * RentedMemory across deliveries - and disposing it here as well - returned one array to
+             * the pool once per delivery plus once more, so several unrelated renters would be handed
+             * the same array. It did not throw only because 512 is an exact bucket size.
+             */
+            for (int i = 0; i < Count; i++)
             {
-                for (int i = 0; i < Count; i++)
-                {
-                    await _dispatcher.HandleBasicDeliverAsync(_consumerTag, _deliveryTag, false, _exchange, _routingKey, default, body,
-                        CancellationToken.None);
-                }
-                _autoResetEvent.Wait();
-                _autoResetEvent.Reset();
+                var body = new RentedMemory(ArrayPool<byte>.Shared.Rent(_body.Length));
+                await _dispatcher.HandleBasicDeliverAsync(_consumerTag, _deliveryTag, false, _exchange, _routingKey, default, body,
+                    CancellationToken.None);
             }
+            _autoResetEvent.Wait();
+            _autoResetEvent.Reset();
         }
     }
 }
