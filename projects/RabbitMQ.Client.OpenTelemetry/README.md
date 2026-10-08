@@ -62,9 +62,10 @@ var tracerProvider = Sdk.CreateTracerProviderBuilder()
 var tracerProvider = Sdk.CreateTracerProviderBuilder()
     .AddRabbitMQInstrumentation(options =>
     {
-        // Append the routing key to publish and delivery span names, for example
-        // "publish my.routing.key". Set this to false where a high-cardinality routing key
-        // would make span names unusable as an aggregation key. Default: true.
+        // Append the destination to publish, delivery and fetch span names, for example
+        // "publish my-exchange:my.routing.key". Set this to false where a high-cardinality
+        // routing key or a server-named queue would make span names unusable as an
+        // aggregation key. Default: true.
         options.UseRoutingKeyAsOperationName = true;
 
         // Parent a delivery span to the trace context the publisher propagated in the
@@ -135,7 +136,10 @@ Spans follow the OpenTelemetry
 
 Span names are `{operation} {destination}`, where the destination is
 `messaging.destination.name` - `{exchange}:{routing key}` for a publish and
-`{exchange}:{routing key}:{queue}` for a `basic.get`, with empty parts omitted. Set
+`{exchange}:{routing key}:{queue}` for a `basic.get`, with empty parts omitted. A `deliver` span
+carries the two-part `{exchange}:{routing key}` form, because a delivery frame does not carry the
+queue it came from; see
+[#2055](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/2055). Set
 `UseRoutingKeyAsOperationName` to `false` for bare operation names, which is what you want when a
 high-cardinality routing key or a server-named queue would make span names unusable as an
 aggregation key.
