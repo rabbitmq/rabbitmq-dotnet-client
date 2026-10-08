@@ -56,16 +56,19 @@ namespace RabbitMQ.Client.Impl
 
         ValueTask CloseAsync(CancellationToken cancellationToken);
 
-#if NETSTANDARD
-        ///<summary>
-        /// Close the underlying socket immediately, without completing the pipe
-        /// reader/writer. On .NET Framework, cancelling the main loop's token
-        /// does not interrupt a <c>PipeReader.ReadAsync</c> already parked on a
-        /// <c>NetworkStream</c>; closing the socket is the only way to unblock
-        /// that read during an abort. See issue #1921.
-        ///</summary>
+        // Close the underlying socket immediately, without completing the pipe reader/writer and
+        // without observing any cancellation token. Sets _closed first, so the write fast paths
+        // see the handler as closed rather than writing into a dead descriptor.
+        //
+        // It is the only step in a close that cannot block on the peer: CloseAsync awaits the
+        // write loop before it reaches the socket, and a write timeout does not apply to async
+        // writes (#1265). Needed on .NET Framework to unpark a PipeReader.ReadAsync (#1921) and,
+        // since #2022, on every framework for the timed-out close path.
+        //
+        // Deliberately `//` and not `///`: csc does not filter doc comments by accessibility, so
+        // `///` on an internal member ships in RabbitMQ.Client.xml inside the NuGet package.
+        // Reasoning lives in docs/internal/connection-shutdown-and-cancellation.md.
         void CloseSocket();
-#endif
 
         ///<summary>Read a frame from the underlying
         ///transport. Returns null if the read operation timed out

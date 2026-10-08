@@ -190,10 +190,19 @@ namespace RabbitMQ.Client.Impl
             catch
             {
                 /*
-                 * Either the caller's token fired or another closer disposed the
-                 * semaphore. Both mean this call does not own the close, and the
-                 * owner sets _closed. Returning is correct: it must NOT fall
-                 * through to the close body without holding the semaphore.
+                 * The caller's token fired. Returning is correct: it must NOT fall
+                 * through to the close body without holding the semaphore. What it
+                 * must not assume is that someone else will finish the close - as
+                 * #2022 showed, frequently there is no other closer at all, which is
+                 * why the caller needs CloseSocket rather than a second attempt here.
+                 *
+                 * This used to also cover "another closer disposed the semaphore",
+                 * which has been impossible since #1976 removed every semaphore
+                 * disposal in the client - this one is only constructed, waited and
+                 * released. Note the token is observed even when the semaphore is
+                 * free: SemaphoreSlim.WaitAsync rejects an already-cancelled token
+                 * uncontended, measured on net472 and net8.0, which is why a caller
+                 * that wants the socket shut regardless must use CloseSocket (#2022).
                  */
                 return;
             }
@@ -266,19 +275,29 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-#if NETSTANDARD
         public void CloseSocket()
         {
+            /*
+             * Deliberately does NOT set _closed. CloseAsync fast-paths on it and returns, so
+             * setting it here would make the later FinishCloseAsync a no-op: _channelWriter would
+             * never be completed, the write loop would stay parked on WaitToReadAsync forever, and
+             * _writerTask would never be awaited - a managed leak, and an unobserved write-loop
+             * exception, in place of the file descriptor #2022 leaked. An earlier revision of this
+             * fix did set it; see docs/internal/connection-shutdown-and-cancellation.md.
+             *
+             * Closing the socket is enough on its own: it unparks a write already blocked on a
+             * peer that has stopped reading, which is the whole point here, and the subsequent
+             * CloseAsync then performs the ordinary cleanup.
+             */
             try
             {
                 _socket.Close();
             }
             catch
             {
-                // ignore, we are aborting anyway
+                // ignore, we are closing anyway
             }
         }
-#endif
 
         public ValueTask ReadFrameAsync(InboundFrame frame, CancellationToken mainLoopCancellationToken)
         {

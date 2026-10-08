@@ -492,6 +492,45 @@ namespace RabbitMQ.Client.Impl
             }
             catch
             {
+                /*
+                 * Force the socket shut only when the close budget was spent. The guard matters:
+                 * the wait also faults when MainLoop itself throws, and on that path the budget is
+                 * normally untouched, cts is still live, and whatever the write loop still has
+                 * queued would be destroyed a statement before CloseAsync flushes it.
+                 *
+                 * The guard is on the token, not on this close specifically: cts is linked to the
+                 * caller's token, so an abort that reaches this catch with the caller's token
+                 * already cancelled passes it with its own budget untouched. Narrowing that
+                 * further needs the close paths to agree on an owner - see the hazard below.
+                 *
+                 * CloseSocket() rather than CloseAsync(cts.Token) because cts is the token whose
+                 * firing produced this catch, and SemaphoreSlim.WaitAsync rejects an
+                 * already-cancelled token even when the semaphore is free - measured on net472
+                 * and net8.0 - so CloseAsync returns before reaching the socket and the
+                 * descriptor leaks. A fresh token would not help either: CloseAsync awaits the
+                 * write loop before the socket and per #1265 a write timeout does not apply to
+                 * async writes, so a writer parked on an unresponsive peer is unbounded.
+                 *
+                 * Only in this catch, and only on timeout. SocketFrameHandler.CloseAsync is also
+                 * reached from FinishCloseAsync at the end of MainLoop, where the client has just
+                 * written connection.close-ok through the same write loop (#1777) and
+                 * TryComplete + await _writerTask is what flushes it; closing the socket ahead of
+                 * that would truncate the handshake. A timed-out close has already given up on
+                 * the handshake, so there is nothing left to truncate.
+                 *
+                 * Still a hazard, and deliberately not fixed here: an abort that lost the
+                 * SetCloseReason race reaches this catch on its own shorter budget and can force
+                 * the socket shut under a longer graceful close that is still awaiting close-ok.
+                 * That predates this change in shape - the fallback was simply a no-op before -
+                 * and bounding it needs the close paths to agree on an owner. Tracked separately.
+                 *
+                 * Issue #2022. docs/internal/connection-shutdown-and-cancellation.md.
+                 */
+                if (cts.IsCancellationRequested)
+                {
+                    _frameHandler.CloseSocket();
+                }
+
                 try
                 {
                     await _frameHandler.CloseAsync(cts.Token)
