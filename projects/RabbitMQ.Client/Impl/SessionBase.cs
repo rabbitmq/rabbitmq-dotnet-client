@@ -86,6 +86,8 @@ namespace RabbitMQ.Client.Impl
         public CommandReceivedAction? CommandReceived { get; set; }
         public Connection Connection { get; }
 
+        public bool ServerAcceptsConsumerCancelOk => Connection.ServerAcceptsConsumerCancelOk;
+
         [MemberNotNullWhen(false, nameof(CloseReason))]
         public bool IsOpen => CloseReason is null;
 
