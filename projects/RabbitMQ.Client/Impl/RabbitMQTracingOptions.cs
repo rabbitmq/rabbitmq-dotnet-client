@@ -44,6 +44,15 @@ namespace RabbitMQ.Client
         public bool UsePublisherAsParent { get; set; } = true;
 
         /// <summary>
+        /// When <see langword="true"/>, publish, fetch, and delivery spans are tagged with
+        /// <c>messaging.rabbitmq.vhost.name</c> and <c>messaging.rabbitmq.cluster.name</c>. Defaults
+        /// to <see langword="false"/>: neither attribute is part of the OpenTelemetry messaging
+        /// semantic conventions yet (open-telemetry/semantic-conventions#3997), so this opts in
+        /// rather than committing to a stable attribute shape ahead of that discussion.
+        /// </summary>
+        public bool CaptureVirtualHostAndClusterName { get; set; } = false;
+
+        /// <summary>
         /// Injects the current <see cref="Activity"/> context into a published message's headers.
         /// Defaults to W3C trace-context propagation using
         /// <see cref="DistributedContextPropagator.Current"/>. Assigning <see langword="null"/>
@@ -77,6 +86,7 @@ namespace RabbitMQ.Client
             {
                 UseRoutingKeyAsOperationName = UseRoutingKeyAsOperationName,
                 UsePublisherAsParent = UsePublisherAsParent,
+                CaptureVirtualHostAndClusterName = CaptureVirtualHostAndClusterName,
                 // Assign through the properties, not the fields, so the copy keeps the non-null
                 // guarantee even if a future path could make the source fields null.
                 ContextInjector = _contextInjector,

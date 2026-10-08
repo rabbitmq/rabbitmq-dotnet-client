@@ -1,6 +1,8 @@
 RabbitMQ.Client.ConnectionFactory.TracingOptions.get -> RabbitMQ.Client.ConnectionTracingOptions?
 RabbitMQ.Client.ConnectionFactory.TracingOptions.set -> void
 RabbitMQ.Client.ConnectionTracingOptions
+RabbitMQ.Client.ConnectionTracingOptions.CaptureVirtualHostAndClusterName.get -> bool?
+RabbitMQ.Client.ConnectionTracingOptions.CaptureVirtualHostAndClusterName.set -> void
 RabbitMQ.Client.ConnectionTracingOptions.ConnectionTracingOptions() -> void
 RabbitMQ.Client.ConnectionTracingOptions.Propagator.get -> System.Diagnostics.DistributedContextPropagator?
 RabbitMQ.Client.ConnectionTracingOptions.Propagator.set -> void
@@ -8,6 +10,8 @@ RabbitMQ.Client.ConnectionTracingOptions.UsePublisherAsParent.get -> bool?
 RabbitMQ.Client.ConnectionTracingOptions.UsePublisherAsParent.set -> void
 RabbitMQ.Client.ConnectionTracingOptions.UseRoutingKeyAsOperationName.get -> bool?
 RabbitMQ.Client.ConnectionTracingOptions.UseRoutingKeyAsOperationName.set -> void
+RabbitMQ.Client.RabbitMQTracingOptions.CaptureVirtualHostAndClusterName.get -> bool
+RabbitMQ.Client.RabbitMQTracingOptions.CaptureVirtualHostAndClusterName.set -> void
 RabbitMQ.Client.IChannel.BasicPublishAsync<TProperties>(RabbitMQ.Client.CachedString! exchange, RabbitMQ.Client.CachedString! routingKey, bool mandatory, TProperties basicProperties, System.Buffers.ReadOnlySequence<byte> body, System.IDisposable? bodyOwner, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask
 RabbitMQ.Client.IChannel.BasicPublishAsync<TProperties>(RabbitMQ.Client.CachedString! exchange, RabbitMQ.Client.CachedString! routingKey, bool mandatory, TProperties basicProperties, System.ReadOnlyMemory<byte> body, System.IDisposable? bodyOwner, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask
 RabbitMQ.Client.IChannel.BasicPublishAsync<TProperties>(string! exchange, string! routingKey, bool mandatory, TProperties basicProperties, System.Buffers.ReadOnlySequence<byte> body, System.IDisposable? bodyOwner, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask

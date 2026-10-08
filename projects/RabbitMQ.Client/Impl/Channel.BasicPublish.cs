@@ -170,7 +170,7 @@ namespace RabbitMQ.Client.Impl
                     {
                         tracing = RabbitMQActivitySource.ResolveTracingOptions(TracingOptions);
                         sendActivity = RabbitMQActivitySource.BasicPublish(routingKey, exchange, body.Length,
-                            basicProperties, tracing);
+                            basicProperties, tracing, VirtualHost, ClusterName);
                     }
 
                     publisherConfirmationInfo = MaybeStartPublisherConfirmationTracking();
@@ -327,7 +327,7 @@ namespace RabbitMQ.Client.Impl
                     {
                         tracing = RabbitMQActivitySource.ResolveTracingOptions(TracingOptions);
                         sendActivity = RabbitMQActivitySource.BasicPublish(routingKey, exchange, (int)body.Length,
-                            basicProperties, tracing);
+                            basicProperties, tracing, VirtualHost, ClusterName);
                     }
 
                     publisherConfirmationInfo = MaybeStartPublisherConfirmationTracking();
