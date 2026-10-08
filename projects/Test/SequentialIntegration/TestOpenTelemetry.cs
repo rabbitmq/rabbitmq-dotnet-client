@@ -621,7 +621,11 @@ namespace Test.SequentialIntegration
             Activity receiveActivity = activities.Single(x =>
                 x.OperationName == (useRoutingKeyAsOperationName ? $"{childName} {queueName}" : childName));
             Assert.Equal(ActivityKind.Producer, sendActivity.Kind);
-            Assert.Equal(ActivityKind.Consumer, receiveActivity.Kind);
+            /*
+             * The convention maps operation types to kinds: process -> CONSUMER, receive -> CLIENT.
+             * So a delivery is a Consumer span and a fetch is a Client one (#1980).
+             */
+            Assert.Equal(isDeliver ? ActivityKind.Consumer : ActivityKind.Client, receiveActivity.Kind);
             Assert.Equal(sendActivity.TraceId, receiveActivity.Links.Single().Context.TraceId);
             if (usePublisherAsParent)
             {
@@ -645,7 +649,13 @@ namespace Test.SequentialIntegration
             AssertStringTagEquals(sendActivity, RabbitMQActivitySource.MessagingSystem, "rabbitmq");
             AssertStringTagEquals(sendActivity, RabbitMQActivitySource.ProtocolName, "amqp");
             AssertStringTagEquals(sendActivity, RabbitMQActivitySource.ProtocolVersion, "0.9.1");
-            AssertStringTagEquals(sendActivity, RabbitMQActivitySource.MessagingDestination, "amq.default");
+            /*
+             * The RabbitMQ convention's destination is {exchange}:{routing key}, using whichever is
+             * present when only one is. This publishes to the default exchange with a routing key, so
+             * the destination is the routing key - not "amq.default", which is reserved for the
+             * default exchange with NO routing key (#1980).
+             */
+            AssertStringTagEquals(sendActivity, RabbitMQActivitySource.MessagingDestination, queueName);
             AssertStringTagEquals(sendActivity, RabbitMQActivitySource.MessagingDestinationRoutingKey, queueName);
             AssertIntTagGreaterThanZero(sendActivity, RabbitMQActivitySource.MessagingEnvelopeSize);
             AssertIntTagGreaterThanZero(sendActivity, RabbitMQActivitySource.MessagingBodySize);
