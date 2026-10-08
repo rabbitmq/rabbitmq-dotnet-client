@@ -364,7 +364,11 @@ namespace Test.Integration
                     await ch.QueueDeclareAsync();
                 }
 
-                Assert.True(conn.Heartbeat > closeBudget * 2,
+                // Ticks, not closeBudget * 2: TimeSpan's multiply and divide operators arrived in
+                // .NET Core 2.0 and do not exist on .NET Framework, so the expression is CS0019 on
+                // net472 - which only build-win32 compiles.
+                TimeSpan minimumHeartbeat = TimeSpan.FromTicks(closeBudget.Ticks * 2);
+                Assert.True(conn.Heartbeat > minimumHeartbeat,
                     $"this test needs a heartbeat comfortably longer than the {closeBudget} close " +
                     $"budget, but negotiated {conn.Heartbeat}; the detector would close the " +
                     "connection before the close under test reaches its fallback");
