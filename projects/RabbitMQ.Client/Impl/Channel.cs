@@ -81,7 +81,7 @@ namespace RabbitMQ.Client.Impl
         {
             ResolvedTracingOptions tracing = RabbitMQActivitySource.ResolveTracingOptions(TracingOptions);
             return result != null
-                ? RabbitMQActivitySource.BasicGet(result.RoutingKey, result.Exchange, result.DeliveryTag,
+                ? RabbitMQActivitySource.BasicGet(queue, result.RoutingKey, result.Exchange, result.DeliveryTag,
                     result.BasicProperties, result.Body.Length, tracing)
                 : RabbitMQActivitySource.BasicGetEmpty(queue, tracing);
         }

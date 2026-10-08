@@ -62,9 +62,10 @@ var tracerProvider = Sdk.CreateTracerProviderBuilder()
 var tracerProvider = Sdk.CreateTracerProviderBuilder()
     .AddRabbitMQInstrumentation(options =>
     {
-        // Append the routing key to publish and delivery span names, for example
-        // "publish my.routing.key". Set this to false where a high-cardinality routing key
-        // would make span names unusable as an aggregation key. Default: true.
+        // Append the destination to publish, delivery and fetch span names, for example
+        // "publish my-exchange:my.routing.key". Set this to false where a high-cardinality
+        // routing key or a server-named queue would make span names unusable as an
+        // aggregation key. Default: true.
         options.UseRoutingKeyAsOperationName = true;
 
         // Parent a delivery span to the trace context the publisher propagated in the
@@ -127,11 +128,28 @@ Three activity sources, all subscribed by `AddRabbitMQInstrumentation` through t
 | Source | Spans |
 |---|---|
 | `RabbitMQ.Client.Publisher` | `publish` |
-| `RabbitMQ.Client.Subscriber` | `deliver`, `fetch`, `fetch (empty)` |
+| `RabbitMQ.Client.Subscriber` | `deliver`, `fetch` |
 | `RabbitMQ.Client.Connection` | `connection attempt`, `tcp connection attempt` |
 
 Spans follow the OpenTelemetry
 [messaging semantic conventions](https://opentelemetry.io/docs/specs/semconv/messaging/messaging-spans/).
+
+Span names are `{operation} {destination}`, where the destination is
+`messaging.destination.name` - `{exchange}:{routing key}` for a publish and
+`{exchange}:{routing key}:{queue}` for a `basic.get`, with empty parts omitted. A `deliver` span
+carries the two-part `{exchange}:{routing key}` form, because a delivery frame does not carry the
+queue it came from; see
+[#2055](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/2055). Set
+`UseRoutingKeyAsOperationName` to `false` for bare operation names, which is what you want when a
+high-cardinality routing key or a server-named queue would make span names unusable as an
+aggregation key.
+
+An empty `basic.get` emits the same `fetch` operation name as one that returned a message, with
+`messaging.rabbitmq.message.received` set to `false`; encoding the outcome in
+`messaging.operation.name` is not valid, so the `fetch (empty)` name was removed in 7.3.0. `fetch`
+spans are `CLIENT`, matching the convention's mapping of `receive`; deliveries are `CONSUMER`. The
+delivery tag is `messaging.rabbitmq.message.delivery_tag`, which is the registry name - it was
+`messaging.rabbitmq.delivery_tag` before 7.3.0 and matched nothing in the convention.
 A failed operation sets the span status to `Error` along with `error.type` and an exception event.
 
 By default a delivery span is parented to the message creation context the publisher propagated.

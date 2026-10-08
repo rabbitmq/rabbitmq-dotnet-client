@@ -11,7 +11,7 @@ The findings were split into three groups, because they carry very different ris
 | Group | Content | Status |
 |---|---|---|
 | A | Behavioural defects: ambient-span pollution, failures never recorded, untagged `tcp connection attempt`, the null-`Headers` extractor path, a wrong comment | **Fixed.** Sections below are marked `FIXED` individually. |
-| B | Semantic-convention conformance. Each one changes emitted span names or attributes, and several break existing test assertions. | Open |
+| B | Semantic-convention conformance. Each one changes emitted span names or attributes, and several broke existing test assertions. | **Fixed in #1980.** Sections below are marked `FIXED` individually. |
 | C | Public API: per-provider tracing configuration. Must land before #1923. | **Split into two PRs, both for 7.3.0.** The validation and documentation land first; the per-connection ownership model follows once its API shape is settled. See below. |
 
 Group A was separated out precisely because none of it changes a conforming attribute value or span name, so it can ship without a downstream consumer having to re-key anything. Groups B and C build on this branch as stacked PRs.
@@ -39,7 +39,7 @@ An earlier version of this document described this as only "the span now starts 
 |---|---|---|
 | `RabbitMQ.Client.Connection` | `connection attempt`, `tcp connection attempt` | `ConnectionFactory`, `AutorecoveringConnection`, `IEndpointResolverExtensions` |
 | `RabbitMQ.Client.Publisher` | `publish` | `Channel.BasicPublish.cs` |
-| `RabbitMQ.Client.Subscriber` | `fetch`, `fetch (empty)`, `deliver` | `Channel.cs` (`BasicGetAsync`), `AsyncConsumerDispatcher` |
+| `RabbitMQ.Client.Subscriber` | `fetch`, `deliver` | `Channel.cs` (`BasicGetAsync`), `AsyncConsumerDispatcher` |
 
 `ConnectionSourceName` is the only tracing member still in `PublicAPI.Unshipped.txt`. Everything else - `TracingOptions`, `ContextInjector`, `ContextExtractor`, `UseRoutingKeyAsOperationName`, and all of `RabbitMQTracingOptions` - shipped in 7.2.0 (2025-11-06), so they have been public across 7.2.0, 7.2.1 and 7.2.2.
 
@@ -338,7 +338,7 @@ Checked against the specification at `main`: `model/messaging/registry.yaml`, `d
 
 Stability context: every `messaging.*` attribute is **Development**, none is Stable. The Stable attributes appearing in the messaging span tables are all borrowed from other registries: `error.type`, `server.address`, `server.port`, and on the consumer tables `network.peer.address` and `network.peer.port`. So `messaging.*`-level changes are low-risk from the specification's own standpoint, and the client's attribute-name constants are `internal`.
 
-### Span kind for `receive`
+### Span kind for `receive` - FIXED
 
 `messaging-spans.md` maps operation types to span kinds:
 
@@ -350,19 +350,19 @@ Stability context: every `messaging.*` attribute is **Development**, none is Sta
 | `process` | `CONSUMER` |
 | `settle` | `CLIENT` |
 
-`BasicGet` and `BasicGetEmpty` both set `messaging.operation.type = receive` with `ActivityKind.Consumer`. They should be `ActivityKind.Client`. `Deliver` (`process` -> `Consumer`) and `BasicPublish` (`send` -> `Producer`, and its context is what gets injected) are both correct.
+`BasicGet` and `BasicGetEmpty` set `messaging.operation.type = receive` and were `ActivityKind.Consumer`; they are `ActivityKind.Client` as of #1980. `Deliver` (`process` -> `Consumer`) and `BasicPublish` (`send` -> `Producer`, and its context is what gets injected) are both correct.
 
-### `messaging.rabbitmq.delivery_tag` is not a registry attribute
+### `messaging.rabbitmq.delivery_tag` was not a registry attribute - FIXED
 
-The client emits `messaging.rabbitmq.delivery_tag`. The registry defines `messaging.rabbitmq.message.delivery_tag`. The emitted name matches nothing in the convention, so any consumer keying off it drops the value.
+The client emitted `messaging.rabbitmq.delivery_tag`; the registry defines `messaging.rabbitmq.message.delivery_tag`. Renamed in #1980 - the old name matched nothing, so nobody could have been reading it.
 
-### `messaging.destination.name` does not follow the RabbitMQ convention
+### `messaging.destination.name` did not follow the RabbitMQ convention - FIXED
 
 `rabbitmq.md` note [1] specifies `{exchange}:{routing key}` on the producer side when both are present and non-empty, only the available one when just one is, and `amq.default` only when the default exchange is used *and* no routing key is provided. The consumer side is `{exchange}:{routing key}:{queue}`.
 
-The client sets the bare exchange name, or the literal `amq.default` whenever the exchange is empty regardless of routing key.
+The client set the bare exchange name, or the literal `amq.default` whenever the exchange was empty regardless of routing key. #1980 computes both forms in `BuildDestinationName`, which takes an explicit producer/consumer role - inferring the side from whether a queue was supplied put `amq.default` on consumer spans, since a delivery legitimately has no queue to supply.
 
-`BasicGetEmpty` is worse than non-conforming - it is wrong. It hardcodes `amq.default` even though the queue is known. **Verified** with a named exchange `probe-ex`, routing key `warning`, queue `probe-q`:
+`BasicGetEmpty` was worse than non-conforming - it was wrong, hardcoding `amq.default` even though the queue was known. **Verified before the fix** with a named exchange `probe-ex`, routing key `warning`, queue `probe-q`:
 
 ```
 span "publish warning"        kind=Producer  messaging.destination.name = probe-ex
@@ -374,17 +374,35 @@ span "fetch (empty) probe-q"  kind=Consumer  messaging.destination.name = amq.de
 error.type absent on all three.
 ```
 
-### Span names use the routing key, not `{destination}`
+Measured again after #1980, same exchange, key and queue:
 
-The convention is `{messaging.operation.name} {destination}`, where `{destination}` prefers `messaging.destination.template`, then `messaging.destination.name`, then `server.address:server.port`. The client appends the routing key. For server-named queues that also makes the span name high-cardinality, which the guidance on temporary and anonymous destinations warns against specifically.
+```
+span "publish probe-ex:warning"           kind=Producer  messaging.destination.name = probe-ex:warning
+span "fetch probe-ex:warning:probe-q"     kind=Client    messaging.destination.name = probe-ex:warning:probe-q
+span "fetch probe-q"                      kind=Client    messaging.destination.name = probe-q
+                                                         messaging.rabbitmq.message.received = false
+messaging.rabbitmq.delivery_tag absent everywhere; messaging.rabbitmq.message.delivery_tag carries it.
+```
 
-### `fetch (empty)` is not a valid operation name
+### Span names used the routing key, not `{destination}` - FIXED
 
-`messaging.operation.name = "fetch (empty)"` encodes an outcome into the operation name. `rabbitmq.md` gives `receive` and `poll` as receive-span examples. An empty result is representable without a distinct operation name.
+The convention is `{messaging.operation.name} {destination}`, where `{destination}` prefers `messaging.destination.template`, then `messaging.destination.name`, then `server.address:server.port`. The client appended the routing key, which left the exchange out of span names entirely; #1980 appends the destination name. The spec does permit a system-specific span name format, but the permission belongs to the per-system convention: "Semantic conventions for individual messaging systems MAY specify different span name format and then MUST document it in semantic conventions for specific messaging technologies." `rabbitmq.md` specifies no alternative format, and an instrumentation library's own README is not where that permission can be exercised - so the old naming was a deviation from a SHOULD, not merely incomplete. The concrete defect was still the missing exchange. For server-named queues that also makes the span name high-cardinality, which the guidance on temporary and anonymous destinations warns against specifically.
+
+### `fetch (empty)` was not a valid operation name - FIXED
+
+`messaging.operation.name = "fetch (empty)"` encoded an outcome into the operation name. #1980 emits `fetch` with `messaging.rabbitmq.message.received = false` instead. That attribute is not in the registry - it is a client addition in a namespace the convention owns, which is a known compromise, and the outcome also remains legible from the destination, since an empty fetch names only the queue while a hit names all three parts.
 
 ### `messaging.message.envelope.size` and `body.size` are Opt-In
 
 Opt-In means "SHOULD NOT be collected by default". The client always emits both when sampling. Defensible for a client library, but worth knowing.
+
+### Sampling-relevant attributes are not provided at span creation time - open, missed by the original audit
+
+`rabbitmq.md` repeats, per span: `messaging.destination.name`, `messaging.operation.name` and `messaging.operation.type` "can be important for making sampling decisions and SHOULD be provided **at span creation time** (if provided at all)". The client passes only `CreationTags` - `messaging.system` and the `network.protocol.*` pair - to `CreateActivity`, then `SetTag`s all three afterwards. A sampler therefore cannot key on the destination, and a span sampled as `PropagationData` carries none of the three.
+
+This is not a regression and #1980 did not introduce it, but #1980 makes the fix nearly free: the destination is now computed *before* `CreateActivity` because the span name needs it. The original audit did not list it, which is the more interesting fact - the audit checked attribute names and values and did not check *when* they are set.
+
+Lower value, same gap: `messaging.destination.anonymous` and `messaging.destination.temporary` are Conditionally Required "If value is `true`" and are never emitted, though a server-named queue is knowable to the client at the `BasicGet` call site.
 
 ## Context propagation: no defects found
 
@@ -427,16 +445,16 @@ Three gaps found by the review of the Group A branch itself, all now closed:
 - **Span parenting was unasserted.** All the new recorders set `VerifyParent = false`, which is unavoidable through the recorder - `ExpectedParent` has to be set before the recorder sees anything, and the ambient activity does not exist that early. `TestAmqpOperationsDoNotTagAnUnrelatedAmbientActivity_GH1967` now asserts `Assert.Same(appActivity, publishActivity.Parent)` directly instead, so scoping the tags to the publisher source cannot silently detach the publish span from the caller's trace. A detached span would show `Parent is null`, so the assertion is not vacuous.
 - **The null-`Headers` extractor guard had no test.** `TestContextExtractorHandlesPropertiesWithNoHeaders_GH1967` pins the observable contract: no headers extracts to `default` without throwing, and the extract resets ambient baggage. The return-value half would also have passed *before* the fix (swallowing the `NullReferenceException` reached the same result), and protects the outcome if someone later narrows or removes that blanket `catch`. The baggage-reset assertion, added with the baggage fix above, fails on the pre-fix early return, so the test now guards a real behaviour rather than only a latent one.
 
-Still open, and both belong to Group B:
+Closed by #1980:
 
-- **Two assertions lock in the span-kind gap.** `TestOpenTelemetry.cs` and `TestActivitySource.cs` both assert `ActivityKind.Consumer` for the `fetch` span. Fixing the span kind requires updating them.
-- **One assertion locks in the destination gap.** `TestActivitySource.cs` asserts `messaging.destination.name == "amq.default"` for the default-exchange case.
+- **Two assertions locked in the span-kind gap.** `TestOpenTelemetry.cs` and `TestActivitySource.cs` both asserted `ActivityKind.Consumer` for the `fetch` span; #1980 changed the kind to `Client` and updated both.
+- **One assertion locked in the destination gap.** `TestActivitySource.cs` asserted `messaging.destination.name == "amq.default"` for the default-exchange case; #1980 updated it.
 
 `ActivityRecorder.ShouldListenTo` is an exact source-name match, so a recorder constructed with `ConnectionSourceName` cannot see publisher or subscriber spans. Keep that in mind when reasoning about which tests would catch which regression.
 
-### `ActivityRecorder` matches on span name, and the routing key is in it by default
+### `ActivityRecorder` matches on span name, and the destination is in it by default
 
-`UseRoutingKeyAsOperationName` defaults to **`true`**, so a publish span is named `publish <routing-key>`, not `publish`. `ActivityRecorder` matches `activity.OperationName` exactly, so a recorder built for `"publish"` records **zero** activities under the default configuration and fails with `Expected: 1 / Actual: 0` - no hint that the name is the problem.
+`UseRoutingKeyAsOperationName` defaults to **`true`**, so a publish span is named `publish <destination>` - `publish {exchange}:{routing key}` since #1980, and `publish <routing-key>` before it - not `publish`. `ActivityRecorder` matches `activity.OperationName` exactly, so a recorder built for `"publish"` records **zero** activities under the default configuration and fails with `Expected: 1 / Actual: 0` - no hint that the name is the problem.
 
 Three of the five new tests hit this. Any new test that constructs a recorder with a bare operation name needs `TestActivitySource.PlainOperationNames`, a `using` scope that sets the flag false and **restores the previous value on dispose**.
 
