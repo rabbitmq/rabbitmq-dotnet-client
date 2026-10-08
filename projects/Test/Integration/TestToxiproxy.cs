@@ -34,6 +34,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Net;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using Integration;
@@ -309,6 +310,143 @@ namespace Test.Integration
             await _toxiproxyManager.RemoveToxicAsync(toxicName);
 
             await recoveryTask;
+        }
+
+        [SkippableFact]
+        [Trait("Category", "Toxiproxy")]
+        public async Task TestTimedOutCloseStillClosesTheSocket_GH2022()
+        {
+            Skip.IfNot(AreToxiproxyTestsEnabled, "RABBITMQ_TOXIPROXY_TESTS is not set, skipping test");
+
+            TimeSpan closeBudget = TimeSpan.FromSeconds(2);
+
+            /*
+             * rabbitmq/rabbitmq-dotnet-client#2022
+             *
+             * A close that reaches its timeout used to leave the socket open: the fallback passed the
+             * token whose firing produced the catch, and SemaphoreSlim.WaitAsync rejects an
+             * already-cancelled token even uncontended, so SocketFrameHandler.CloseAsync returned
+             * before reaching _socket.Close().
+             *
+             * A graceful close rather than an abort, deliberately: on netstandard an abort closes the
+             * socket up front, so the abort path would pass on net472 whether or not the fix is
+             * present. Automatic recovery is off so nothing reopens the connection underneath us.
+             *
+             * LocalPort is the observable: it reads the socket's LocalEndPoint, which throws
+             * ObjectDisposedException once the socket is closed.
+             */
+            ConnectionFactory cf = CreateConnectionFactory();
+            cf.Endpoint = new AmqpTcpEndpoint(_proxyHost, _proxyPort);
+            cf.AutomaticRecoveryEnabled = false;
+
+            // The fixture defaults this to WaitSpan, 60 s in CI, and this test breaks a connection
+            // and then disposes it, so cap it as the sibling break-then-dispose tests do.
+            cf.ContinuationTimeout = TimeSpan.FromSeconds(2);
+
+            /*
+             * The heartbeat must not fire inside the close budget. If it does, the detector shuts the
+             * connection down before the close is even called, CloseAsync returns immediately on an
+             * already-closed connection, and the fallback never runs - measured as a pass in ~1 s
+             * with no exception, which is why the throw below is asserted.
+             *
+             * Zero does NOT disable heartbeats: NegotiatedMaxValue takes Math.Max when either side
+             * is zero, so the broker's value wins. The assertion after connecting is what makes this
+             * honest - against a broker with a short heartbeat it fails there, with a clear message,
+             * rather than mysteriously at the socket assertion.
+             */
+            cf.RequestedHeartbeat = TimeSpan.Zero;
+
+            IConnection conn = await cf.CreateConnectionAsync();
+            try
+            {
+                await using (IChannel ch = await conn.CreateChannelAsync())
+                {
+                    await ch.QueueDeclareAsync();
+                }
+
+                // Ticks, not closeBudget * 2: TimeSpan's multiply and divide operators arrived in
+                // .NET Core 2.0 and do not exist on .NET Framework, so the expression is CS0019 on
+                // net472 - which only build-win32 compiles.
+                TimeSpan minimumHeartbeat = TimeSpan.FromTicks(closeBudget.Ticks * 2);
+                Assert.True(conn.Heartbeat > minimumHeartbeat,
+                    $"this test needs a heartbeat comfortably longer than the {closeBudget} close " +
+                    $"budget, but negotiated {conn.Heartbeat}; the detector would close the " +
+                    "connection before the close under test reaches its fallback");
+
+                // The socket is open and reporting a port before anything is broken.
+                Assert.True(conn.LocalPort > 0);
+
+                /*
+                 * Timeout 0 holds traffic without closing the connection, and BOTH directions are
+                 * needed with Stream set explicitly - a TimeoutToxic with Stream unset is downstream
+                 * only, which strands MainLoop's read but leaves the write path free, exercising just
+                 * half of #2022. Downstream parks the read (the stranded-MainLoop shape #1921 and
+                 * #1968 recorded); upstream parks the write loop, which is the half that makes a
+                 * fresh cancellation token insufficient and CloseSocket necessary (#1265).
+                 */
+                foreach (ToxicDirection direction in new[] { ToxicDirection.DownStream, ToxicDirection.UpStream })
+                {
+                    var toxic = new TimeoutToxic
+                    {
+                        Name = $"rmq-gh2022-{direction}-{Now}-{GenerateShortUuid()}",
+                        Stream = direction
+                    };
+                    toxic.Attributes.Timeout = 0;
+                    toxic.Toxicity = 1.0;
+                    await _toxiproxyManager.AddToxicAsync(toxic);
+                }
+
+                /*
+                 * A graceful close rethrows once the timeout elapses. That is one statement before
+                 * the fallback rather than proof it ran - a vacuity guard: if this ever stops
+                 * throwing, the close never reached its budget and the assertions below would pass
+                 * for the wrong reason.
+                 */
+                await Assert.ThrowsAnyAsync<OperationCanceledException>(() =>
+                    conn.CloseAsync(Constants.ReplySuccess, "GH-2022", closeBudget,
+                        abort: false, CancellationToken.None));
+
+                Assert.Throws<ObjectDisposedException>(() => _ = conn.LocalPort);
+
+                /*
+                 * Closing the socket must not suppress the cleanup that follows it. An earlier
+                 * revision of this fix also set SocketFrameHandler._closed, which made the
+                 * subsequent CloseAsync return at its fast path: the frame handler's channel was
+                 * never completed, so the write loop stayed parked on WaitToReadAsync and its task
+                 * was never awaited - a leaked task rooting the handler, both pipes and the
+                 * disposed socket, plus an unobserved write-loop exception, in place of the file
+                 * descriptor #2022 leaked. No public surface exposes the write loop, so this
+                 * reaches for the field, as the sibling tests in this file and
+                 * TestSemaphoreDisposal do.
+                 */
+                Connection innerConnection = (Connection)typeof(Connection)
+                    .GetField("_innerConnection", BindingFlags.Instance | BindingFlags.NonPublic)
+                    ?.GetValue(conn) ?? (Connection)conn;
+                object frameHandler = typeof(Connection)
+                    .GetField("_frameHandler", BindingFlags.Instance | BindingFlags.NonPublic)
+                    !.GetValue(innerConnection)!;
+                var writerTask = (Task)typeof(SocketFrameHandler)
+                    .GetField("_writerTask", BindingFlags.Instance | BindingFlags.NonPublic)
+                    !.GetValue(frameHandler)!;
+
+                // WhenAny rather than an await, so a faulted write loop is not rethrown here: that
+                // it completed at all is the point, however it completed.
+                await Task.WhenAny(writerTask, Task.Delay(TimeSpan.FromSeconds(10)));
+                Assert.True(writerTask.IsCompleted,
+                    $"the write loop was left parked ({writerTask.Status}): the socket close " +
+                    "suppressed the frame handler's own close rather than letting it clean up");
+            }
+            finally
+            {
+                try
+                {
+                    await conn.DisposeAsync();
+                }
+                catch
+                {
+                    // The connection is already in whatever state the test left it.
+                }
+            }
         }
 
         [SkippableFact]
