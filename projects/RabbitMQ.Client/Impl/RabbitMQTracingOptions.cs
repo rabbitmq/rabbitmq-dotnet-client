@@ -21,10 +21,15 @@ namespace RabbitMQ.Client
         private Func<IReadOnlyBasicProperties, ActivityContext> _contextExtractor = RabbitMQActivitySource.DefaultContextExtractor;
 
         /// <summary>
-        /// When <see langword="true"/> (the default), the routing key is appended to publish and
-        /// delivery span names, for example <c>publish my.routing.key</c>. Set it to
-        /// <see langword="false"/> where a high-cardinality routing key would make span names
-        /// unusable as an aggregation key.
+        /// When <see langword="true"/> (the default), the destination is appended to publish,
+        /// delivery and fetch span names, for example <c>publish my-exchange:my.routing.key</c>.
+        /// Set it to <see langword="false"/> where a high-cardinality routing key or a server-named
+        /// queue would make span names unusable as an aggregation key.
+        /// <para>
+        /// The name predates the behaviour: before 7.3.0 only the routing key was appended, which
+        /// left the exchange out of span names entirely. The appended value is now
+        /// <c>messaging.destination.name</c>, of which the routing key is one component.
+        /// </para>
         /// </summary>
         public bool UseRoutingKeyAsOperationName { get; set; } = true;
 
