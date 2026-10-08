@@ -31,9 +31,6 @@
 
 #nullable enable
 
-using System;
-using System.Buffers;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -102,7 +99,11 @@ namespace Test.Unit
         [Fact]
         public async Task TestServerSentBasicCancelIsAnsweredWhenServerAcceptsCancelOkAsync()
         {
-            using var session = new TestSession(serverAcceptsConsumerCancelOk: true);
+            using var session = new TestSession(new TestSessionOptions
+            {
+                ChannelNumber = 1,
+                ServerAcceptsConsumerCancelOk = true
+            });
             var channel = CreateChannel(session);
 
             try
@@ -128,7 +129,11 @@ namespace Test.Unit
         [Fact]
         public async Task TestServerSentBasicCancelIsNotAnsweredWhenServerDoesNotAcceptCancelOkAsync()
         {
-            using var session = new TestSession(serverAcceptsConsumerCancelOk: false);
+            using var session = new TestSession(new TestSessionOptions
+            {
+                ChannelNumber = 1,
+                ServerAcceptsConsumerCancelOk = false
+            });
             var channel = CreateChannel(session);
 
             try
@@ -152,7 +157,11 @@ namespace Test.Unit
         [Fact]
         public async Task TestServerSentBasicCancelIsNotAnsweredWhenChannelIsClosingAsync()
         {
-            using var session = new TestSession(serverAcceptsConsumerCancelOk: true);
+            using var session = new TestSession(new TestSessionOptions
+            {
+                ChannelNumber = 1,
+                ServerAcceptsConsumerCancelOk = true
+            });
             var channel = CreateChannel(session);
 
             try
@@ -203,135 +212,6 @@ namespace Test.Unit
             {
                 _cancelled.TrySetResult(Assert.Single(consumerTags));
                 return Task.CompletedTask;
-            }
-        }
-
-        private readonly struct TransmittedCommand
-        {
-            public TransmittedCommand(ProtocolCommandId commandId, byte[] method)
-            {
-                CommandId = commandId;
-                Method = method;
-            }
-
-            public ProtocolCommandId CommandId { get; }
-
-            public byte[] Method { get; }
-        }
-
-        private sealed class TestSession : ISession, IDisposable
-        {
-            private readonly ConcurrentQueue<TransmittedCommand> _transmittedCommands =
-                new ConcurrentQueue<TransmittedCommand>();
-            private AsyncEventHandler<ShutdownEventArgs>? _sessionShutdownAsync;
-
-            public TestSession(bool serverAcceptsConsumerCancelOk)
-            {
-                ServerAcceptsConsumerCancelOk = serverAcceptsConsumerCancelOk;
-            }
-
-            public ushort ChannelNumber => 1;
-
-            public ShutdownEventArgs? CloseReason { get; private set; }
-
-            public CommandReceivedAction? CommandReceived { get; set; }
-
-            public Connection Connection => throw new NotSupportedException();
-
-            public bool ServerAcceptsConsumerCancelOk { get; }
-
-            public bool IsOpen => CloseReason is null;
-
-            public IReadOnlyCollection<TransmittedCommand> TransmittedCommands => _transmittedCommands.ToArray();
-
-            public event AsyncEventHandler<ShutdownEventArgs> SessionShutdownAsync
-            {
-                add => _sessionShutdownAsync += value;
-                remove => _sessionShutdownAsync -= value;
-            }
-
-            public Task CloseAsync(ShutdownEventArgs reason, bool notify = true)
-            {
-                if (CloseReason is not null)
-                {
-                    return Task.CompletedTask;
-                }
-
-                CloseReason = reason;
-                return notify ? NotifySessionShutdownAsync(reason) : Task.CompletedTask;
-            }
-
-            public Task HandleFrameAsync(InboundFrame frame, CancellationToken cancellationToken)
-                => throw new NotSupportedException();
-
-            public Task NotifyAsync(CancellationToken cancellationToken)
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-                return CloseReason is null
-                    ? throw new InvalidOperationException("The session is still open.")
-                    : NotifySessionShutdownAsync(CloseReason);
-            }
-
-            public ValueTask TransmitAsync<T>(in T cmd, CancellationToken cancellationToken)
-                where T : struct, IOutgoingAmqpMethod
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-                byte[] method = new byte[cmd.GetRequiredBufferSize()];
-                int written = cmd.WriteTo(method);
-                Array.Resize(ref method, written);
-                _transmittedCommands.Enqueue(new TransmittedCommand(cmd.ProtocolCommandId, method));
-                return default;
-            }
-
-            public ValueTask TransmitAsync<TMethod, THeader>(in TMethod cmd, in THeader header,
-                ReadOnlyMemory<byte> body, IDisposable? bodyOwner, CancellationToken cancellationToken)
-                where TMethod : struct, IOutgoingAmqpMethod
-                where THeader : IAmqpHeader
-            {
-                bodyOwner?.Dispose();
-                throw new NotSupportedException();
-            }
-
-            public ValueTask TransmitAsync<TMethod, THeader>(in TMethod cmd, in THeader header,
-                ReadOnlySequence<byte> body, IDisposable? bodyOwner, CancellationToken cancellationToken)
-                where TMethod : struct, IOutgoingAmqpMethod
-                where THeader : IAmqpHeader
-            {
-                bodyOwner?.Dispose();
-                throw new NotSupportedException();
-            }
-
-            public Task DeliverBasicCancelAsync(string consumerTag)
-            {
-                var cancel = new BasicCancel(consumerTag, Nowait: true);
-                byte[] rented = ArrayPool<byte>.Shared.Rent(cancel.GetRequiredBufferSize());
-                int written = cancel.WriteTo(rented);
-
-                CommandReceivedAction commandReceived = CommandReceived ??
-                    throw new InvalidOperationException("No command receiver is registered.");
-                return commandReceived(new IncomingCommand
-                {
-                    CommandId = ProtocolCommandId.BasicCancel,
-                    Method = new RentedMemory(new ReadOnlyMemory<byte>(rented, 0, written), rented)
-                }, CancellationToken.None);
-            }
-
-            public void Dispose()
-            {
-            }
-
-            private async Task NotifySessionShutdownAsync(ShutdownEventArgs reason)
-            {
-                AsyncEventHandler<ShutdownEventArgs>? handlers = _sessionShutdownAsync;
-                if (handlers is null)
-                {
-                    return;
-                }
-
-                foreach (AsyncEventHandler<ShutdownEventArgs> handler in handlers.GetInvocationList())
-                {
-                    await handler(this, reason).ConfigureAwait(false);
-                }
             }
         }
     }

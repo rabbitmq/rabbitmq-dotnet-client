@@ -32,8 +32,6 @@
 #nullable enable
 
 using System;
-using System.Buffers;
-using System.Collections.Concurrent;
 using System.Threading;
 using System.Threading.Tasks;
 using RabbitMQ.Client;
@@ -207,130 +205,6 @@ namespace Test.Unit
             public Task AcquireRpcSemaphoreAsync() => _rpcSemaphore.WaitAsync();
 
             public void ReleaseRpcSemaphore() => _rpcSemaphore.Release();
-        }
-
-        private sealed class TestSession : ISession, IDisposable
-        {
-            private readonly bool _respondToConnectionOpen;
-            private readonly ConcurrentQueue<ProtocolCommandId> _transmittedCommands =
-                new ConcurrentQueue<ProtocolCommandId>();
-            private readonly SemaphoreSlim _transmittedCommandSignal = new SemaphoreSlim(0);
-            private AsyncEventHandler<ShutdownEventArgs>? _sessionShutdownAsync;
-
-            public TestSession(bool respondToConnectionOpen = false)
-            {
-                _respondToConnectionOpen = respondToConnectionOpen;
-            }
-
-            public ushort ChannelNumber => 0;
-
-            public ShutdownEventArgs? CloseReason { get; private set; }
-
-            public CommandReceivedAction? CommandReceived { get; set; }
-
-            public Connection Connection => throw new NotSupportedException();
-
-            public bool ServerAcceptsConsumerCancelOk => false;
-
-            public bool IsOpen => CloseReason is null;
-
-            public int TransmittedCommandCount => _transmittedCommands.Count;
-
-            public event AsyncEventHandler<ShutdownEventArgs> SessionShutdownAsync
-            {
-                add => _sessionShutdownAsync += value;
-                remove => _sessionShutdownAsync -= value;
-            }
-
-            public Task CloseAsync(ShutdownEventArgs reason, bool notify = true)
-            {
-                if (CloseReason is not null)
-                {
-                    return Task.CompletedTask;
-                }
-
-                CloseReason = reason;
-                return notify ? NotifySessionShutdownAsync(reason) : Task.CompletedTask;
-            }
-
-            public Task HandleFrameAsync(InboundFrame frame, CancellationToken cancellationToken)
-                => throw new NotSupportedException();
-
-            public Task NotifyAsync(CancellationToken cancellationToken)
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-                return CloseReason is null
-                    ? throw new InvalidOperationException("The session is still open.")
-                    : NotifySessionShutdownAsync(CloseReason);
-            }
-
-            public ValueTask TransmitAsync<T>(in T cmd, CancellationToken cancellationToken)
-                where T : struct, IOutgoingAmqpMethod
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-                _transmittedCommands.Enqueue(cmd.ProtocolCommandId);
-                _transmittedCommandSignal.Release();
-
-                if (_respondToConnectionOpen &&
-                    cmd.ProtocolCommandId == ProtocolCommandId.ConnectionOpen)
-                {
-                    return new ValueTask(DeliverCommandAsync(ProtocolCommandId.ConnectionOpenOk));
-                }
-
-                return default;
-            }
-
-            public ValueTask TransmitAsync<TMethod, THeader>(in TMethod cmd, in THeader header,
-                ReadOnlyMemory<byte> body, IDisposable? bodyOwner, CancellationToken cancellationToken)
-                where TMethod : struct, IOutgoingAmqpMethod
-                where THeader : IAmqpHeader
-            {
-                bodyOwner?.Dispose();
-                throw new NotSupportedException();
-            }
-
-            public ValueTask TransmitAsync<TMethod, THeader>(in TMethod cmd, in THeader header,
-                ReadOnlySequence<byte> body, IDisposable? bodyOwner, CancellationToken cancellationToken)
-                where TMethod : struct, IOutgoingAmqpMethod
-                where THeader : IAmqpHeader
-            {
-                bodyOwner?.Dispose();
-                throw new NotSupportedException();
-            }
-
-            public async Task<ProtocolCommandId> ReadTransmittedCommandAsync()
-            {
-                Assert.True(await _transmittedCommandSignal.WaitAsync(TimingFixture.TestTimeout));
-                Assert.True(_transmittedCommands.TryDequeue(out ProtocolCommandId commandId));
-                return commandId;
-            }
-
-            public Task DeliverCommandAsync(ProtocolCommandId commandId)
-            {
-                CommandReceivedAction commandReceived = CommandReceived ??
-                    throw new InvalidOperationException("No command receiver is registered.");
-                return commandReceived(new IncomingCommand { CommandId = commandId },
-                    CancellationToken.None);
-            }
-
-            public void Dispose()
-            {
-                _transmittedCommandSignal.Dispose();
-            }
-
-            private async Task NotifySessionShutdownAsync(ShutdownEventArgs reason)
-            {
-                AsyncEventHandler<ShutdownEventArgs>? handlers = _sessionShutdownAsync;
-                if (handlers is null)
-                {
-                    return;
-                }
-
-                foreach (AsyncEventHandler<ShutdownEventArgs> handler in handlers.GetInvocationList())
-                {
-                    await handler(this, reason).ConfigureAwait(false);
-                }
-            }
         }
     }
 }
