@@ -163,7 +163,14 @@ namespace Test.SequentialIntegration
 
             string consumerTag = await ch.BasicConsumeAsync(queueName, autoAck: true, consumer: consumer);
             await ch.BasicPublishAsync(exchangeName, RoutingKey, true, Encoding.UTF8.GetBytes("hi"));
-            Assert.True(await receivedTcs.Task.WaitAsync(WaitSpan));
+            /*
+             * Two statements, not Assert.True(await ....WaitAsync(WaitSpan)). On net472 there is no
+             * BCL Task<T>.WaitAsync, so the call binds to the client's own non-generic
+             * TaskExtensions.WaitAsync polyfill, the bool is lost, and Assert.True gets a void -
+             * CS1503, on the one target framework only build-win32 compiles.
+             */
+            await receivedTcs.Task.WaitAsync(WaitSpan);
+            Assert.True(await receivedTcs.Task);
             await ch.BasicCancelAsync(consumerTag);
 
             Activity deliver = deliverRecorder.VerifyActivityRecordedOnce();
