@@ -53,6 +53,12 @@ namespace Test.Unit
         [InlineData("", "", null, "amq.default")]
         // Derived from the rule "when only one is available, only that value SHOULD be used".
         [InlineData("", "warning", null, "warning")]
+        /*
+         * The queue is a component of the consumer form only, so the role decides the shape and not
+         * merely the fallback. No call site passes a queue as a producer; this pins that doing so
+         * could not produce the three-part form.
+         */
+        [InlineData("direct_logs", "warning", "my_queue", "direct_logs:warning")]
         public void ProducerDestinationFollowsTheConvention_GH1980(string exchange, string routingKey,
             string queue, string expected)
         {
@@ -69,6 +75,13 @@ namespace Test.Unit
         // "When {routing key} and {queue} are equal, only one of them SHOULD be used."
         [InlineData("direct_logs", "warning", "warning", "direct_logs:warning")]
         [InlineData("", "my_queue", "my_queue", "my_queue")]
+        /*
+         * The deliver shape: a delivery frame carries an exchange and a routing key but never the
+         * queue, so no queue is passed. Without this row the pre-fix logic - the bare exchange when
+         * one is set - passes the whole theory, because every other consumer row either has a queue
+         * or has no exchange.
+         */
+        [InlineData("direct_logs", "warning", null, "direct_logs:warning")]
         // Nothing to name it with: omit, rather than borrow the producer's fallback.
         [InlineData("", "", "", "")]
         [InlineData("", "", null, "")]
