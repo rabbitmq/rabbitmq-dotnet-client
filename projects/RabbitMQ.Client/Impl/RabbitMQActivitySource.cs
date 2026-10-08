@@ -36,9 +36,12 @@ namespace RabbitMQ.Client
         // Required "if and only if the messaging operation has failed".
         internal const string ErrorType = "error.type";
 
+        // Specific to this client: the convention has no attribute for an empty basic.get, and
+        // encoding the outcome in messaging.operation.name instead is not valid.
+        internal const string RabbitMQMessageReceived = "messaging.rabbitmq.message.received";
+
         // These constants are specific to this client - the OpenTelemetry messaging
         // conventions do not (yet) cover connection establishment.
-        internal const string RabbitMQMessageReceived = "messaging.rabbitmq.message.received";
         internal const string RabbitMQConnectionIsReconnection = "messaging.rabbitmq.connection.is_reconnection";
         internal const string RabbitMQConnectionAutomaticRecovery = "messaging.rabbitmq.connection.automatic_recovery";
 
@@ -414,19 +417,6 @@ namespace RabbitMQ.Client
         }
 
         /*
-         * messaging.destination.name per the RabbitMQ convention, which differs by side:
-         * producer is {exchange}:{routing key}, falling back to whichever is present and to
-         * amq.default only when the default exchange is used AND no routing key is given;
-         * consumer is {exchange}:{routing key}:{queue}, omitting empty parts and collapsing
-         * routing key and queue when they are equal. There is no amq.default on the consumer side.
-         *
-         * `queue` is null wherever the queue is genuinely unknown: a delivery frame carries a
-         * consumer tag, an exchange and a routing key, never the queue it came from, so the
-         * `deliver` span emits the two-part form by necessity rather than by choice.
-         *
-         * https://opentelemetry.io/docs/specs/semconv/messaging/rabbitmq/
-         */
-        /*
          * {messaging.operation.name} {destination}. The destination is the destination NAME, not the
          * routing key - the routing key is only one component of it, so naming from it alone dropped
          * the exchange and made publishes to different exchanges under one key indistinguishable.
@@ -459,11 +449,13 @@ namespace RabbitMQ.Client
          * producer, falling back to whichever is present and to amq.default only when the default
          * exchange is used AND no routing key is given; {exchange}:{routing key}:{queue} for a
          * consumer, omitting empty parts, collapsing routing key and queue when equal, and with no
-         * amq.default fallback - a consumer with nothing to name returns empty and the caller omits
-         * the attribute.
+         * amq.default fallback. A consumer with nothing at all to name returns empty, which the
+         * caller omits; that case is unreachable, since a message with neither exchange nor routing
+         * key could not have been routed.
          *
          * Branches rather than a list so the single-part cases hand back the caller's own string
-         * and allocate nothing; this runs per span on the publish path.
+         * and allocate nothing; the composed cases allocate, which is intrinsic to composing them.
+         * This runs once per span.
          *
          * https://opentelemetry.io/docs/specs/semconv/messaging/rabbitmq/
          */
@@ -472,8 +464,14 @@ namespace RabbitMQ.Client
             bool haveExchange = false == string.IsNullOrEmpty(exchange);
             bool haveRoutingKey = false == string.IsNullOrEmpty(routingKey);
 
-            // Equal routing key and queue are one component, per the convention.
-            bool haveQueue = false == string.IsNullOrEmpty(queue)
+            /*
+             * The queue is a component of the consumer form only, so the role decides the shape
+             * rather than merely the fallback: a producer passing a queue must not get the
+             * three-part form back. Equal routing key and queue are one component, per the
+             * convention.
+             */
+            bool haveQueue = role == MessagingRole.Consumer
+                             && false == string.IsNullOrEmpty(queue)
                              && false == string.Equals(routingKey, queue, StringComparison.Ordinal);
 
             if (haveExchange)
@@ -509,9 +507,15 @@ namespace RabbitMQ.Client
                 .SetTag(MessagingOperationName, operationName)
                 .SetTag(MessagingBodySize, bodySize);
 
-            // Both are Conditionally Required and the condition is non-emptiness, so omit rather
-            // than emit an empty string: destination.routing_key is "If not empty", and the
-            // convention has a consumer with nothing to name its destination omit it.
+            /*
+             * destination.routing_key is Conditionally Required "If not empty", so omit it rather
+             * than emit an empty string.
+             *
+             * destination.name is Required, and the guard is unreachable in practice: a producer
+             * always has the amq.default fallback, basic.get always has a queue, and a delivery
+             * with neither exchange nor routing key could not have been routed. It stands because
+             * emitting an empty string for a Required attribute would be worse than omitting it.
+             */
             if (false == string.IsNullOrEmpty(destination))
             {
                 activity.SetTag(MessagingDestination, destination);

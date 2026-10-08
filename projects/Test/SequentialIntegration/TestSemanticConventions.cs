@@ -34,6 +34,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 using RabbitMQ.Client;
+using RabbitMQ.Client.Events;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -46,9 +47,10 @@ namespace Test.SequentialIntegration
      * publish to the default exchange with a routing key equal to the queue name, which collapses
      * the destination to a single component - so the exchange, the queue and their ordering never
      * reach an assertion, and dropping the exchange from the destination entirely would leave both
-     * suites green. These use a named exchange with a routing key distinct from the queue name so
-     * each component is distinguishable, and they cover the empty basic.get, which nothing
-     * exercised at all.
+     * suites green - which it did for the deliver span until DeliveryComposesTheTwoPartDestination
+     * existed. These use a named exchange with a routing key distinct from the queue name so each
+     * component is distinguishable, and they cover the empty basic.get, which nothing exercised at
+     * all.
      *
      * Configuration goes through ConnectionFactory.TracingOptions rather than the deprecated
      * process-wide statics (#1981), so these tests need no CS0618 suppression and are unaffected by
@@ -120,6 +122,65 @@ namespace Test.SequentialIntegration
             // anything keyed on the old name was already reading no value.
             fetch.HasTag(RabbitMQActivitySource.RabbitMQDeliveryTag, result.DeliveryTag);
             fetch.HasNoTag("messaging.rabbitmq.delivery_tag");
+
+            await ch.QueueDeleteAsync(queueName);
+            await ch.ExchangeDeleteAsync(exchangeName);
+        }
+
+        [Fact]
+        public async Task DeliveryComposesTheTwoPartDestination_GH1980()
+        {
+            string exchangeName = GenerateExchangeName();
+            string queueName = GenerateQueueName();
+
+            /*
+             * The deliver span is the one shape no other test can see: a delivery frame carries an
+             * exchange and a routing key but never the queue, so the two logics - the composed
+             * destination and the pre-fix bare exchange - coincide for every test that publishes
+             * through the default exchange, which is all of them. Reverting Deliver alone to the
+             * bare exchange left the whole tracing suite green until this existed.
+             */
+            using var deliverRecorder = new ActivityRecorder(RabbitMQActivitySource.SubscriberSourceName,
+                $"deliver {exchangeName}:{RoutingKey}")
+            { VerifyParent = false };
+
+            ConnectionFactory cf = CreateConnectionFactory();
+            cf.TracingOptions = new ConnectionTracingOptions { UseRoutingKeyAsOperationName = true };
+            await using IConnection conn = await cf.CreateConnectionAsync();
+            await using IChannel ch = await conn.CreateChannelAsync();
+
+            await ch.ExchangeDeclareAsync(exchangeName, ExchangeType.Direct, durable: false, autoDelete: false);
+            await ch.QueueDeclareAsync(queueName);
+            await ch.QueueBindAsync(queueName, exchangeName, RoutingKey);
+
+            var consumer = new AsyncEventingBasicConsumer(ch);
+            var receivedTcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+            consumer.ReceivedAsync += (_, _) =>
+            {
+                receivedTcs.TrySetResult(true);
+                return Task.CompletedTask;
+            };
+
+            string consumerTag = await ch.BasicConsumeAsync(queueName, autoAck: true, consumer: consumer);
+            await ch.BasicPublishAsync(exchangeName, RoutingKey, true, Encoding.UTF8.GetBytes("hi"));
+            Assert.True(await receivedTcs.Task.WaitAsync(WaitSpan));
+            await ch.BasicCancelAsync(consumerTag);
+
+            Activity deliver = deliverRecorder.VerifyActivityRecordedOnce();
+            Assert.Equal(ActivityKind.Consumer, deliver.Kind);
+            deliver.HasTag(RabbitMQActivitySource.MessagingDestination, $"{exchangeName}:{RoutingKey}");
+            deliver.HasTag(RabbitMQActivitySource.MessagingDestinationRoutingKey, RoutingKey);
+            deliver.HasTag(RabbitMQActivitySource.MessagingOperationName,
+                RabbitMQActivitySource.MessagingOperationNameBasicDeliver);
+
+            // The registry name, on the delivery path as well as on the fetch path.
+            deliver.HasTag(RabbitMQActivitySource.RabbitMQDeliveryTag, 1UL);
+            deliver.HasNoTag("messaging.rabbitmq.delivery_tag");
+
+            // No queue is available to a delivery, so the destination stops at two parts and the
+            // three-part form must not appear. Carrying the queue here is #2055.
+            Assert.DoesNotContain($":{queueName}",
+                (string)deliver.GetTagItem(RabbitMQActivitySource.MessagingDestination));
 
             await ch.QueueDeleteAsync(queueName);
             await ch.ExchangeDeleteAsync(exchangeName);
