@@ -40,42 +40,58 @@ namespace Test.Unit
     /// <c>messaging.destination.name</c> per the RabbitMQ semantic convention. The producer form is
     /// <c>{exchange}:{routing key}</c> and the consumer form adds the queue; the client previously
     /// emitted the bare exchange, or the literal <c>amq.default</c> whenever the exchange was empty
-    /// regardless of routing key. The expected values below are written out rather than computed, so
-    /// an assertion cannot restate the implementation, and the first three are the convention
-    /// document's own examples.
+    /// regardless of routing key. Expected values are written out per row rather than computed, so
+    /// an assertion cannot restate the implementation.
     /// </summary>
     public class TestMessagingDestinationName
     {
         [Theory]
-        // Producer: queue is null because a publish has no queue.
+        // Producer. The three values the convention document gives as its own Send-span examples
+        // are direct_logs:warning, logs, and amq.default.
         [InlineData("direct_logs", "warning", null, "direct_logs:warning")]
         [InlineData("logs", "", null, "logs")]
-        [InlineData("", "warning", null, "warning")]
         [InlineData("", "", null, "amq.default")]
-        // Consumer: queue is known, so three parts.
-        [InlineData("direct_logs", "warning", "my_queue", "direct_logs:warning:my_queue")]
-        [InlineData("direct_logs", "warning", "warning", "direct_logs:warning")]
-        [InlineData("", "", "my_queue", "my_queue")]
-        [InlineData("logs", "", "my_queue", "logs:my_queue")]
-        // Consumer with nothing to name it: omit rather than invent amq.default.
-        [InlineData("", "", "", "")]
-        public void DestinationNameFollowsTheRabbitMQConvention_GH1980(string exchange, string routingKey,
+        // Derived from the rule "when only one is available, only that value SHOULD be used".
+        [InlineData("", "warning", null, "warning")]
+        public void ProducerDestinationFollowsTheConvention_GH1980(string exchange, string routingKey,
             string queue, string expected)
         {
-            Assert.Equal(expected, RabbitMQActivitySource.BuildDestinationName(exchange, routingKey, queue));
+            Assert.Equal(expected, RabbitMQActivitySource.BuildDestinationName(
+                RabbitMQActivitySource.MessagingRole.Producer, exchange, routingKey, queue));
+        }
+
+        [Theory]
+        // Consumer: three parts, empty ones omitted, and no amq.default fallback at all.
+        [InlineData("direct_logs", "warning", "my_queue", "direct_logs:warning:my_queue")]
+        [InlineData("logs", "", "my_queue", "logs:my_queue")]
+        [InlineData("", "", "my_queue", "my_queue")]
+        [InlineData("", "warning", "my_queue", "warning:my_queue")]
+        // "When {routing key} and {queue} are equal, only one of them SHOULD be used."
+        [InlineData("direct_logs", "warning", "warning", "direct_logs:warning")]
+        [InlineData("", "my_queue", "my_queue", "my_queue")]
+        // Nothing to name it with: omit, rather than borrow the producer's fallback.
+        [InlineData("", "", "", "")]
+        [InlineData("", "", null, "")]
+        public void ConsumerDestinationFollowsTheConvention_GH1980(string exchange, string routingKey,
+            string queue, string expected)
+        {
+            Assert.Equal(expected, RabbitMQActivitySource.BuildDestinationName(
+                RabbitMQActivitySource.MessagingRole.Consumer, exchange, routingKey, queue));
         }
 
         [Fact]
         public void AmqDefaultIsProducerOnly_GH1980()
         {
             /*
-             * The convention gives amq.default only for the default exchange with no routing key, and
-             * only on the producer side - the consumer form has no such fallback and omits instead.
-             * The old code returned it whenever the exchange was empty, which made a fetch from a
-             * known queue claim it had touched the default exchange.
+             * The one case where the two roles disagree, and the reason the role is an explicit
+             * parameter rather than inferred from whether a queue was supplied: a delivery passes no
+             * queue because a delivery frame carries none, which is not the same as being a
+             * producer. Inferring it put amq.default on consumer spans.
              */
-            Assert.Equal("amq.default", RabbitMQActivitySource.BuildDestinationName("", "", null));
-            Assert.Equal("", RabbitMQActivitySource.BuildDestinationName("", "", ""));
+            Assert.Equal("amq.default", RabbitMQActivitySource.BuildDestinationName(
+                RabbitMQActivitySource.MessagingRole.Producer, "", "", null));
+            Assert.Equal("", RabbitMQActivitySource.BuildDestinationName(
+                RabbitMQActivitySource.MessagingRole.Consumer, "", "", null));
         }
     }
 }
