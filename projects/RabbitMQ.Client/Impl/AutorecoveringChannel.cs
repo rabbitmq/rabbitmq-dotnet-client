@@ -58,6 +58,30 @@ namespace RabbitMQ.Client.Impl
 
         private bool _usesTransactions;
 
+        /*
+                 * This channel's ContinuationTimeout and DefaultConsumer. Both properties forward to
+                 * whichever inner channel is current, so without remembering them here they die with that
+                 * channel: the timeout silently reverts to whatever the connection config now says, and the
+                 * default consumer reverts to the internal FallbackConsumer, which logs an unmatched
+                 * delivery and drops it. Issue #2031.
+                 *
+                 * The timeout is captured in the constructor rather than only on assignment, and replayed
+                 * unconditionally. Replaying only an explicit assignment looks more conservative and is
+                 * not: CreateChannelOptions.CreateOrUpdate mutates the caller's own options instance in
+                 * place on every CreateChannelAsync, so a channel that never touched the property would
+                 * recover with whatever value the last connection to reuse that instance left behind -
+                 * measured, a channel on one connection adopting a second connection's timeout. Capturing
+                 * at construction pins the value this channel was actually created with.
+                 *
+                 * Ticks behind Volatile rather than a TimeSpan?, because the setter and recovery touch it
+                 * from different threads with no common lock. Nullable<TimeSpan> is 16 bytes and reads as
+                 * two loads, so a recovery racing the first assignment could see HasValue true with Value
+                 * default - and StartTimeout does CancelAfter(timeout) unvalidated, so TimeSpan.Zero would
+                 * complete every RPC on the recovered channel as cancelled.
+                 */
+        private long _continuationTimeoutTicks;
+        private IAsyncBasicConsumer? _defaultConsumer;
+
         internal IConsumerDispatcher ConsumerDispatcher => InnerChannel.ConsumerDispatcher;
 
         internal RecoveryAwareChannel InnerChannel
@@ -72,7 +96,11 @@ namespace RabbitMQ.Client.Impl
         public TimeSpan ContinuationTimeout
         {
             get => InnerChannel.ContinuationTimeout;
-            set => InnerChannel.ContinuationTimeout = value;
+            set
+            {
+                Volatile.Write(ref _continuationTimeoutTicks, value.Ticks);
+                InnerChannel.ContinuationTimeout = value;
+            }
         }
 
         public AutorecoveringChannel(AutorecoveringConnection conn,
@@ -82,6 +110,7 @@ namespace RabbitMQ.Client.Impl
             _connection = conn;
             _innerChannel = innerChannel;
             _createChannelOptions = createChannelOptions;
+            Volatile.Write(ref _continuationTimeoutTicks, innerChannel.ContinuationTimeout.Ticks);
         }
 
         public event AsyncEventHandler<BasicAckEventArgs> BasicAcksAsync
@@ -142,7 +171,18 @@ namespace RabbitMQ.Client.Impl
         public IAsyncBasicConsumer? DefaultConsumer
         {
             get => InnerChannel.DefaultConsumer;
-            set => InnerChannel.DefaultConsumer = value;
+            set
+            {
+                /*
+                 * Remembered on the wrapper rather than carried in Channel.TakeOver. TakeOver reads
+                 * the old channel's dispatcher before the new channel is installed, and the window
+                 * between the two spans recovery's own basic.qos and tx.select RPCs - up to a
+                 * ContinuationTimeout of wall clock - so an assignment landing in it would write to
+                 * the channel about to be discarded and be lost for good, with no copy anywhere.
+                 */
+                _defaultConsumer = value;
+                InnerChannel.DefaultConsumer = value;
+            }
         }
 
         public bool IsClosed => !IsOpen;
@@ -199,6 +239,22 @@ namespace RabbitMQ.Client.Impl
                     await newChannel.TxSelectAsync(cancellationToken)
                         .ConfigureAwait(false);
                 }
+
+                /*
+                 * Replayed here rather than before the settings above, deliberately. Each RPC builds
+                 * its continuation from ContinuationTimeout at issue time, so moving this up lets a
+                 * deliberately short application value break recovery itself - measured: with a
+                 * one-tick timeout and a prefetch to replay, recovery times out and the channel
+                 * never reopens. The consequence is a real split: from here on the application's
+                 * value governs, including consumer recovery below, while recovery's own prefetch
+                 * and transaction replay above ran under the connection's. channel.open and
+                 * confirm.select run inside CreateNonRecoveringChannelAsync, earlier still.
+                 *
+                 * DefaultConsumer is replayed in the same place, after TakeOver has built the new
+                 * dispatcher and before any consumer can be recovered onto it. Issue #2031.
+                 */
+                newChannel.ContinuationTimeout = TimeSpan.FromTicks(Volatile.Read(ref _continuationTimeoutTicks));
+                newChannel.DefaultConsumer = _defaultConsumer;
 
                 /*
                  * https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1140

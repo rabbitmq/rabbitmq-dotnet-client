@@ -457,6 +457,13 @@ there. Current docs:
   that resulted when the channel `RecoveryAsync` event did (issue #2038), when
   handlers fire now and what ordering is guaranteed. Read it before moving,
   wrapping, or adding a callback inside automatic recovery.
+- `docs/internal/channel-state-across-recovery.md` - the full inventory of what
+  recovery transplants onto the new inner channel and what it silently discards
+  (issue #2031), why `CurrentQueue` is still dropped on purpose, why
+  `ContinuationTimeout` is captured at construction rather than on assignment -
+  `CreateChannelOptions` mutates the caller's instance in place - and why the
+  replay's position relative to recovery's own RPCs is load-bearing. Read it
+  before adding anything to `TakeOver`.
 
 ## Development Guidelines
 
