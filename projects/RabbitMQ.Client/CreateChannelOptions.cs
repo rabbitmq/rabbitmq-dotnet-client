@@ -70,10 +70,29 @@ namespace RabbitMQ.Client
         /// If the publisher confirmation tracking is enabled, this represents the rate limiter used to
         /// throttle additional attempts to publish once the threshold is reached.
         ///
-        /// Defaults to a <see cref="ThrottlingRateLimiter"/> with a limit of 128 and a throttling percentage of 50% with a delay during throttling.
+        /// This field initializes to a <see cref="ThrottlingRateLimiter"/> with a limit of 128 and a throttling
+        /// percentage of 50%, but see the remarks: that is not what the constructor gives you.
         /// </summary>
         /// <remarks>
         /// Setting the rate limiter to <c>null</c> disables the rate limiting entirely.
+        /// <para>
+        /// <b>That default applies only to options this library builds for you.</b> The
+        /// <see cref="CreateChannelOptions(bool, bool, RateLimiter, ushort?)"/> constructor defaults this
+        /// parameter to <c>null</c> and assigns it unconditionally, so options you construct yourself have
+        /// no rate limiter - and therefore no limit on outstanding publisher confirmations - unless you pass
+        /// one. This is the same divergence between field initializer and constructor default described on
+        /// <see cref="ConsumerDispatchConcurrency"/>, but with a safety mechanism rather than a number on
+        /// the other side of it.
+        /// </para>
+        /// <para>
+        /// <b>What a limiter of 128 does, if you pass one.</b> <see cref="ThrottlingRateLimiter"/> uses the
+        /// limit as both its permit and its queue limit, and begins throttling at the given percentage of
+        /// it - so at 128 and 50% it delays every publish once more than 64 confirmations are outstanding,
+        /// and beyond 256 in flight it refuses a lease, which surfaces as an
+        /// <see cref="System.InvalidOperationException"/> from the publish. Size it against how many
+        /// confirmations your application really keeps outstanding; it is a backpressure mechanism, not a
+        /// safety net you can leave at any value. See rabbitmq/rabbitmq-dotnet-client#2054.
+        /// </para>
         /// <para>
         /// <b>Its lifetime belongs to you.</b> Disposing an <see cref="IChannel"/> does not dispose
         /// this limiter: it is shared by every channel created from these options, and a recovering
@@ -89,20 +108,46 @@ namespace RabbitMQ.Client
         /// Set to a value greater than one to enable concurrent processing. For a concurrency greater than one <see cref="IAsyncBasicConsumer"/>
         /// will be offloaded to the worker thread pool so it is important to choose the value for the concurrency wisely to avoid thread pool overloading.
         /// <see cref="IAsyncBasicConsumer"/> can handle concurrency much more efficiently due to the non-blocking nature of the consumer.
-        ///
-        /// The field's own default is <c>null</c>, which uses the value from
-        /// <see cref="IConnectionFactory.ConsumerDispatchConcurrency"/>. Note that the public constructor
-        /// defaults its parameter to 1 rather than <c>null</c> and assigns it unconditionally, so options
-        /// built through the constructor do NOT inherit the connection's value unless you pass
-        /// <c>null</c> explicitly. Only <see cref="IConnection.CreateChannelAsync"/> with no options
-        /// inherits it.
-        ///
-        /// For concurrency greater than one this removes the guarantee that consumers handle messages in the order they receive them.
-        /// In addition to that consumers need to be thread/concurrency safe.
-        ///
+        /// <para>
+        /// For concurrency greater than one this removes the guarantee that consumers handle messages in
+        /// the order they receive them. In addition to that consumers need to be thread/concurrency safe.
+        /// </para>
+        /// </summary>
+        /// <remarks>
+        /// <c>null</c> means "use <see cref="IConnectionFactory.ConsumerDispatchConcurrency"/>", and which
+        /// default you get depends on how the options were built:
+        /// <list type="bullet">
+        /// <item><description>
+        /// <see cref="IConnection.CreateChannelAsync"/> with no options inherits the factory value.
+        /// </description></item>
+        /// <item><description>
+        /// The <see cref="CreateChannelOptions(bool, bool, RateLimiter, ushort?)"/> constructor defaults
+        /// this parameter to <see cref="Constants.DefaultConsumerDispatchConcurrency"/> (1) and assigns it
+        /// unconditionally, so explicitly constructed options never inherit: whatever you pass is what the
+        /// channel gets, and passing <c>consumerDispatchConcurrency: null</c> is what opts it into the
+        /// factory value.
+        /// </description></item>
+        /// </list>
+        /// <para>
+        /// The constructor default is deliberately not <c>null</c>. Changing it would compile everywhere and
+        /// change behaviour silently rather than break a build: C# bakes an optional parameter's default into
+        /// the caller's assembly, so applications that upgraded without rebuilding would keep the old
+        /// behaviour while rebuilt ones switched, and code reading this member back would see
+        /// <see cref="System.Nullable{T}.Value"/> throw at run time where it previously returned 1. The
+        /// default is also part of this library's recorded public API surface, so changing it is an API
+        /// change rather than an implementation detail. See rabbitmq/rabbitmq-dotnet-client#2027.
+        /// </para>
+        /// <para>
+        /// <see cref="OutstandingPublisherConfirmationsRateLimiter"/> diverges the same way, and more
+        /// sharply: its field initializer is a limiter with a limit of 128, while the constructor parameter
+        /// defaults to <c>null</c> and is likewise assigned unconditionally - and <c>null</c> there disables
+        /// rate limiting rather than selecting a different value.
+        /// </para>
+        /// <para>
         /// A value of 0 is treated as 1. Zero would leave the channel's consumer dispatcher with no
         /// worker at all, so consumers would register successfully and never receive anything.
-        /// </summary>
+        /// </para>
+        /// </remarks>
         public readonly ushort? ConsumerDispatchConcurrency = null;
 
         public CreateChannelOptions(bool publisherConfirmationsEnabled,
