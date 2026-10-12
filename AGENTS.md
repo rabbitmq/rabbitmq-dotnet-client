@@ -167,6 +167,13 @@ Paths are under `projects/RabbitMQ.Client/` unless noted.
   are package references only on `netstandard2.0`.
 - New source files carry the dual-license header; copy it from a neighboring file.
   Nothing enforces it, so some older files and most of `projects/Benchmarks/` lack it.
+- `projects/RabbitMQ.Client.OAuth2-NuGet/` lists the OAuth2 sources one `Compile Include`
+  at a time and is not in the solution, so adding a file to
+  `projects/RabbitMQ.Client.OAuth2/` leaves it out of the shipped package with nothing
+  failing.
+- Declare test queues `exclusive` or `durable`. RabbitMQ 4.3+ rejects a queue that is
+  neither and fails the whole connection with `INTERNAL_ERROR`, which reads like a
+  client bug.
 
 ## Tests
 
@@ -176,7 +183,8 @@ management plugin on `localhost:15672`; only `SequentialIntegration` shells out 
 
 - `projects/Test/Unit/` - no broker needed.
 - `projects/Test/Integration/` - against a live broker; `ToxiproxyManager` injects
-  network faults, skipped unless `RABBITMQ_TOXIPROXY_TESTS` is set.
+  network faults, skipped unless `RABBITMQ_TOXIPROXY_TESTS` is `true`. The gate parses
+  the value, so `1` or `yes` skips silently.
 - `projects/Test/SequentialIntegration/` - tests that cannot run in parallel, either
   because they take over the broker (heartbeats, blocking) or because they mutate
   process-global state (the tracing tests). It sets `CollectionPerAssembly`;
@@ -188,3 +196,11 @@ management plugin on `localhost:15672`; only `SequentialIntegration` shells out 
 Test projects add `net472` only on Windows, so it is the `#else` arm of an `#if NET`
 block that is compiled only in Windows CI. `NET` is defined for `net8.0` and never for
 `net472`, so a whole test inside `#if NET` does not exist in the `net472` build.
+
+Two constructs compile everywhere except `net472`, where only `build-win32` finds them:
+
+- `TimeSpan * int` and `TimeSpan / int`, whose operators arrived after .NET Framework.
+  Write `TimeSpan.FromTicks(x.Ticks * 2)`. This one at least gives `CS0019`.
+- `Task<T>.WaitAsync(TimeSpan)`. There is no BCL generic `WaitAsync` on `net472`, so the
+  call binds to this repo's non-generic `TaskExtensions.WaitAsync`, the `T` is lost, and
+  the caller is handed a `void`.

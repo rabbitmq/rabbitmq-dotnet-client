@@ -45,7 +45,7 @@ It is possible to install and run a node using any [binary build](https://www.ra
 suitable for the platform. Its [CLI tools](https://www.rabbitmq.com/docs/cli) then must be added to `PATH` so that `rabbitmqctl` can be
 invoked directly without using an absolute file path. Note that this method does *not* work on Windows.
 
-On Windows, you must run unit tests as follows (replace `X.Y.Z` with your RabbitMQ version):
+On Windows, set the path explicitly as follows (replace `X.Y.Z` with your RabbitMQ version):
 
 ```powershell
 $env:RABBITMQ_RABBITMQCTL_PATH='C:\Program Files\RabbitMQ Server\rabbitmq_server-X.Y.Z\sbin\rabbitmqctl.bat'
