@@ -33,7 +33,7 @@ can exist to lose, and the broker ignores `noLocal`, so re-issuing `false` chang
 `AutorecoveringChannel._recordedConsumerTags` can look stale after a consumer-tag change; it is not,
 because `RecordedConsumer.RecoverAsync` re-sends the explicit tag and the broker returns the same one.
 
-## `CurrentQueue` is lost, and is deliberately not fixed
+## `CurrentQueue` is lost, and is not fixed here
 
 `IChannel.CurrentQueue` is a public getter, set by `queue.declare`, that enables the
 empty-queue-name convenience on `basic.consume` and friends. `TakeOver` does not carry it, so it is
@@ -79,9 +79,9 @@ this one is the only field in that set needing care.
 
 **The replay sits *after* recovery's own `basic.qos` and `tx.select`, not before.** Each RPC builds
 its continuation from `ContinuationTimeout` at issue time, so moving the replay earlier lets a
-deliberately short application value break recovery itself - measured: with a one-tick timeout and a
+short application value break recovery itself - measured: with a one-tick timeout and a
 prefetch to replay, recovery times out and the channel never reopens. The position is therefore
-load-bearing, and it leaves a real split: the application's value governs from that point on,
+what makes it work, and it leaves a real split: the application's value governs from that point on,
 including consumer recovery, while recovery's own prefetch and transaction replay ran under the
 connection's value, and `channel.open` / `confirm.select` ran earlier still inside
 `CreateNonRecoveringChannelAsync`. A user who *raised* the timeout for a slow broker still gets the
@@ -102,7 +102,7 @@ is a trap for whoever adds the next one.
 individually under the obvious wrong implementations, including the conditional-replay design above.
 
 `TestDefaultConsumerSurvivesRecovery_GH2031` is an **identity** assertion: it pins that the reference
-survives, not that the dispatcher consults it. Producing a genuinely unmatched consumer tag against a
+survives, not that the dispatcher consults it. Producing an unmatched consumer tag against a
 live broker is awkward, so the delivery path itself is uncovered. The failure mode the issue
 describes - an unmatched delivery reaching `FallbackConsumer` - is therefore reasoned, not tested.
 Note that mode is also less dramatic than it first looks: with `autoAck: true` the message is gone,
