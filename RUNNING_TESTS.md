@@ -31,9 +31,11 @@ This will build all projects. After this open the solution in Visual Studio.
 Tests can be run from Visual Studio using the XUnit Test Adapter.  Note that it
 may take some time for the adapter to discover tests in the assemblies.
 
-The test suite assumes there's a RabbitMQ node running locally with all
-defaults, incl. the management plugin, and the tests will need to be able to run commands against the
-[`rabbitmqctl`](https://www.rabbitmq.com/docs/man/rabbitmqctl.8) tool for that node.
+The test suite assumes there's a RabbitMQ node running locally with all defaults,
+incl. the management plugin, which the `Integration` tests reach over HTTP on
+`localhost:15672`. The `SequentialIntegration` tests additionally run commands with the
+[`rabbitmqctl`](https://www.rabbitmq.com/docs/man/rabbitmqctl.8) tool for that node, so
+they are the ones that need it on `PATH` or named below.
 Two options to accomplish this are covered below.
 
 
@@ -74,7 +76,7 @@ back to plain `rabbitmqctl` on `PATH`.
 Setting `RABBITMQ_RABBITMQCTL_PATH` explicitly is the reliable option:
 
 ```
-RABBITMQ_RABBITMQCTL_PATH=/path/to/rabbitmqctl dotnet test projects/Test/Unit/Unit.csproj
+RABBITMQ_RABBITMQCTL_PATH=/path/to/rabbitmqctl dotnet test projects/Test/SequentialIntegration/SequentialIntegration.csproj
 ```
 
 ### Option Three: Using a Docker Container

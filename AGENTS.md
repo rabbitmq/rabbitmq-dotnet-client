@@ -147,33 +147,44 @@ Paths are under `projects/RabbitMQ.Client/` unless noted.
 ## Easy to get wrong
 
 - Recovery builds a new inner channel and transplants selected state onto it. It
-  reconnects to the next endpoint, then recovers exchanges, queues, bindings, and
-  consumers, then raises recovery events.
+  reconnects to one endpoint of the resolver's list, which the default resolver
+  shuffles. Channels are always recovered; exchanges, queues, bindings and consumers
+  only when `TopologyRecoveryEnabled`. `RecoverySucceededAsync` fires last, but the
+  queue-name, consumer-tag and recovering-consumer events fire mid-recovery.
 - A delivered body (`ReadOnlyMemory<byte>`) is pooled and valid only inside the
   consumer callback.
 - A channel runs one RPC at a time.
-- Public API changes must be added to `PublicAPI/PublicAPI.Unshipped.*.txt` for both
-  target frameworks. Do not upgrade `PublicApiAnalyzers` past 3.3.4; the reason is in
-  `projects/Directory.Packages.props`.
+- `dotnet format RabbitMQDotNetClient.sln --verify-no-changes` is a CI gate on both
+  platforms. No build runs it, so a clean local build can still fail CI.
+- Public API changes to `RabbitMQ.Client` go in `PublicAPI/PublicAPI.Unshipped.*.txt`
+  for both target frameworks; the OAuth2 and OpenTelemetry packages keep one flat
+  `PublicAPI.Unshipped.txt` at project root. Do not upgrade `PublicApiAnalyzers` past
+  3.3.4; the reason is in `projects/Directory.Packages.props`.
 - EventSource counters exist only on `net8.0` (inside `#if NET`).
 - `System.Diagnostics.DiagnosticSource` is referenced on every target framework
   because the code calls `Activity.AddException`, added in .NET 9.
   `System.Threading.Channels`, `System.Memory`, and `Microsoft.Bcl.AsyncInterfaces`
   are package references only on `netstandard2.0`.
 - New source files carry the dual-license header; copy it from a neighboring file.
+  Nothing enforces it, so some older files and most of `projects/Benchmarks/` lack it.
 
 ## Tests
 
-`RUNNING_TESTS.md` covers setup. Integration tests need a local broker and
+`RUNNING_TESTS.md` covers setup. Integration tests need a local broker with the
+management plugin on `localhost:15672`; only `SequentialIntegration` shells out to
 `rabbitmqctl`.
 
 - `projects/Test/Unit/` - no broker needed.
 - `projects/Test/Integration/` - against a live broker; `ToxiproxyManager` injects
-  network faults.
-- `projects/Test/SequentialIntegration/` - tests that cannot run in parallel, such as
-  heartbeats, blocking, and OpenTelemetry.
+  network faults, skipped unless `RABBITMQ_TOXIPROXY_TESTS` is set.
+- `projects/Test/SequentialIntegration/` - tests that cannot run in parallel, either
+  because they take over the broker (heartbeats, blocking) or because they mutate
+  process-global state (the tracing tests). It sets `CollectionPerAssembly`;
+  `Integration` has that line commented out.
 - `projects/Test/OAuth2/` - OAuth2 against a token server.
-- `projects/Test/Common/` - `IntegrationFixture`, `TestConnectionRecoveryBase`, `RabbitMQCtl`.
+- `projects/Test/Common/` - `IntegrationFixture`, `TestConnectionRecoveryBase`,
+  `Util` (management HTTP, used to kill connections), `ActivityRecorder`, `RabbitMQCtl`.
 
-Test projects target `net472` only on Windows, so `#if NET` branches in tests are
-compiled for `net472` only in Windows CI.
+Test projects add `net472` only on Windows, so it is the `#else` arm of an `#if NET`
+block that is compiled only in Windows CI. `NET` is defined for `net8.0` and never for
+`net472`, so a whole test inside `#if NET` does not exist in the `net472` build.
