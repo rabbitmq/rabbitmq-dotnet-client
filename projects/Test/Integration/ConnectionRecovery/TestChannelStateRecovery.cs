@@ -39,19 +39,9 @@ using Xunit.Abstractions;
 
 namespace Test.Integration.ConnectionRecovery
 {
-    /// <summary>
-    /// rabbitmq/rabbitmq-dotnet-client#2031
-    ///
-    /// Recovery replaces the inner channel, and <c>Channel.TakeOver</c> carried only the event
-    /// wrappers. The two settable members of <see cref="IChannel"/> were therefore discarded on every
-    /// recovery: <see cref="IChannel.ContinuationTimeout"/> silently reverted to whatever the
-    /// connection config said, and <see cref="IChannel.DefaultConsumer"/> to the internal fallback,
-    /// which logs an unmatched delivery and drops it.
-    /// <para>
-    /// <see cref="IChannel.CurrentQueue"/> is a third piece of channel state recovery drops, and is
-    /// deliberately not fixed here - see docs/internal/channel-state-across-recovery.md.
-    /// </para>
-    /// </summary>
+    // Recovery replaces the inner channel, which used to discard both settable members of
+    // IChannel. What survives recovery and what still does not is in
+    // docs/internal/channel-state-across-recovery.md. Issue #2031.
     public class TestChannelStateRecovery : TestConnectionRecoveryBase
     {
         public TestChannelStateRecovery(ITestOutputHelper output) : base(output)
@@ -61,7 +51,6 @@ namespace Test.Integration.ConnectionRecovery
         [Fact]
         public async Task TestContinuationTimeoutSurvivesRecovery_GH2031()
         {
-            // Deliberately unlike the connection config's value, so reverting is visible.
             TimeSpan assigned = TimeSpan.FromSeconds(77);
             Assert.NotEqual(assigned, _channel.ContinuationTimeout);
 
@@ -77,12 +66,8 @@ namespace Test.Integration.ConnectionRecovery
         [Fact]
         public async Task TestDefaultConsumerSurvivesRecovery_GH2031()
         {
-            /*
-             * An identity assertion, not a delivery assertion: producing a genuinely unmatched
-             * consumer tag against a live broker is awkward, so this pins that the reference
-             * survives rather than that the dispatcher consults it. The stand-in has no
-             * ReceivedAsync handler, so it is only a reference, not an example to copy.
-             */
+            // Pins that the reference survives, not that the dispatcher consults it: an
+            // unmatched consumer tag is awkward to produce against a live broker.
             var mine = new AsyncEventingBasicConsumer(_channel);
             _channel.DefaultConsumer = mine;
             Assert.Same(mine, _channel.DefaultConsumer);
@@ -96,8 +81,7 @@ namespace Test.Integration.ConnectionRecovery
         [Fact]
         public async Task TestAnUnsetContinuationTimeoutIsUnchangedByRecovery_GH2031()
         {
-            // A channel that never touched the property still comes back with the value it was
-            // created with, which is the connection config's at the time it was created.
+            // An untouched channel comes back with the value it was created with.
             TimeSpan before = _channel.ContinuationTimeout;
 
             await CloseAndWaitForRecoveryAsync();
@@ -109,40 +93,35 @@ namespace Test.Integration.ConnectionRecovery
         [Fact]
         public async Task TestRecoveryDoesNotAdoptAnotherConnectionsTimeout_GH2031()
         {
-            /*
-             * This is the test that earns the design. CreateChannelOptions.CreateOrUpdate mutates
-             * the caller's own instance in place, on every CreateChannelAsync, so one options object
-             * shared across connections carries the last writer's connection config. Replaying only
-             * an explicit assignment - the obvious conservative choice - leaves an untouched channel
-             * reading that shared object at recovery time and silently adopting a different
-             * connection's timeout. Capturing in the constructor is what makes this pass.
-             */
+            // One CreateChannelOptions instance reused across two connections: CreateOrUpdate
+            // rewrites it in place, so the first channel must not pick up the second's timeout
+            // when it recovers. docs/internal/channel-state-across-recovery.md.
+            TimeSpan firstConnectionTimeout = TimeSpan.FromSeconds(31);
+            TimeSpan secondConnectionTimeout = TimeSpan.FromSeconds(7);
+
             var sharedOptions = new CreateChannelOptions(publisherConfirmationsEnabled: false,
                 publisherConfirmationTrackingEnabled: false);
 
             ConnectionFactory firstFactory = CreateConnectionFactory();
             firstFactory.AutomaticRecoveryEnabled = true;
-            firstFactory.ContinuationTimeout = TimeSpan.FromSeconds(31);
+            firstFactory.ContinuationTimeout = firstConnectionTimeout;
 
             await using IConnection firstConn = await firstFactory.CreateConnectionAsync();
             await using IChannel firstChannel = await firstConn.CreateChannelAsync(sharedOptions);
-            TimeSpan expected = firstChannel.ContinuationTimeout;
-            Assert.Equal(TimeSpan.FromSeconds(31), expected);
+            Assert.Equal(firstConnectionTimeout, firstChannel.ContinuationTimeout);
 
-            // A second connection reuses the same options instance, rewriting it in place.
             ConnectionFactory secondFactory = CreateConnectionFactory();
-            secondFactory.ContinuationTimeout = TimeSpan.FromSeconds(7);
+            secondFactory.ContinuationTimeout = secondConnectionTimeout;
             await using IConnection secondConn = await secondFactory.CreateConnectionAsync();
             await using IChannel secondChannel = await secondConn.CreateChannelAsync(sharedOptions);
-            Assert.Equal(TimeSpan.FromSeconds(7), secondChannel.ContinuationTimeout);
-
-            // The first channel is untouched until it recovers.
-            Assert.Equal(expected, firstChannel.ContinuationTimeout);
+            Assert.Equal(secondConnectionTimeout, secondChannel.ContinuationTimeout);
+            Assert.Equal(firstConnectionTimeout, firstChannel.ContinuationTimeout);
 
             await CloseAndWaitForRecoveryAsync((AutorecoveringConnection)firstConn);
 
             Assert.True(firstChannel.IsOpen);
-            Assert.Equal(expected, firstChannel.ContinuationTimeout);
+            Assert.Equal(firstConnectionTimeout, firstChannel.ContinuationTimeout);
+            Assert.NotEqual(secondConnectionTimeout, firstChannel.ContinuationTimeout);
         }
     }
 }
