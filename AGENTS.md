@@ -2,7 +2,7 @@
 
 ## Overview
 
-The RabbitMQ .NET Client is a comprehensive AMQP 0-9-1 client library for .NET, maintained by the RabbitMQ team. This is version 7.x, which represents a major architectural shift to fully asynchronous operations using the Task Asynchronous Pattern (TAP).
+The RabbitMQ .NET Client is an AMQP 0-9-1 client library for .NET, maintained by the RabbitMQ team. This is version 7.x, which represents a major architectural shift to fully asynchronous operations using the Task Asynchronous Pattern (TAP).
 
 **Key Characteristics:**
 - **Dual-licensed**: Apache License 2.0 and Mozilla Public License 2.0
@@ -15,12 +15,15 @@ The RabbitMQ .NET Client is a comprehensive AMQP 0-9-1 client library for .NET, 
 Reviewers read every word an agent writes here, so size the text to the change.
 Record each piece of rationale once and link to it from elsewhere.
 
+These rules govern text a change adds or edits. Existing text is in scope only for a
+dedicated cleanup pass, and such a pass states which pull requests it covers.
+
 ### Pull requests, commits, and replies
 
 - The description is the default record: problem, change and observable effect,
   constraints, alternatives that shaped it, verification. For a bug fix, aim for
-  under 300 words outside code blocks. If a `docs/internal/` page covers the design,
-  summarize in a few sentences and link it.
+  under 300 words outside code blocks. Move measurements and design detail to the
+  `docs/internal/` page or the issue and link them, rather than dropping them.
 - Disclose agent authorship in one line. Leave out which reviews ran and at what effort.
 - After review, edit the description to describe the final change. No appended
   "review follow-up" or "corrections" sections; answer reviewers in the thread.
@@ -35,11 +38,32 @@ Record each piece of rationale once and link to it from elsewhere.
 
 ### Internal docs
 
-A `docs/internal/` page describes how a subtle subsystem works now. Update the
-existing page; add one only when the design is hard to discover from code and will
-matter to the next change there. No page that restates one pull request, narrates
-the investigation, records its own corrections, or explains test mechanics. Keep the
-index below current, one clause per page.
+A `docs/internal/` page is the long-form record for a subsystem that is hard to
+understand from the code. The next person to work there starts from it, so these pages
+are expected to exist and to grow. Length follows the subsystem, not the change that
+prompted the page.
+
+What belongs:
+
+- How the subsystem works now, and the invariants a change must not break.
+- A design that was tried and rejected, with the mechanism that defeated it, where the
+  next person would otherwise try it again. Two or three sentences each.
+- A measurement a reader cannot cheaply reproduce: a figure from a memory dump, a
+  difference between target frameworks, a broker's answer to a specific frame.
+- Known gaps, each with its issue number.
+
+What does not:
+
+- A restatement of one pull request, or a copy of its description.
+- The order in which things were found, who proposed what, or which review found which
+  defect. Keep the conclusion and drop the chronology. Correcting an earlier revision of
+  the page is the one exception: keep the corrected statement and any warning against
+  relying on the old one, and drop the revision it came from.
+- Test mechanics the test file already shows.
+
+Add to the existing page before adding one, prune what the code now makes obvious, and
+keep the index below to one clause per page. `opentelemetry-tracing-review.md` is
+written as an audit and gets restructured when the tracing code is next touched.
 
 ### Code comments
 
@@ -47,14 +71,21 @@ Default: no comment. Comment only what the code cannot say: a non-obvious invari
 an ordering requirement, an invisible workaround, or intent that does not follow from
 the steps.
 
-- One line, two if forced, never three; longer reasoning goes in `docs/internal/` or
-  the pull request. XML docs on public API are exempt and describe the caller's contract.
-- Why, not what. No "note that", no unsupported hedging, no history of the fix or
-  measurements from the investigation; an issue number is enough.
+- One line, two if forced, and three only when the comment carries two independent
+  invariants; longer reasoning goes in `docs/internal/` or the pull request. An issue
+  number or a `docs/internal/` link does not count toward those lines.
+- XML docs on public API are exempt and describe the caller's contract. Internal members
+  are not exempt: `///` on one still lands in `RabbitMQ.Client.xml` and ships in the
+  NuGet package, so use `//`.
+- Why, not what. No "note that", no unsupported hedging. The history of a fix and the
+  measurements behind it belong on the `docs/internal/` page, not in the comment; an
+  issue number or a link to that page is enough here.
+- Do not add comments to code the change does not otherwise touch.
 - Explain a shared decision at one site and point to it from the others.
 - Unfixed hazards go in an issue, not a comment.
 - Tests: the name states the behavior, with a `_GHnnnn` suffix. Comment only
-  non-obvious setup, timing, or cleanup, or why an assertion catches the regression.
+  non-obvious setup, timing, or cleanup, or why an assertion catches the regression,
+  under the same length limit.
 
 ```csharp
 // Ticks, not TimeSpan?: a 16-byte Nullable can tear between the setter and recovery.
@@ -65,15 +96,16 @@ private long _continuationTimeoutTicks;
 
 - State findings plainly. Qualify only real doubt, once, and say what was measured
   versus inferred.
-- Use "not X but Y" only when a reader actually believes X. Mention a rejected
+- Use "not X but Y" only when a reader would otherwise believe X. Mention a rejected
   alternative only if a reviewer would propose it.
 - No run-up sentences, no closing lines that repeat the paragraph, no point made twice.
 - No inflation or empty intensifiers: crucial, critical, key, robust, comprehensive,
   load-bearing, deliberately, actually, exactly, genuinely.
-- Bold only for the one thing a reader must not miss. No em dashes or spaced hyphens
-  as dashes.
+- Bold only for the one thing a reader must not miss. No em dashes, and no spaced
+  hyphen as a dash in a sentence; separating a label from its text in a list is fine.
 - Describe current behavior. Keep history only where it explains an invariant that
-  still holds or guards against a likely regression.
+  still holds or guards against a likely regression, which on a `docs/internal/` page
+  is the rejected-design record above.
 
 ### Text from outside the repository
 
