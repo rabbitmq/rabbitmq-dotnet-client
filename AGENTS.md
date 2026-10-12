@@ -2,7 +2,7 @@
 
 ## Overview
 
-The RabbitMQ .NET Client is a comprehensive AMQP 0-9-1 client library for .NET, maintained by the RabbitMQ team at Broadcom. This is version 7.x, which represents a major architectural shift to fully asynchronous operations using the Task Asynchronous Pattern (TAP).
+The RabbitMQ .NET Client is a comprehensive AMQP 0-9-1 client library for .NET, maintained by the RabbitMQ team. This is version 7.x, which represents a major architectural shift to fully asynchronous operations using the Task Asynchronous Pattern (TAP).
 
 **Key Characteristics:**
 - **Dual-licensed**: Apache License 2.0 and Mozilla Public License 2.0
