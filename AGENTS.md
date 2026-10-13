@@ -124,6 +124,8 @@ changing that area.
   final during topology recovery, and why the obvious fix for #1995 is a regression.
 - `docs/internal/recovery-event-handler-invocation.md` - why user callbacks never run
   while `_recordedEntitiesSemaphore` is held (#2038).
+- `docs/internal/channel-state-across-recovery.md` - what recovery transplants onto the
+  new inner channel and what it silently drops, including `CurrentQueue` (#2031).
 
 ## Codebase map
 
