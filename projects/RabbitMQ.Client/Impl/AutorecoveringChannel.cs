@@ -58,6 +58,12 @@ namespace RabbitMQ.Client.Impl
 
         private bool _usesTransactions;
 
+        // Replayed onto the new inner channel on recovery, which would otherwise lose both.
+        // Ticks behind Volatile because the setter and recovery race with no common lock, and a
+        // Nullable<TimeSpan> reads as two loads. docs/internal/channel-state-across-recovery.md.
+        private long _continuationTimeoutTicks;
+        private IAsyncBasicConsumer? _defaultConsumer;
+
         internal IConsumerDispatcher ConsumerDispatcher => InnerChannel.ConsumerDispatcher;
 
         internal RecoveryAwareChannel InnerChannel
@@ -72,7 +78,11 @@ namespace RabbitMQ.Client.Impl
         public TimeSpan ContinuationTimeout
         {
             get => InnerChannel.ContinuationTimeout;
-            set => InnerChannel.ContinuationTimeout = value;
+            set
+            {
+                Volatile.Write(ref _continuationTimeoutTicks, value.Ticks);
+                InnerChannel.ContinuationTimeout = value;
+            }
         }
 
         public AutorecoveringChannel(AutorecoveringConnection conn,
@@ -82,6 +92,7 @@ namespace RabbitMQ.Client.Impl
             _connection = conn;
             _innerChannel = innerChannel;
             _createChannelOptions = createChannelOptions;
+            Volatile.Write(ref _continuationTimeoutTicks, innerChannel.ContinuationTimeout.Ticks);
         }
 
         public event AsyncEventHandler<BasicAckEventArgs> BasicAcksAsync
@@ -142,7 +153,13 @@ namespace RabbitMQ.Client.Impl
         public IAsyncBasicConsumer? DefaultConsumer
         {
             get => InnerChannel.DefaultConsumer;
-            set => InnerChannel.DefaultConsumer = value;
+            set
+            {
+                // Kept here rather than in Channel.TakeOver, which would lose an assignment
+                // made while a recovery is already in flight. #2031.
+                _defaultConsumer = value;
+                InnerChannel.DefaultConsumer = value;
+            }
         }
 
         public bool IsClosed => !IsOpen;
@@ -199,6 +216,11 @@ namespace RabbitMQ.Client.Impl
                     await newChannel.TxSelectAsync(cancellationToken)
                         .ConfigureAwait(false);
                 }
+
+                // Must stay below the replays above: an application timeout short enough to
+                // break recovery would break those too. #2031.
+                newChannel.ContinuationTimeout = TimeSpan.FromTicks(Volatile.Read(ref _continuationTimeoutTicks));
+                newChannel.DefaultConsumer = _defaultConsumer;
 
                 /*
                  * https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1140
