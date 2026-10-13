@@ -40,22 +40,9 @@ using Xunit.Abstractions;
 
 namespace Test.SequentialIntegration
 {
-    /*
-     * rabbitmq/rabbitmq-dotnet-client#1980.
-     *
-     * The conformance behaviour that TestActivitySource and TestOpenTelemetry cannot see. Those
-     * publish to the default exchange with a routing key equal to the queue name, which collapses
-     * the destination to a single component - so the exchange, the queue and their ordering never
-     * reach an assertion, and dropping the exchange from the destination entirely would leave both
-     * suites green - which it did for the deliver span until DeliveryComposesTheTwoPartDestination
-     * existed. These use a named exchange with a routing key distinct from the queue name so each
-     * component is distinguishable, and they cover the empty basic.get, which nothing exercised at
-     * all.
-     *
-     * Configuration goes through ConnectionFactory.TracingOptions rather than the deprecated
-     * process-wide statics (#1981), so these tests need no CS0618 suppression and are unaffected by
-     * whatever the statics happen to hold.
-     */
+    // The conformance behaviour the other tracing tests cannot see: they publish to the default
+    // exchange with a routing key equal to the queue name, which collapses the destination to one
+    // component. Issue #1980.
     public class TestSemanticConventions : SequentialIntegrationFixture
     {
         private const string RoutingKey = "warning";
@@ -70,11 +57,7 @@ namespace Test.SequentialIntegration
             string exchangeName = GenerateExchangeName();
             string queueName = GenerateQueueName();
 
-            /*
-             * ActivityRecorder matches on the exact span name, so a recorder that sees its activity
-             * once has pinned the name as well as the tags. VerifyParent is off because a fetch
-             * span's parent depends on propagation, which is not what these assert.
-             */
+            // ActivityRecorder matches the whole span name, so seeing it once pins the name too.
             using var publishRecorder = new ActivityRecorder(RabbitMQActivitySource.PublisherSourceName,
                 $"publish {exchangeName}:{RoutingKey}")
             { VerifyParent = false };
@@ -95,21 +78,15 @@ namespace Test.SequentialIntegration
             BasicGetResult result = await ch.BasicGetAsync(queueName, autoAck: true);
             Assert.NotNull(result);
 
-            /*
-             * Producer: {exchange}:{routing key}. Previously the destination was the bare exchange
-             * and the span name was the bare routing key, so neither carried both components and
-             * two publishes to different exchanges under one routing key shared a span name.
-             */
+            // {exchange}:{routing key}: the bare exchange made two publishes under one routing
+            // key indistinguishable.
             Activity publish = publishRecorder.VerifyActivityRecordedOnce();
             Assert.Equal(ActivityKind.Producer, publish.Kind);
             publish.HasTag(RabbitMQActivitySource.MessagingDestination, $"{exchangeName}:{RoutingKey}");
             publish.HasTag(RabbitMQActivitySource.MessagingDestinationRoutingKey, RoutingKey);
 
-            /*
-             * Consumer: {exchange}:{routing key}:{queue}, in that order, and Client rather than
-             * Consumer because the convention maps receive to CLIENT. Asserting the receive side's
-             * destination at all is new; the existing helpers only ever asserted the producer's.
-             */
+            // {exchange}:{routing key}:{queue}, and Client because the convention maps receive
+            // to CLIENT. No other test asserts the receive side's destination.
             Activity fetch = fetchRecorder.VerifyActivityRecordedOnce();
             Assert.Equal(ActivityKind.Client, fetch.Kind);
             fetch.HasTag(RabbitMQActivitySource.MessagingDestination,
@@ -133,13 +110,8 @@ namespace Test.SequentialIntegration
             string exchangeName = GenerateExchangeName();
             string queueName = GenerateQueueName();
 
-            /*
-             * The deliver span is the one shape no other test can see: a delivery frame carries an
-             * exchange and a routing key but never the queue, so the two logics - the composed
-             * destination and the pre-fix bare exchange - coincide for every test that publishes
-             * through the default exchange, which is all of them. Reverting Deliver alone to the
-             * bare exchange left the whole tracing suite green until this existed.
-             */
+            // The one shape no other test sees: for a delivery the old and new destination logic
+            // agree whenever the exchange is empty, which is every other test here.
             using var deliverRecorder = new ActivityRecorder(RabbitMQActivitySource.SubscriberSourceName,
                 $"deliver {exchangeName}:{RoutingKey}")
             { VerifyParent = false };
@@ -210,12 +182,8 @@ namespace Test.SequentialIntegration
             await ch.QueueDeclareAsync(queueName);
             Assert.Null(await ch.BasicGetAsync(queueName, autoAck: true));
 
-            /*
-             * Four things nothing covered before. The span was named "fetch (empty) {queue}", was
-             * ActivityKind.Consumer, reported the operation name "fetch (empty)" - encoding an
-             * outcome into messaging.operation.name - and claimed a destination of "amq.default"
-             * while the queue was in scope and already in the span name.
-             */
+            // The old span was "fetch (empty) {queue}", Consumer, and claimed amq.default while
+            // the queue was in scope.
             Activity fetch = fetchRecorder.VerifyActivityRecordedOnce();
             Assert.Equal(ActivityKind.Client, fetch.Kind);
             fetch.HasTag(RabbitMQActivitySource.MessagingOperationName,

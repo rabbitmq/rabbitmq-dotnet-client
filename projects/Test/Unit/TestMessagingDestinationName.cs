@@ -34,15 +34,8 @@ using Xunit;
 
 namespace Test.Unit
 {
-    /// <summary>
-    /// rabbitmq/rabbitmq-dotnet-client#1980
-    ///
-    /// <c>messaging.destination.name</c> per the RabbitMQ semantic convention. The producer form is
-    /// <c>{exchange}:{routing key}</c> and the consumer form adds the queue; the client previously
-    /// emitted the bare exchange, or the literal <c>amq.default</c> whenever the exchange was empty
-    /// regardless of routing key. Expected values are written out per row rather than computed, so
-    /// an assertion cannot restate the implementation.
-    /// </summary>
+    // messaging.destination.name per the RabbitMQ convention. Expected values are written out
+    // per row rather than computed, so an assertion cannot restate the implementation. #1980.
     public class TestMessagingDestinationName
     {
         [Theory]
@@ -53,11 +46,7 @@ namespace Test.Unit
         [InlineData("", "", null, "amq.default")]
         // Derived from the rule "when only one is available, only that value SHOULD be used".
         [InlineData("", "warning", null, "warning")]
-        /*
-         * The queue is a component of the consumer form only, so the role decides the shape and not
-         * merely the fallback. No call site passes a queue as a producer; this pins that doing so
-         * could not produce the three-part form.
-         */
+        // A producer passing a queue must not get the three-part form. No call site does.
         [InlineData("direct_logs", "warning", "my_queue", "direct_logs:warning")]
         public void ProducerDestinationFollowsTheConvention_GH1980(string exchange, string routingKey,
             string queue, string expected)
@@ -75,12 +64,8 @@ namespace Test.Unit
         // "When {routing key} and {queue} are equal, only one of them SHOULD be used."
         [InlineData("direct_logs", "warning", "warning", "direct_logs:warning")]
         [InlineData("", "my_queue", "my_queue", "my_queue")]
-        /*
-         * The deliver shape: a delivery frame carries an exchange and a routing key but never the
-         * queue, so no queue is passed. Without this row the pre-fix logic - the bare exchange when
-         * one is set - passes the whole theory, because every other consumer row either has a queue
-         * or has no exchange.
-         */
+        // The deliver shape. Without this row the pre-fix logic passes the whole theory: every
+        // other consumer row either has a queue or has no exchange.
         [InlineData("direct_logs", "warning", null, "direct_logs:warning")]
         // Nothing to name it with: omit, rather than borrow the producer's fallback.
         [InlineData("", "", "", "")]
@@ -95,12 +80,8 @@ namespace Test.Unit
         [Fact]
         public void AmqDefaultIsProducerOnly_GH1980()
         {
-            /*
-             * The one case where the two roles disagree, and the reason the role is an explicit
-             * parameter rather than inferred from whether a queue was supplied: a delivery passes no
-             * queue because a delivery frame carries none, which is not the same as being a
-             * producer. Inferring it put amq.default on consumer spans.
-             */
+            // The one case where the roles disagree, and why the role is a parameter rather than
+            // inferred from whether a queue was supplied.
             Assert.Equal("amq.default", RabbitMQActivitySource.BuildDestinationName(
                 RabbitMQActivitySource.MessagingRole.Producer, "", "", null));
             Assert.Equal("", RabbitMQActivitySource.BuildDestinationName(

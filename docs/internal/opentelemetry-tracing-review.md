@@ -454,7 +454,7 @@ Closed by #1980:
 
 ### `ActivityRecorder` matches on span name, and the destination is in it by default
 
-`UseRoutingKeyAsOperationName` defaults to **`true`**, so a publish span is named `publish <destination>` - `publish {exchange}:{routing key}` since #1980, and `publish <routing-key>` before it - not `publish`. `ActivityRecorder` matches `activity.OperationName` exactly, so a recorder built for `"publish"` records **zero** activities under the default configuration and fails with `Expected: 1 / Actual: 0` - no hint that the name is the problem.
+`UseRoutingKeyAsOperationName` defaults to **`true`**, so a publish span is named `publish <destination>` - `publish {exchange}:{routing key}` since #1980, and `publish <routing-key>` before it - not `publish`. `ActivityRecorder` matches `activity.OperationName` as a whole string, so a recorder built for `"publish"` records **zero** activities under the default configuration and fails with `Expected: 1 / Actual: 0` - no hint that the name is the problem.
 
 Three of the five new tests hit this. Any new test that constructs a recorder with a bare operation name needs `TestActivitySource.PlainOperationNames`, a `using` scope that sets the flag false and **restores the previous value on dispose**.
 

@@ -281,19 +281,8 @@ namespace RabbitMQ.Client
                 return null;
             }
 
-            /*
-             * An empty fetch knows only the queue - there is no message, so no exchange and no
-             * routing key - so the destination is the queue, which is also what the convention's
-             * consumer form reduces to when the other parts are absent. The previous "amq.default"
-             * was simply wrong: the fetch never touched the default exchange, and the queue was
-             * known all along. No BuildDestinationName call, because with both other parts empty
-             * its answer is provably the queue itself.
-             *
-             * Note the asymmetry this leaves: a fetch that returns a message names all three parts,
-             * so a hit and a miss on one queue carry different destinations. The convention asks for
-             * empty parts to be omitted, so both are conformant, but the outcome is still legible
-             * from the destination as well as from messaging.rabbitmq.message.received.
-             */
+            // No BuildDestinationName call: with no exchange and no routing key its answer is
+            // the queue. A hit names all three parts, so hit and miss differ; both conform.
             string destination = queue ?? string.Empty;
 
             Activity? activity = s_subscriberSource.StartRabbitMQActivity(
@@ -358,12 +347,8 @@ namespace RabbitMQ.Client
             ActivityContext linkedContext = tracing.ContextExtractor(readOnlyBasicProperties);
             ActivityContext parentContext = tracing.UsePublisherAsParent ? linkedContext : default;
 
-            /*
-             * Consumer, with no queue: a delivery frame carries a consumer tag, an exchange and a
-             * routing key, never the queue it came from, so the two-part form is what is available.
-             * Carrying the queue here is #2055. The role is explicit so this cannot fall into the
-             * producer's amq.default fallback.
-             */
+            // No queue: a delivery frame never carries the one it came from, so the two-part
+            // form is all that is available. Carrying it is #2055.
             string destination = BuildDestinationName(MessagingRole.Consumer, exchange, routingKey, null);
 
             Activity? activity = s_subscriberSource.StartLinkedRabbitMQActivity(
@@ -416,18 +401,9 @@ namespace RabbitMQ.Client
             }
         }
 
-        /*
-         * {messaging.operation.name} {destination}. The destination is the destination NAME, not the
-         * routing key - the routing key is only one component of it, so naming from it alone dropped
-         * the exchange and made publishes to different exchanges under one key indistinguishable.
-         *
-         * UseRoutingKeyAsOperationName decides whether the destination appears at all: a server-named
-         * queue makes it high-cardinality, and the convention says to omit {destination} when no
-         * low-cardinality value is available. The flag's name predates that meaning.
-         *
-         * Takes the destination rather than computing it, so each span builds it once and the name
-         * and the tag cannot disagree.
-         */
+        // {messaging.operation.name} {destination}, where the destination is the destination
+        // name and not the routing key. UseRoutingKeyAsOperationName decides whether it appears
+        // at all; the flag's name predates that meaning.
         private static string SpanName(string operationName, string destination, ResolvedTracingOptions tracing)
         {
             if (false == tracing.UseRoutingKeyAsOperationName || string.IsNullOrEmpty(destination))
@@ -446,17 +422,8 @@ namespace RabbitMQ.Client
 
         /*
          * messaging.destination.name per the RabbitMQ convention: {exchange}:{routing key} for a
-         * producer, falling back to whichever is present and to amq.default only when the default
-         * exchange is used AND no routing key is given; {exchange}:{routing key}:{queue} for a
-         * consumer, omitting empty parts, collapsing routing key and queue when equal, and with no
-         * amq.default fallback. A consumer with nothing at all to name returns empty, which the
-         * caller omits; that case is unreachable, since a message with neither exchange nor routing
-         * key could not have been routed.
-         *
-         * Branches rather than a list so the single-part cases hand back the caller's own string
-         * and allocate nothing; the composed cases allocate, which is intrinsic to composing them.
-         * This runs once per span.
-         *
+         * producer, {exchange}:{routing key}:{queue} for a consumer, empty parts omitted, and
+         * amq.default on the producer side only.
          * https://opentelemetry.io/docs/specs/semconv/messaging/rabbitmq/
          */
         internal static string BuildDestinationName(MessagingRole role, string exchange, string routingKey, string? queue)
@@ -464,12 +431,8 @@ namespace RabbitMQ.Client
             bool haveExchange = false == string.IsNullOrEmpty(exchange);
             bool haveRoutingKey = false == string.IsNullOrEmpty(routingKey);
 
-            /*
-             * The queue is a component of the consumer form only, so the role decides the shape
-             * rather than merely the fallback: a producer passing a queue must not get the
-             * three-part form back. Equal routing key and queue are one component, per the
-             * convention.
-             */
+            // The role decides the shape, not just the fallback: a producer passing a queue must
+            // not get the three-part form. Equal routing key and queue are one component.
             bool haveQueue = role == MessagingRole.Consumer
                              && false == string.IsNullOrEmpty(queue)
                              && false == string.Equals(routingKey, queue, StringComparison.Ordinal);
@@ -507,15 +470,8 @@ namespace RabbitMQ.Client
                 .SetTag(MessagingOperationName, operationName)
                 .SetTag(MessagingBodySize, bodySize);
 
-            /*
-             * destination.routing_key is Conditionally Required "If not empty", so omit it rather
-             * than emit an empty string.
-             *
-             * destination.name is Required, and the guard is unreachable in practice: a producer
-             * always has the amq.default fallback, basic.get always has a queue, and a delivery
-             * with neither exchange nor routing key could not have been routed. It stands because
-             * emitting an empty string for a Required attribute would be worse than omitting it.
-             */
+            // routing_key is Conditionally Required "If not empty"; destination.name is Required
+            // and its guard is unreachable, but emitting an empty string would be worse.
             if (false == string.IsNullOrEmpty(destination))
             {
                 activity.SetTag(MessagingDestination, destination);
