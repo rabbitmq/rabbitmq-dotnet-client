@@ -48,7 +48,7 @@ namespace Test.Unit
              * declared `= null` and its documentation describes null as "inherit from the factory",
              * but the public constructor defaults the parameter to 1 and assigns it unconditionally,
              * so options built through the constructor never inherit unless null is passed.
-             * That divergence is what #2027 set out to remove; it stays deliberately, because
+             * That divergence is what #2027 set out to remove; it stays on purpose, because
              * changing the default would compile everywhere and split behaviour by rebuild rather
              * than break a build (see the remarks on the member). This test exists so the two cannot
              * drift apart silently again.
@@ -66,7 +66,7 @@ namespace Test.Unit
         {
             /*
              * The counterpart: because the constructor supplied 1, CreateOrUpdate has nothing to
-             * inherit into, so the factory's value is deliberately ignored. Passing null explicitly
+             * inherit into, so the factory's value is ignored. Passing null explicitly
              * is what opts in - see ExplicitNullInherits... below.
              */
             var options = new CreateChannelOptions(publisherConfirmationsEnabled: false,

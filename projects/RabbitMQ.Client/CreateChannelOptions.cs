@@ -129,7 +129,7 @@ namespace RabbitMQ.Client
         /// </description></item>
         /// </list>
         /// <para>
-        /// The constructor default is deliberately not <c>null</c>. Changing it would compile everywhere and
+        /// The constructor default is not <c>null</c>. Changing it would compile everywhere and
         /// change behaviour silently rather than break a build: C# bakes an optional parameter's default into
         /// the caller's assembly, so applications that upgraded without rebuilding would keep the old
         /// behaviour while rebuilt ones switched, and code reading this member back would see
