@@ -49,7 +49,7 @@ namespace Test.Unit
     ///
     /// These are the state transitions themselves, which need no broker and no dispatcher: the
     /// constructor only stores the channel. The broker-backed counterpart, which proves recovery
-    /// actually drives this path, is
+    /// drives this path, is
     /// <c>TestConsumerRecovery.TestConsumerShutdownReasonIsClearedAfterRecovery_GH2006</c>.
     /// </summary>
     public class TestConsumerShutdownReason
@@ -139,20 +139,9 @@ namespace Test.Unit
         [Fact]
         public async Task TheTokenTheDispatcherHandsAConsumerIsCancelledByQuiesce_GH2006()
         {
-            /*
-             * The guard above is load-bearing only because of wiring none of those tests touch:
-             * the token in a consume-ok work item is the dispatcher's shutdown source, and Quiesce()
-             * cancels that source. Each of those is one line in ConsumerDispatcherChannelBase, and
-             * with both mutated away - hand CreateConsumeOk a fresh source, or drop the Cancel from
-             * Quiesce - the guard becomes dead code in production while every other test here stays
-             * green, because they all supply a cancelled token of their own making.
-             *
-             * Capture the token the dispatcher really passes, then cancel via Quiesce and observe
-             * the captured copy. A CancellationToken is a struct referring to its source, so the
-             * copy the consumer received reports the cancellation - which is exactly the mechanism
-             * the guard depends on at dispatch time. No broker: a consume-ok work item touches only
-             * the consumer, so a null channel is fine.
-             */
+            // The only test here that uses the token the dispatcher really passes rather than a
+            // cancelled one of its own, so it is the only one that fails if the consume-ok work
+            // item stops carrying the shutdown source or Quiesce() stops cancelling it. #2006.
             var consumer = new TokenCapturingConsumer();
             var dispatcher = new AsyncConsumerDispatcher(null, 1);
             try

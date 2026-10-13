@@ -106,13 +106,9 @@ namespace RabbitMQ.Client
         /// </param>
         public virtual Task HandleBasicConsumeOkAsync(string consumerTag, CancellationToken cancellationToken = default)
         {
-            /*
-             * Record nothing once the channel is going down: a registration confirmed now never
-             * delivers, so clearing the reason would leave a dead channel reading as healthy and
-             * adding the tag would advertise a consumer that only throws when cancelled. Reachable
-             * for reasons that are not the obvious ones - see issue #2006 and
-             * docs/internal/connection-shutdown-and-cancellation.md.
-             */
+            // Record nothing once the channel is going down: a registration confirmed now never
+            // delivers, so clearing the reason would leave a dead channel reading as healthy.
+            // #2006, docs/internal/connection-shutdown-and-cancellation.md.
             if (cancellationToken.IsCancellationRequested)
             {
                 return Task.CompletedTask;
