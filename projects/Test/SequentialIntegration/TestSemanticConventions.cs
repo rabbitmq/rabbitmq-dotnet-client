@@ -199,6 +199,84 @@ namespace Test.SequentialIntegration
         }
 
         [Fact]
+        public async Task AGeneratedQueueNameStaysOutOfTheSpanName_GH1980()
+        {
+            string exchangeName = GenerateExchangeName();
+
+            // The {destination} placeholder may carry the destination name only when it is neither
+            // temporary nor anonymous, and no other rule applies, so the name is the bare
+            // operation rather than one span name per generated queue.
+            using var fetchRecorder = new ActivityRecorder(RabbitMQActivitySource.SubscriberSourceName, "fetch")
+            { VerifyParent = false };
+
+            ConnectionFactory cf = CreateConnectionFactory();
+            cf.TracingOptions = new ConnectionTracingOptions { UseRoutingKeyAsOperationName = true };
+            await using IConnection conn = await cf.CreateConnectionAsync();
+            await using IChannel ch = await conn.CreateChannelAsync();
+
+            await ch.ExchangeDeclareAsync(exchangeName, ExchangeType.Direct, durable: false, autoDelete: false);
+            QueueDeclareOk anon = await ch.QueueDeclareAsync();
+            Assert.StartsWith("amq.gen-", anon.QueueName);
+            await ch.QueueBindAsync(anon.QueueName, exchangeName, RoutingKey);
+
+            await ch.BasicPublishAsync(exchangeName, RoutingKey, true, Encoding.UTF8.GetBytes("hi"));
+            Assert.NotNull(await ch.BasicGetAsync(anon.QueueName, autoAck: true));
+
+            // The name carries no destination; the attribute still carries all three parts.
+            Activity fetch = fetchRecorder.VerifyActivityRecordedOnce();
+            fetch.HasTag(RabbitMQActivitySource.MessagingDestination,
+                $"{exchangeName}:{RoutingKey}:{anon.QueueName}");
+            fetch.HasTag(RabbitMQActivitySource.MessagingDestinationAnonymous, true);
+
+            await ch.ExchangeDeleteAsync(exchangeName);
+        }
+
+        [Fact]
+        public async Task AnEmptyFetchOnAGeneratedQueueIsNamedBare_GH1980()
+        {
+            // Nothing low-cardinality is left once the generated queue is dropped, so the
+            // convention has the destination omitted from the name entirely.
+            using var fetchRecorder = new ActivityRecorder(RabbitMQActivitySource.SubscriberSourceName, "fetch")
+            { VerifyParent = false };
+
+            ConnectionFactory cf = CreateConnectionFactory();
+            cf.TracingOptions = new ConnectionTracingOptions { UseRoutingKeyAsOperationName = true };
+            await using IConnection conn = await cf.CreateConnectionAsync();
+            await using IChannel ch = await conn.CreateChannelAsync();
+
+            QueueDeclareOk anon = await ch.QueueDeclareAsync();
+            Assert.Null(await ch.BasicGetAsync(anon.QueueName, autoAck: true));
+
+            Activity fetch = fetchRecorder.VerifyActivityRecordedOnce();
+            fetch.HasTag(RabbitMQActivitySource.MessagingDestination, anon.QueueName);
+            fetch.HasTag(RabbitMQActivitySource.MessagingDestinationAnonymous, true);
+        }
+
+        [Fact]
+        public async Task ANamedQueueIsNotMarkedAnonymous_GH1980()
+        {
+            string queueName = GenerateQueueName();
+
+            using var fetchRecorder = new ActivityRecorder(RabbitMQActivitySource.SubscriberSourceName,
+                $"fetch {queueName}")
+            { VerifyParent = false };
+
+            ConnectionFactory cf = CreateConnectionFactory();
+            cf.TracingOptions = new ConnectionTracingOptions { UseRoutingKeyAsOperationName = true };
+            await using IConnection conn = await cf.CreateConnectionAsync();
+            await using IChannel ch = await conn.CreateChannelAsync();
+
+            await ch.QueueDeclareAsync(queueName);
+            Assert.Null(await ch.BasicGetAsync(queueName, autoAck: true));
+
+            // Conditionally Required "if value is true", so absent rather than false.
+            Activity fetch = fetchRecorder.VerifyActivityRecordedOnce();
+            fetch.HasNoTag(RabbitMQActivitySource.MessagingDestinationAnonymous);
+
+            await ch.QueueDeleteAsync(queueName);
+        }
+
+        [Fact]
         public async Task AnEmptyRoutingKeyIsOmittedRatherThanEmitted_GH1980()
         {
             string exchangeName = GenerateExchangeName();

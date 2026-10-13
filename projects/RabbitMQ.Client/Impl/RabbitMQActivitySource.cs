@@ -26,6 +26,7 @@ namespace RabbitMQ.Client
         internal const string MessagingSystem = "messaging.system";
         internal const string MessagingDestination = "messaging.destination.name";
         internal const string MessagingDestinationRoutingKey = "messaging.rabbitmq.destination.routing_key";
+        internal const string MessagingDestinationAnonymous = "messaging.destination.anonymous";
         internal const string MessagingBodySize = "messaging.message.body.size";
         internal const string MessagingEnvelopeSize = "messaging.message.envelope.size";
         internal const string ProtocolName = "network.protocol.name";
@@ -261,7 +262,8 @@ namespace RabbitMQ.Client
             }
 
             string destination = BuildDestinationName(MessagingRole.Producer, exchange, routingKey, null);
-            string spanName = SpanName(MessagingOperationNameBasicPublish, destination, tracing);
+            bool anonymous = IsAnonymousDestination(MessagingRole.Producer, exchange, routingKey, null);
+            string spanName = SpanName(MessagingOperationNameBasicPublish, destination, anonymous, tracing);
 
             Activity? activity = linkedContext == default
                 ? s_publisherSource.StartRabbitMQActivity(spanName, ActivityKind.Producer)
@@ -269,6 +271,7 @@ namespace RabbitMQ.Client
             if (activity != null && activity.IsAllDataRequested)
             {
                 PopulateMessagingTags(MessagingOperationTypeSend, MessagingOperationNameBasicPublish, routingKey, destination, 0, basicProperties, bodySize, activity);
+                SetAnonymous(activity, anonymous);
             }
 
             return activity;
@@ -284,9 +287,10 @@ namespace RabbitMQ.Client
             // No BuildDestinationName call: with no exchange and no routing key its answer is
             // the queue. A hit names all three parts, so hit and miss differ; both conform.
             string destination = queue ?? string.Empty;
+            bool anonymous = IsGeneratedName(queue);
 
             Activity? activity = s_subscriberSource.StartRabbitMQActivity(
-                SpanName(MessagingOperationNameBasicGet, destination, tracing),
+                SpanName(MessagingOperationNameBasicGet, destination, anonymous, tracing),
                 ActivityKind.Client);
             if (activity != null && activity.IsAllDataRequested)
             {
@@ -296,6 +300,8 @@ namespace RabbitMQ.Client
                     .SetTag(MessagingOperationType, MessagingOperationTypeReceive)
                     .SetTag(MessagingOperationName, MessagingOperationNameBasicGet)
                     .SetTag(RabbitMQMessageReceived, false);
+
+                SetAnonymous(activity, anonymous);
 
                 if (false == string.IsNullOrEmpty(destination))
                 {
@@ -319,9 +325,10 @@ namespace RabbitMQ.Client
             ActivityContext parentContext = tracing.UsePublisherAsParent ? linkedContext : default;
 
             string destination = BuildDestinationName(MessagingRole.Consumer, exchange, routingKey, queue);
+            bool anonymous = IsAnonymousDestination(MessagingRole.Consumer, exchange, routingKey, queue);
 
             Activity? activity = s_subscriberSource.StartLinkedRabbitMQActivity(
-                SpanName(MessagingOperationNameBasicGet, destination, tracing), ActivityKind.Client,
+                SpanName(MessagingOperationNameBasicGet, destination, anonymous, tracing), ActivityKind.Client,
                 linkedContext, parentContext);
 
 
@@ -330,6 +337,7 @@ namespace RabbitMQ.Client
                 PopulateMessagingTags(MessagingOperationTypeReceive, MessagingOperationNameBasicGet, routingKey,
                     destination, deliveryTag, readOnlyBasicProperties, bodySize, activity);
                 activity.SetTag(RabbitMQMessageReceived, true);
+                SetAnonymous(activity, anonymous);
             }
 
             return activity;
@@ -352,7 +360,8 @@ namespace RabbitMQ.Client
             string destination = BuildDestinationName(MessagingRole.Consumer, exchange, routingKey, null);
 
             Activity? activity = s_subscriberSource.StartLinkedRabbitMQActivity(
-                SpanName(MessagingOperationNameBasicDeliver, destination, tracing),
+                // anonymous: false unavoidably, since a delivery frame carries no queue (#2055).
+                SpanName(MessagingOperationNameBasicDeliver, destination, anonymous: false, tracing),
                 ActivityKind.Consumer, linkedContext, parentContext);
             if (activity != null && activity.IsAllDataRequested)
             {
@@ -404,14 +413,64 @@ namespace RabbitMQ.Client
         // {messaging.operation.name} {destination}, where the destination is the destination
         // name and not the routing key. UseRoutingKeyAsOperationName decides whether it appears
         // at all; the flag's name predates that meaning.
-        private static string SpanName(string operationName, string destination, ResolvedTracingOptions tracing)
+        /*
+         * A queue name the broker minted, which is new on every declaration and so would put one
+         * span name per queue into a backend. That cardinality, not anonymity for its own sake, is
+         * what the {destination} placeholder rule guards against; the full name stays on
+         * messaging.destination.name, which is a tag and tolerates it.
+         *
+         * Two known holes, both of which need the provenance of the name rather than its text.
+         * A client that passes `x-name-prefix` to queue.declare gets `<prefix>-<base64url>` from
+         * the same generator (rabbit_amqqueue:derive_name_prefix/1 falls back to "amq.gen"), which
+         * is equally unique per declaration and is not matched here. And a queue an application
+         * deliberately named to look generated would be matched when it should not be. Tracking
+         * what the broker handed back at declare time fixes both; that is #2055.
+         */
+        internal static bool IsGeneratedName(string? name) =>
+            name?.StartsWith("amq.gen-", StringComparison.Ordinal) == true;
+
+        /*
+         * Whether the destination as a whole is anonymous, which the {destination} placeholder rule
+         * turns into "leave it out of the span name". The rule differs by side: a publish is only
+         * anonymous when the default exchange leaves the generated routing key as the sole
+         * identifier, while a consumer's destination is anonymous whenever its queue is generated.
+         * A delivery carries no queue, so it can never be marked; that is #2055.
+         */
+        internal static bool IsAnonymousDestination(MessagingRole role, string exchange, string routingKey, string? queue)
         {
-            if (false == tracing.UseRoutingKeyAsOperationName || string.IsNullOrEmpty(destination))
+            if (role == MessagingRole.Producer)
+            {
+                return string.IsNullOrEmpty(exchange) && IsGeneratedName(routingKey);
+            }
+
+            return IsGeneratedName(queue);
+        }
+
+        /*
+         * {messaging.operation.name} {destination}. The destination is left out when it is
+         * anonymous: rule 2 of the placeholder allows messaging.destination.name only for a
+         * destination "neither temporary nor anonymous", rule 1 needs a template RabbitMQ does not
+         * have, and rule 3 is for operations with no specific destination. So nothing applies and
+         * the name is the bare operation, rather than one span name per generated queue.
+         */
+        private static string SpanName(string operationName, string destination, bool anonymous,
+            ResolvedTracingOptions tracing)
+        {
+            if (false == tracing.UseRoutingKeyAsOperationName || anonymous || string.IsNullOrEmpty(destination))
             {
                 return operationName;
             }
 
             return $"{operationName} {destination}";
+        }
+
+        // Conditionally Required "If value is true", so set it or omit it, never false.
+        private static void SetAnonymous(Activity activity, bool anonymous)
+        {
+            if (anonymous)
+            {
+                activity.SetTag(MessagingDestinationAnonymous, true);
+            }
         }
 
         internal enum MessagingRole
