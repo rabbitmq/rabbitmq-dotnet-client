@@ -414,11 +414,21 @@ namespace Test.Integration
             // The second window is sub-millisecond, so sweep a range of short cancellation
             // delays to exercise both. A large ContinuationTimeout makes any residual hang
             // obvious (it would block for that long) rather than being masked by a short one.
+            TimeSpan continuationTimeout = TimeSpan.FromSeconds(60);
             var cf = new ConnectionFactory
             {
-                ContinuationTimeout = TimeSpan.FromSeconds(30),
-                HandshakeContinuationTimeout = TimeSpan.FromSeconds(30)
+                ContinuationTimeout = continuationTimeout,
+                HandshakeContinuationTimeout = continuationTimeout
             };
+
+            /*
+             * A third of the timeout the bug would block for, rather than a figure chosen to
+             * look fast. The hang waits the whole of it, so anything well under that
+             * distinguishes fixed from broken; measuring "quick" instead reports a slow
+             * runner as a regression, which it did on `integration-win32` with 11.5s against
+             * a 3s budget. Ticks because TimeSpan has no division operator on net472.
+             */
+            TimeSpan budget = TimeSpan.FromTicks(continuationTimeout.Ticks / 3);
 
             var delaysMicroseconds = new[] { 0, 100, 250, 500, 750, 1000, 1500, 2000, 5000, 50000 };
             foreach (int delayMicroseconds in delaysMicroseconds)
@@ -448,11 +458,11 @@ namespace Test.Integration
                     }
                     sw.Stop();
 
-                    // Before the fix, cleanup after cancellation blocked for the full
-                    // ContinuationTimeout (30s here). Allow 3s to account for slow CI runners.
-                    Assert.True(sw.Elapsed < TimeSpan.FromSeconds(3),
+                    Assert.True(sw.Elapsed < budget,
                         $"CreateConnectionAsync took {sw.Elapsed.TotalSeconds:F1}s with a " +
-                        $"{delayMicroseconds}us cancellation delay; expected < 3s (hang regression from gh-1921)");
+                        $"{delayMicroseconds}us cancellation delay; expected under " +
+                        $"{budget.TotalSeconds:F0}s of the {continuationTimeout.TotalSeconds:F0}s " +
+                        "ContinuationTimeout the gh-1921 hang would have blocked for");
                 }
             }
         }
