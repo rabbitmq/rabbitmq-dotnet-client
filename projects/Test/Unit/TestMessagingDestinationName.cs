@@ -77,6 +77,24 @@ namespace Test.Unit
                 RabbitMQActivitySource.MessagingRole.Consumer, exchange, routingKey, queue));
         }
 
+        [Theory]
+        [InlineData("amq.gen-TXm_2rj7bNma6vmr6EvbQA", true)]
+        [InlineData("my_queue", false)]
+        [InlineData("amq.gen", false)]
+        [InlineData("", false)]
+        [InlineData(null, false)]
+        // A deliberately chosen name is not generated, however it looks. A GUID is an ordinary
+        // .NET queue name, and treating one as generated would strip it from span names for no
+        // cardinality gain: one stable name is one value.
+        [InlineData("8a1f0c52-9b3e-4a7d-8f21-6c5d4e3b2a10", false)]
+        // Known hole: `x-name-prefix` yields `<prefix>-<base64url>` from the same generator, so it
+        // is equally unique per declaration and equally bad in a span name. Needs provenance, #2055.
+        [InlineData("myapp-TXm_2rj7bNma6vmr6EvbQA", false)]
+        public void GeneratedQueueNamesAreRecognised_GH1980(string name, bool expected)
+        {
+            Assert.Equal(expected, RabbitMQActivitySource.IsGeneratedName(name));
+        }
+
         [Fact]
         public void AmqDefaultIsProducerOnly_GH1980()
         {

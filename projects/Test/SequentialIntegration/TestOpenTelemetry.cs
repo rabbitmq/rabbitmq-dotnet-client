@@ -127,11 +127,14 @@ namespace Test.SequentialIntegration
                 .AddInMemoryExporter(exportedItems)
                 .Build();
 
-            string queueName;
+            // A name of our own, not a server-named queue: a generated name is left out of span
+            // names for cardinality, which would make both sides of the comparison below read
+            // "publish" and stop the test discriminating the flag at all.
+            string queueName = $"otel-perconn-{Now}-{Guid.NewGuid():N}";
             await using (IConnection conn = await cf.CreateConnectionAsync())
             await using (IChannel ch = await conn.CreateChannelAsync(_createChannelOptions))
             {
-                queueName = (await ch.QueueDeclareAsync()).QueueName;
+                await ch.QueueDeclareAsync(queueName, durable: false, exclusive: true, autoDelete: true);
                 await ch.BasicPublishAsync(string.Empty, queueName, Encoding.UTF8.GetBytes("hi"));
             }
 
