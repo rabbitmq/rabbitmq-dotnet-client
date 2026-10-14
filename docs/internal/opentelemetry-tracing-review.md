@@ -404,6 +404,24 @@ This is not a regression and #1980 did not introduce it, but #1980 makes the fix
 
 Lower value, same gap: `messaging.destination.anonymous` and `messaging.destination.temporary` are Conditionally Required "If value is `true`" and are never emitted, though a server-named queue is knowable to the client at the `BasicGet` call site.
 
+## The conformance matrix, and how to rebuild it
+
+Reviewers kept finding one attribute gap at a time, because nobody on this side knew the convention well enough to enumerate them up front. The way out is to build the whole matrix once, pinned to a spec version, and let a reviewer check the table rather than the diff.
+
+Pin the version. Everything below is **semconv v1.44.0**, fetched as source rather than read off the rendered site:
+
+```
+curl -sfL https://raw.githubusercontent.com/open-telemetry/semantic-conventions/v1.44.0/docs/messaging/rabbitmq.md
+```
+
+The four span tables there are `Send`, `Receive`, `Process` and `Settle`, and their columns are `Key | Stability | Requirement Level | Value Type | Description | Example Values` - the requirement level is the **third** column, which is easy to get wrong by index.
+
+**Measure the emitted side, do not read it off the code.** A first attempt resolved attributes statically by following `PopulateMessagingTags` and reported `messaging.destination.name` missing from `publish`, which it plainly is not; it also treated operation-name values such as `publish` as attribute keys. A probe that starts an `ActivityListener` on `RabbitMQ.Client.*`, exercises publish, a fetch that hits, a fetch that misses and a delivery, and prints each span's sorted tag keys is both shorter and correct. Include a server-named queue: that is the case that revealed the span-name cardinality defect.
+
+State of the matrix at v1.44.0: every `Required` attribute is emitted on all four spans. The `Conditionally Required` absences are conditions this client does not meet, with two exceptions tracked as #2064 and #2065, and `messaging.destination.anonymous`, which this work added.
+
+**Watch for conditions that are unreachable rather than unmet.** `error.type` looked absent on all four spans because the probe only exercised success paths; it is wired on publish and deliver. On `basic.get` it is unreachable for a different reason - the span is created after the RPC returns, so a failed get produces no span at all (#2065). "Absent from a measurement" and "not implemented" are different findings.
+
 ## Context propagation: no defects found
 
 **Verified** against a live broker with the `Publisher` source deliberately left unlistened so hand-planted headers survive the injector. Every one of these produced an unparented `fetch` span with zero links and no exception: no headers at all, an unrelated header only, a malformed `traceparent` as bytes, `traceparent = null`, `traceparent` as an `int`, `tracestate` with no `traceparent`, an empty-string `traceparent`, and a legacy `Request-Id` only. A well-formed `traceparent` parsed correctly as `byte[]` and as `string`, producing both a parent and a link.
