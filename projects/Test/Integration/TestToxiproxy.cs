@@ -34,6 +34,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Net;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using Integration;
@@ -309,6 +310,105 @@ namespace Test.Integration
             await _toxiproxyManager.RemoveToxicAsync(toxicName);
 
             await recoveryTask;
+        }
+
+        [SkippableFact]
+        [Trait("Category", "Toxiproxy")]
+        public async Task TestTimedOutCloseStillClosesTheSocket_GH2022()
+        {
+            Skip.IfNot(AreToxiproxyTestsEnabled, "RABBITMQ_TOXIPROXY_TESTS is not set, skipping test");
+
+            TimeSpan closeBudget = TimeSpan.FromSeconds(2);
+
+            // A timed-out close used to leave the socket open. Graceful and not an abort,
+            // because netstandard's abort closes the socket up front and would pass either way.
+            // #2022, docs/internal/connection-shutdown-and-cancellation.md.
+            ConnectionFactory cf = CreateConnectionFactory();
+            cf.Endpoint = new AmqpTcpEndpoint(_proxyHost, _proxyPort);
+            cf.AutomaticRecoveryEnabled = false;
+
+            // The fixture defaults this to WaitSpan, 60 s in CI, and this test breaks a connection
+            // and then disposes it, so cap it as the sibling break-then-dispose tests do.
+            cf.ContinuationTimeout = TimeSpan.FromSeconds(2);
+
+            // The heartbeat must outlast the close budget, or the detector closes the
+            // connection first and the fallback never runs. Zero does not disable heartbeats:
+            // the broker's value wins, which the assertion after connecting checks.
+            cf.RequestedHeartbeat = TimeSpan.Zero;
+
+            IConnection conn = await cf.CreateConnectionAsync();
+            try
+            {
+                await using (IChannel ch = await conn.CreateChannelAsync())
+                {
+                    await ch.QueueDeclareAsync();
+                }
+
+                // Ticks, not closeBudget * 2: TimeSpan's multiply and divide operators arrived in
+                // .NET Core 2.0 and do not exist on .NET Framework, so the expression is CS0019 on
+                // net472 - which only build-win32 compiles.
+                TimeSpan minimumHeartbeat = TimeSpan.FromTicks(closeBudget.Ticks * 2);
+                Assert.True(conn.Heartbeat > minimumHeartbeat,
+                    $"this test needs a heartbeat comfortably longer than the {closeBudget} close " +
+                    $"budget, but negotiated {conn.Heartbeat}; the detector would close the " +
+                    "connection before the close under test reaches its fallback");
+
+                // The socket is open and reporting a port before anything is broken.
+                Assert.True(conn.LocalPort > 0);
+
+                // Both directions: an unset Stream is downstream only, which strands the read
+                // but leaves the write path free, and the parked writer is the half that makes
+                // CloseSocket necessary (#1265).
+                foreach (ToxicDirection direction in new[] { ToxicDirection.DownStream, ToxicDirection.UpStream })
+                {
+                    var toxic = new TimeoutToxic
+                    {
+                        Name = $"rmq-gh2022-{direction}-{Now}-{GenerateShortUuid()}",
+                        Stream = direction
+                    };
+                    toxic.Attributes.Timeout = 0;
+                    toxic.Toxicity = 1.0;
+                    await _toxiproxyManager.AddToxicAsync(toxic);
+                }
+
+                // A vacuity guard, one statement before the fallback: if this stops throwing,
+                // the close never reached its budget and the assertions below mean nothing.
+                await Assert.ThrowsAnyAsync<OperationCanceledException>(() =>
+                    conn.CloseAsync(Constants.ReplySuccess, "GH-2022", closeBudget,
+                        abort: false, CancellationToken.None));
+
+                Assert.Throws<ObjectDisposedException>(() => _ = conn.LocalPort);
+
+                // Closing the socket must not suppress the cleanup after it: setting _closed
+                // here once left the write loop parked forever. No public surface exposes it.
+                Connection innerConnection = (Connection)typeof(Connection)
+                    .GetField("_innerConnection", BindingFlags.Instance | BindingFlags.NonPublic)
+                    ?.GetValue(conn) ?? (Connection)conn;
+                object frameHandler = typeof(Connection)
+                    .GetField("_frameHandler", BindingFlags.Instance | BindingFlags.NonPublic)
+                    !.GetValue(innerConnection)!;
+                var writerTask = (Task)typeof(SocketFrameHandler)
+                    .GetField("_writerTask", BindingFlags.Instance | BindingFlags.NonPublic)
+                    !.GetValue(frameHandler)!;
+
+                // WhenAny rather than an await, so a faulted write loop is not rethrown here: that
+                // it completed at all is the point, however it completed.
+                await Task.WhenAny(writerTask, Task.Delay(TimeSpan.FromSeconds(10)));
+                Assert.True(writerTask.IsCompleted,
+                    $"the write loop was left parked ({writerTask.Status}): the socket close " +
+                    "suppressed the frame handler's own close rather than letting it clean up");
+            }
+            finally
+            {
+                try
+                {
+                    await conn.DisposeAsync();
+                }
+                catch
+                {
+                    // The connection is already in whatever state the test left it.
+                }
+            }
         }
 
         [SkippableFact]

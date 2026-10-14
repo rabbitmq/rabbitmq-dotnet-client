@@ -492,6 +492,18 @@ namespace RabbitMQ.Client.Impl
             }
             catch
             {
+                /*
+                 * Only on timeout: on any other path this would destroy writes the loop still
+                 * has queued, including the connection.close-ok of a server-initiated close
+                 * (#1777). CloseSocket and not CloseAsync, because an already-cancelled token
+                 * makes CloseAsync return before it reaches the socket.
+                 * #2022, docs/internal/connection-shutdown-and-cancellation.md.
+                 */
+                if (cts.IsCancellationRequested)
+                {
+                    _frameHandler.CloseSocket();
+                }
+
                 try
                 {
                     await _frameHandler.CloseAsync(cts.Token)
