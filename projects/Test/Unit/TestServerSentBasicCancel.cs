@@ -49,7 +49,7 @@ namespace Test.Unit
         private const string ConsumerTag = "ctag-1";
 
         [Fact]
-        public void TestCapabilitySetToTrueIsPresent()
+        public void TestCapabilitySetToTrueIsPresent_GH2051()
         {
             Assert.True(Connection.ServerHasCapability(
                 ServerProperties(Connection.AcceptConsumerCancelOkCapability, true),
@@ -57,7 +57,7 @@ namespace Test.Unit
         }
 
         [Fact]
-        public void TestCapabilitySetToFalseIsAbsent()
+        public void TestCapabilitySetToFalseIsAbsent_GH2051()
         {
             Assert.False(Connection.ServerHasCapability(
                 ServerProperties(Connection.AcceptConsumerCancelOkCapability, false),
@@ -65,7 +65,7 @@ namespace Test.Unit
         }
 
         [Fact]
-        public void TestMissingCapabilityIsAbsent()
+        public void TestMissingCapabilityIsAbsent_GH2051()
         {
             Assert.False(Connection.ServerHasCapability(
                 ServerProperties("consumer_cancel_notify", true),
@@ -73,7 +73,7 @@ namespace Test.Unit
         }
 
         [Fact]
-        public void TestCapabilityIsAbsentWithoutCapabilitiesTable()
+        public void TestCapabilityIsAbsentWithoutCapabilitiesTable_GH2051()
         {
             Assert.False(Connection.ServerHasCapability(
                 new Dictionary<string, object?> { ["product"] = "RabbitMQ" },
@@ -85,7 +85,7 @@ namespace Test.Unit
         [InlineData("ctag-1")]
         [InlineData("")]
         [InlineData("amq.ctag-ünïcødé")]
-        public void TestBasicCancelOkRoundTrips(string consumerTag)
+        public void TestBasicCancelOkRoundTrips_GH2051(string consumerTag)
         {
             var method = new BasicCancelOk(consumerTag);
             byte[] buffer = new byte[method.GetRequiredBufferSize()];
@@ -97,7 +97,7 @@ namespace Test.Unit
         }
 
         [Fact]
-        public async Task TestServerSentBasicCancelIsAnsweredWhenServerAcceptsCancelOkAsync()
+        public async Task TestServerSentBasicCancelIsAnsweredWhenServerAcceptsCancelOk_GH2051()
         {
             using var session = new TestSession(new TestSessionOptions
             {
@@ -127,7 +127,7 @@ namespace Test.Unit
         }
 
         [Fact]
-        public async Task TestServerSentBasicCancelIsNotAnsweredWhenServerDoesNotAcceptCancelOkAsync()
+        public async Task TestServerSentBasicCancelIsNotAnsweredWhenServerDoesNotAcceptCancelOk_GH2051()
         {
             using var session = new TestSession(new TestSessionOptions
             {
@@ -155,7 +155,7 @@ namespace Test.Unit
         }
 
         [Fact]
-        public async Task TestServerSentBasicCancelIsNotAnsweredWhenChannelIsClosingAsync()
+        public async Task TestServerSentBasicCancelIsNotAnsweredWhenChannelIsClosing_GH2051()
         {
             using var session = new TestSession(new TestSessionOptions
             {
