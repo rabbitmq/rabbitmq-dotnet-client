@@ -29,7 +29,6 @@
 //  Copyright (c) 2007-2026 Broadcom. All Rights Reserved.
 //---------------------------------------------------------------------------
 
-using System.Collections.Generic;
 using System.Threading.Tasks;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Impl;
@@ -54,13 +53,8 @@ namespace Test.Integration
             bool advertised = Connection.ServerHasCapability(
                 session.Connection.ServerProperties, Connection.AcceptConsumerCancelOkCapability);
 
-            /*
-             * Skipped rather than asserted when the broker is silent, because `false == false`
-             * passes however broken the plumbing is: a version of this test without the skip stayed
-             * green with SessionBase's forwarding replaced by `false`, which turns the whole
-             * feature into a no-op. `accept_consumer_cancel_ok` is on the broker's main branch and
-             * absent from v4.3.6, so this starts asserting when CI moves to a broker that has it.
-             */
+            // Skip rather than assert: with the capability absent both hops read false, so an
+            // unconditional assertion would pass however broken the plumbing is. #2051.
             Skip.IfNot(advertised,
                 $"broker does not advertise {Connection.AcceptConsumerCancelOkCapability}");
 
