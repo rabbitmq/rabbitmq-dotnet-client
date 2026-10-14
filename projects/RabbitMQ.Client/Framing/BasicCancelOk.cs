@@ -34,9 +34,14 @@ using RabbitMQ.Client.Impl;
 
 namespace RabbitMQ.Client.Framing
 {
-    internal readonly struct BasicCancelOk : IAmqpMethod
+    internal readonly struct BasicCancelOk : IOutgoingAmqpMethod
     {
         public readonly string _consumerTag;
+
+        public BasicCancelOk(string ConsumerTag)
+        {
+            _consumerTag = ConsumerTag;
+        }
 
         public BasicCancelOk(ReadOnlySpan<byte> span)
         {
@@ -44,5 +49,17 @@ namespace RabbitMQ.Client.Framing
         }
 
         public ProtocolCommandId ProtocolCommandId => ProtocolCommandId.BasicCancelOk;
+
+        public int WriteTo(Span<byte> span)
+        {
+            return WireFormatting.WriteShortstr(ref span.GetStart(), _consumerTag);
+        }
+
+        public int GetRequiredBufferSize()
+        {
+            int bufferSize = 1; // byte for length of _consumerTag
+            bufferSize += WireFormatting.GetByteCount(_consumerTag); // _consumerTag in bytes
+            return bufferSize;
+        }
     }
 }

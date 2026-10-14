@@ -836,6 +836,22 @@ namespace RabbitMQ.Client.Impl
             string consumerTag = new BasicCancel(cmd.MethodSpan)._consumerTag;
             await ConsumerDispatcher.HandleBasicCancelAsync(consumerTag, cancellationToken)
                 .ConfigureAwait(false);
+
+            if (IsOpen && Session.ServerAcceptsConsumerCancelOk)
+            {
+                try
+                {
+                    var method = new BasicCancelOk(consumerTag);
+                    await ModelSendAsync(in method, cancellationToken)
+                        .ConfigureAwait(false);
+                }
+                catch (Exception ex) when (ex is IOException or AlreadyClosedException)
+                {
+                    // Ignored. The channel or connection may have closed
+                    // between the IsOpen check and the send.
+                }
+            }
+
             return true;
         }
 

@@ -122,6 +122,20 @@ namespace RabbitMQ.Client.Impl
 
         public IDictionary<string, object?>? ServerProperties { get; private set; }
 
+        // Whether the server accepts a client-sent basic.cancel-ok in reply to a server-sent basic.cancel.
+        internal bool ServerAcceptsConsumerCancelOk { get; private set; }
+
+        internal const string AcceptConsumerCancelOkCapability = "accept_consumer_cancel_ok";
+
+        internal static bool ServerHasCapability(IDictionary<string, object?>? serverProperties, string capability)
+        {
+            return serverProperties is not null
+                && serverProperties.TryGetValue("capabilities", out object? capabilities)
+                && capabilities is IDictionary<string, object?> capabilitiesTable
+                && capabilitiesTable.TryGetValue(capability, out object? value)
+                && value is true;
+        }
+
         public IEnumerable<ShutdownReportEntry> ShutdownReport => _shutdownReport;
         private ShutdownReportEntry[] _shutdownReport = Array.Empty<ShutdownReportEntry>();
 
@@ -492,6 +506,18 @@ namespace RabbitMQ.Client.Impl
             }
             catch
             {
+                /*
+                 * Only on timeout: on any other path this would destroy writes the loop still
+                 * has queued, including the connection.close-ok of a server-initiated close
+                 * (#1777). CloseSocket and not CloseAsync, because an already-cancelled token
+                 * makes CloseAsync return before it reaches the socket.
+                 * #2022, docs/internal/connection-shutdown-and-cancellation.md.
+                 */
+                if (cts.IsCancellationRequested)
+                {
+                    _frameHandler.CloseSocket();
+                }
+
                 try
                 {
                     await _frameHandler.CloseAsync(cts.Token)

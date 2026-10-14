@@ -189,12 +189,8 @@ namespace RabbitMQ.Client.Impl
             }
             catch
             {
-                /*
-                 * Either the caller's token fired or another closer disposed the
-                 * semaphore. Both mean this call does not own the close, and the
-                 * owner sets _closed. Returning is correct: it must NOT fall
-                 * through to the close body without holding the semaphore.
-                 */
+                // The caller's token fired, so this must not fall through without the semaphore.
+                // It must not assume another closer will finish either: see #2022.
                 return;
             }
 
@@ -266,19 +262,20 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-#if NETSTANDARD
         public void CloseSocket()
         {
+            // Must not set _closed: CloseAsync fast-paths on it, so the authoritative
+            // FinishCloseAsync close would become a no-op and leak the write loop.
+            // #2022, docs/internal/connection-shutdown-and-cancellation.md.
             try
             {
                 _socket.Close();
             }
             catch
             {
-                // ignore, we are aborting anyway
+                // ignore, we are closing anyway
             }
         }
-#endif
 
         public ValueTask ReadFrameAsync(InboundFrame frame, CancellationToken mainLoopCancellationToken)
         {
