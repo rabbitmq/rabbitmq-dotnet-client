@@ -58,6 +58,11 @@ namespace RabbitMQ.Client.ConsumerDispatching
             return _consumers.TryGetValue(tag, out IAsyncBasicConsumer? consumer) ? consumer : GetDefaultOrFallbackConsumer();
         }
 
+        public bool IsRegisteredConsumer(string tag)
+        {
+            return _consumers.ContainsKey(tag);
+        }
+
         public IAsyncBasicConsumer GetAndRemoveConsumer(string tag)
         {
             return _consumers.Remove(tag, out IAsyncBasicConsumer? consumer) ? consumer : GetDefaultOrFallbackConsumer();
