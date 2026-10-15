@@ -222,8 +222,7 @@ namespace RabbitMQ.Client.ConsumerDispatching
 
         public void Quiesce()
         {
-            // No early return on IsQuiescing: it is set before the token is cancelled, so returning
-            // here could leave the flag true with the token still live (#2006). Cancel() is
+            // No early return on IsQuiescing: a second caller must still reach Cancel(). It is
             // idempotent and _shutdownCts is never disposed (#1976), so repeating it is free.
             Interlocked.Exchange(ref _isQuiescing, 1);
             try
