@@ -156,6 +156,10 @@ Paths are under `projects/RabbitMQ.Client/` unless noted.
 - A delivered body (`ReadOnlyMemory<byte>`) is pooled and valid only inside the
   consumer callback.
 - A channel runs one RPC at a time.
+- `new CreateChannelOptions(...)` does not inherit `ConsumerDispatchConcurrency` from the
+  factory when the argument is omitted: the constructor's own default is 1, and only
+  passing `null` inherits. The same shape disables the publisher-confirmation rate
+  limiter (#2027, #2054).
 - `dotnet format RabbitMQDotNetClient.sln --verify-no-changes` is a CI gate on both
   platforms. No build runs it, so a clean local build can still fail CI.
 - Public API changes to `RabbitMQ.Client` go in `PublicAPI/PublicAPI.Unshipped.*.txt`
