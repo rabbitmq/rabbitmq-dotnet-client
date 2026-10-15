@@ -39,7 +39,7 @@ jobs:
       - name: Unit Tests
         run: dotnet test "${{ github.workspace }}\projects\Test\Unit\Unit.csproj" --no-restore --no-build --logger 'console;verbosity=detailed'
       - name: Upload Build (Debug)
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: rabbitmq-dotnet-client-build-win32
           path: |
@@ -70,7 +70,7 @@ jobs:
           path: ~/installers
           key: ${{ runner.os }}-v0-${{ hashFiles('.ci/windows/versions.json') }}
       - name: Download Build (Debug)
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
           name: rabbitmq-dotnet-client-build-win32
           path: projects
@@ -93,7 +93,7 @@ jobs:
         run: ${{ github.workspace }}\.ci\windows\gha-log-check.ps1
       - name: Maybe upload RabbitMQ and Toxiproxy logs
         if: failure()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: rabbitmq-logs-integration-win32
           path: ~/AppData/Roaming/RabbitMQ/log/
@@ -120,7 +120,7 @@ jobs:
           path: ~/installers
           key: ${{ runner.os }}-v0-${{ hashFiles('.ci/windows/versions.json') }}
       - name: Download Build (Debug)
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
           name: rabbitmq-dotnet-client-build-win32
           path: projects
@@ -137,7 +137,7 @@ jobs:
             "${{ github.workspace }}\projects\Test\SequentialIntegration\SequentialIntegration.csproj" --no-restore --no-build --logger 'console;verbosity=detailed'
       - name: Maybe upload RabbitMQ logs
         if: failure()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: rabbitmq-logs-sequential-integration-win32
           path: ~/AppData/Roaming/RabbitMQ/log/
@@ -171,7 +171,7 @@ jobs:
       - name: Unit Tests
         run: dotnet test "${{ github.workspace }}/projects/Test/Unit/Unit.csproj" --no-restore --no-build --logger 'console;verbosity=detailed'
       - name: Upload Build (Debug)
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: rabbitmq-dotnet-client-build-ubuntu
           path: |
@@ -192,7 +192,7 @@ jobs:
         with:
           global-json-file: global.json            
       - name: Download Build (Debug)
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
           name: rabbitmq-dotnet-client-build-ubuntu
           path: projects
@@ -216,7 +216,7 @@ jobs:
         run: docker logs rabbitmq-dotnet-client-toxiproxy > ${{ github.workspace }}/.ci/ubuntu/log/toxiproxy.log
       - name: Maybe upload RabbitMQ logs
         if: failure()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: rabbitmq-logs-integration-ubuntu
           path: ${{ github.workspace }}/.ci/ubuntu/log/
@@ -233,7 +233,7 @@ jobs:
         with:
           global-json-file: global.json            
       - name: Download Build (Debug)
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
           name: rabbitmq-dotnet-client-build-ubuntu
           path: projects
@@ -251,7 +251,7 @@ jobs:
                 "${{ github.workspace }}/projects/Test/SequentialIntegration/SequentialIntegration.csproj" --no-restore --no-build --logger 'console;verbosity=detailed'
       - name: Maybe upload RabbitMQ logs
         if: failure()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: rabbitmq-logs-sequential-integration-ubuntu
           path: ${{ github.workspace }}/.ci/ubuntu/log/
