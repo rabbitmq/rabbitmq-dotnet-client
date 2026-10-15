@@ -1011,8 +1011,8 @@ namespace RabbitMQ.Client.Impl
         {
             using (var k = (ConnectionSecureOrTuneAsyncRpcContinuation)_continuationQueue.Next())
             {
-                await k.HandleCommandAsync(new IncomingCommand())
-                    .ConfigureAwait(false); // release the continuation.
+                await k.HandleCommandAsync(cmd)
+                    .ConfigureAwait(false);
                 return true;
             }
         }
