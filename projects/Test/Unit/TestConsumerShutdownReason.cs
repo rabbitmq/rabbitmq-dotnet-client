@@ -39,19 +39,9 @@ using Xunit;
 
 namespace Test.Unit
 {
-    /// <summary>
-    /// rabbitmq/rabbitmq-dotnet-client#2006
-    ///
-    /// <see cref="AsyncDefaultBasicConsumer.ShutdownReason"/> documents itself as null unless the
-    /// channel has shut down, but nothing cleared it, so after a recovered connection drop a
-    /// consumer served deliveries again while still reporting the shutdown that triggered the
-    /// recovery. The registration callback clears it.
-    ///
-    /// These are the state transitions themselves, which need no broker and no dispatcher: the
-    /// constructor only stores the channel. The broker-backed counterpart, which proves recovery
-    /// drives this path, is
-    /// <c>TestConsumerRecovery.TestConsumerShutdownReasonIsClearedAfterRecovery_GH2006</c>.
-    /// </summary>
+    // The shutdown-reason state transitions, with no broker. #2006,
+    // docs/internal/connection-shutdown-and-cancellation.md. The broker-backed counterpart is
+    // TestConsumerRecovery.TestConsumerShutdownReasonIsClearedAfterRecovery_GH2006.
     public class TestConsumerShutdownReason
     {
         // The constructor only assigns Channel, which none of these tests read.
@@ -81,12 +71,8 @@ namespace Test.Unit
         [Fact]
         public async Task RegistrationDuringShutdownDoesNotClearTheReason_GH2006()
         {
-            /*
-             * The token is the dispatcher's shutdown token, cancelled by Quiesce(). A consume-ok
-             * processed after the shutdown work item records nothing at all: the channel is
-             * permanently dead, so clearing the reason would read as fully healthy, and adding the
-             * tag would advertise a consumer that can only throw when cancelled.
-             */
+            // An already-cancelled token proves only that the guard is present; the reachable
+            // interleaving it is meant to cover is #2016.
             var consumer = new AsyncDefaultBasicConsumer(channel: null);
             using var quiesced = new CancellationTokenSource();
             quiesced.Cancel();
@@ -122,11 +108,8 @@ namespace Test.Unit
         [Fact]
         public async Task CancellationLeavesNoShutdownReason_GH2006()
         {
-            /*
-             * Cancellation is not shutdown: neither a broker basic.cancel nor the application's own
-             * BasicCancelAsync records a reason, so a health check reading only ShutdownReason cannot
-             * see a cancelled consumer. The XML remarks say so; this keeps them honest.
-             */
+            // Cancellation is not shutdown and records no reason, so a health check reading only
+            // ShutdownReason cannot see it. Keeps the XML remarks honest.
             var consumer = new AsyncDefaultBasicConsumer(channel: null);
 
             await consumer.HandleBasicConsumeOkAsync("tag", CancellationToken.None);

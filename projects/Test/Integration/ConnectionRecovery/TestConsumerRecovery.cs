@@ -91,31 +91,15 @@ namespace Test.Integration.ConnectionRecovery
         [Fact]
         public async Task TestConsumerShutdownReasonIsClearedAfterRecovery_GH2006()
         {
-            /*
-             * rabbitmq/rabbitmq-dotnet-client#2006
-             *
-             * AsyncDefaultBasicConsumer.ShutdownReason documents itself as null unless the channel
-             * has shut down. Recovery re-registers the consumer, so it starts receiving deliveries
-             * again, but the reason recorded when the connection dropped was never cleared. The
-             * consumer therefore went on reporting a shutdown that was over, indefinitely, which is
-             * misleading for anything using it to decide whether the consumer is healthy.
-             */
-            /*
-             * The delivery barrier below proves the preceding consume-ok ran only because the
-             * dispatcher is a single-reader FIFO queue, which holds at a concurrency of one and not
-             * above it. The fixture takes the default; pin it so raising that default surfaces here
-             * rather than as a flake.
-             */
+            // The delivery barrier below holds only at a concurrency of one, so pin the fixture's
+            // default. #2006, docs/internal/connection-shutdown-and-cancellation.md.
             Assert.Equal((ushort)1, _consumerDispatchConcurrency);
 
             string q = (await _channel.QueueDeclareAsync(GenerateQueueName(), false, true, false)).QueueName;
             var consumer = new AsyncEventingBasicConsumer(_channel);
 
-            /*
-             * HandleBasicConsumeOkAsync runs on the consumer dispatcher, so it has not necessarily
-             * happened by the time BasicConsumeAsync returns. The initial state therefore has to be
-             * observed from the registration event rather than read straight after the call.
-             */
+            // The consume-ok runs on the dispatcher, so it need not have happened when
+            // BasicConsumeAsync returns; observe the initial state from the event, not the call.
             var firstRegistrationTcs =
                 new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
             consumer.RegisteredAsync += (sender, ea) =>
@@ -124,10 +108,8 @@ namespace Test.Integration.ConnectionRecovery
                 return Task.CompletedTask;
             };
 
-            // Capture the reason the drop records, so this test asserts the transition rather than
-            // just "null before, null after". Without it, a future change that stopped delivering
-            // the shutdown notification would leave both assertions passing and silently retire the
-            // guard.
+            // Asserts the transition, not "null before, null after": without this a change that
+            // stopped delivering the shutdown would leave both assertions passing.
             ShutdownEventArgs shutdownReasonSeen = null;
             consumer.ShutdownAsync += (sender, ea) =>
             {
@@ -155,13 +137,8 @@ namespace Test.Integration.ConnectionRecovery
                 "the consumer never observed a shutdown reason, so the connection drop did not " +
                 "reach this consumer and the clear-on-recovery assertions below prove nothing");
 
-            /*
-             * A delivery is the barrier, not the registration event. At a dispatch concurrency of
-             * one the dispatcher is a single-reader FIFO queue, so receiving a message proves the
-             * consume-ok that precedes it was processed. Latching on the registration count instead
-             * could be satisfied by a recovery attempt that re-registered and then failed, leaving
-             * the assertions below to read state from an attempt still in flight.
-             */
+            // A delivery, not the registration event: the registration count can be satisfied by a
+            // recovery that re-registered and then failed, leaving the state read mid-attempt.
             await _channel.BasicPublishAsync(string.Empty, q, _encoding.GetBytes("after recovery"));
             await WaitAsync(deliveredAfterRecoveryTcs, "delivery after recovery");
 
