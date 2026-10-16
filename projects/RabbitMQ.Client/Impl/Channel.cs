@@ -82,15 +82,21 @@ namespace RabbitMQ.Client.Impl
             ResolvedTracingOptions tracing = RabbitMQActivitySource.ResolveTracingOptions(TracingOptions);
             return result != null
                 ? RabbitMQActivitySource.BasicGet(result.RoutingKey, result.Exchange, result.DeliveryTag,
-                    result.BasicProperties, result.Body.Length, tracing)
-                : RabbitMQActivitySource.BasicGetEmpty(queue, tracing);
+                    result.BasicProperties, result.Body.Length, tracing, VirtualHost, ClusterName)
+                : RabbitMQActivitySource.BasicGetEmpty(queue, tracing, VirtualHost, ClusterName);
         }
 
         private bool _disposed;
         private int _isDisposing;
 
+        internal string? VirtualHost { get; }
+        internal string? ClusterName { get; }
+
         public Channel(ISession session, CreateChannelOptions createChannelOptions)
         {
+            VirtualHost = createChannelOptions.VirtualHost;
+            ClusterName = createChannelOptions.ClusterName;
+
             ContinuationTimeout = createChannelOptions.ContinuationTimeout;
             TracingOptions = createChannelOptions.TracingOptions;
             ConsumerDispatcher = new AsyncConsumerDispatcher(this, createChannelOptions.InternalConsumerDispatchConcurrency);

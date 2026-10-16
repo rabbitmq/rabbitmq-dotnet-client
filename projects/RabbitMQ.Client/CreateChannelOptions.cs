@@ -30,6 +30,8 @@
 //---------------------------------------------------------------------------
 
 using System;
+using System.Collections.Generic;
+using System.Text;
 using System.Threading.RateLimiting;
 
 namespace RabbitMQ.Client
@@ -42,6 +44,8 @@ namespace RabbitMQ.Client
         private ushort? _connectionConfigConsumerDispatchConcurrency;
         private TimeSpan _connectionConfigContinuationTimeout;
         private ConnectionTracingOptions? _connectionConfigTracingOptions;
+        private string? _connectionConfigVirtualHost;
+        private string? _connectionClusterName;
 
         /// <summary>
         /// Enable or disable publisher confirmations on this channel. Defaults to <c>false</c>
@@ -132,31 +136,54 @@ namespace RabbitMQ.Client
 
         internal ConnectionTracingOptions? TracingOptions => _connectionConfigTracingOptions;
 
-        internal CreateChannelOptions(ConnectionConfig connectionConfig)
+        internal string? VirtualHost => _connectionConfigVirtualHost;
+
+        internal string? ClusterName => _connectionClusterName;
+
+        internal CreateChannelOptions(ConnectionConfig connectionConfig, IDictionary<string, object?>? serverProperties)
         {
             _connectionConfigConsumerDispatchConcurrency = connectionConfig.ConsumerDispatchConcurrency;
             _connectionConfigContinuationTimeout = connectionConfig.ContinuationTimeout;
             _connectionConfigTracingOptions = connectionConfig.TracingOptions;
+            _connectionConfigVirtualHost = connectionConfig.VirtualHost;
+            _connectionClusterName = ExtractClusterName(serverProperties);
         }
 
-        private CreateChannelOptions WithConnectionConfig(ConnectionConfig connectionConfig)
+        private CreateChannelOptions WithConnectionConfig(ConnectionConfig connectionConfig, IDictionary<string, object?>? serverProperties)
         {
             _connectionConfigConsumerDispatchConcurrency = connectionConfig.ConsumerDispatchConcurrency;
             _connectionConfigContinuationTimeout = connectionConfig.ContinuationTimeout;
             _connectionConfigTracingOptions = connectionConfig.TracingOptions;
+            _connectionConfigVirtualHost = connectionConfig.VirtualHost;
+            _connectionClusterName = ExtractClusterName(serverProperties);
             return this;
         }
 
-        internal static CreateChannelOptions CreateOrUpdate(CreateChannelOptions? createChannelOptions, ConnectionConfig config)
+        internal static CreateChannelOptions CreateOrUpdate(CreateChannelOptions? createChannelOptions, ConnectionConfig config,
+            IDictionary<string, object?>? serverProperties)
         {
             if (createChannelOptions is null)
             {
-                return new CreateChannelOptions(config);
+                return new CreateChannelOptions(config, serverProperties);
             }
             else
             {
-                return createChannelOptions.WithConnectionConfig(config);
+                return createChannelOptions.WithConnectionConfig(config, serverProperties);
             }
+        }
+
+        // Server-properties table entries decode to their raw AMQP wire representation; long
+        // strings (like cluster_name) arrive as UTF-8 byte[], not string.
+        private static string? ExtractClusterName(IDictionary<string, object?>? serverProperties)
+        {
+            if (serverProperties != null &&
+                serverProperties.TryGetValue("cluster_name", out object? clusterNameValue) &&
+                clusterNameValue is byte[] clusterNameBytes)
+            {
+                return Encoding.UTF8.GetString(clusterNameBytes);
+            }
+
+            return null;
         }
     }
 }

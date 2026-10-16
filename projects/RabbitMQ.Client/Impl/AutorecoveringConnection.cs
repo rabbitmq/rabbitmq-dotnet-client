@@ -285,7 +285,7 @@ namespace RabbitMQ.Client.Impl
         {
             EnsureIsOpen();
 
-            createChannelOptions = CreateChannelOptions.CreateOrUpdate(createChannelOptions, _config);
+            createChannelOptions = CreateChannelOptions.CreateOrUpdate(createChannelOptions, _config, ServerProperties);
             RecoveryAwareChannel recoveryAwareChannel = await CreateNonRecoveringChannelAsync(createChannelOptions, cancellationToken)
                 .ConfigureAwait(false);
 

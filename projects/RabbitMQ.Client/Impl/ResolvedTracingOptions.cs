@@ -45,11 +45,13 @@ namespace RabbitMQ.Client
     internal readonly struct ResolvedTracingOptions
     {
         internal ResolvedTracingOptions(bool useRoutingKeyAsOperationName, bool usePublisherAsParent,
+            bool captureVirtualHostAndClusterName,
             Action<Activity, IDictionary<string, object?>> contextInjector,
             Func<IReadOnlyBasicProperties, ActivityContext> contextExtractor)
         {
             UseRoutingKeyAsOperationName = useRoutingKeyAsOperationName;
             UsePublisherAsParent = usePublisherAsParent;
+            CaptureVirtualHostAndClusterName = captureVirtualHostAndClusterName;
             ContextInjector = contextInjector;
             ContextExtractor = contextExtractor;
         }
@@ -57,6 +59,8 @@ namespace RabbitMQ.Client
         internal bool UseRoutingKeyAsOperationName { get; }
 
         internal bool UsePublisherAsParent { get; }
+
+        internal bool CaptureVirtualHostAndClusterName { get; }
 
         internal Action<Activity, IDictionary<string, object?>> ContextInjector { get; }
 
