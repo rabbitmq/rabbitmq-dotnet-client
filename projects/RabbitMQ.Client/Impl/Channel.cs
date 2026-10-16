@@ -834,10 +834,11 @@ namespace RabbitMQ.Client.Impl
         protected async Task<bool> HandleBasicCancelAsync(IncomingCommand cmd, CancellationToken cancellationToken)
         {
             string consumerTag = new BasicCancel(cmd.MethodSpan)._consumerTag;
+            bool registered = ConsumerDispatcher.IsRegisteredConsumer(consumerTag);
             await ConsumerDispatcher.HandleBasicCancelAsync(consumerTag, cancellationToken)
                 .ConfigureAwait(false);
 
-            if (IsOpen && Session.ServerAcceptsConsumerCancelOk)
+            if (IsOpen && Session.ServerAcceptsConsumerCancelOk && registered)
             {
                 try
                 {

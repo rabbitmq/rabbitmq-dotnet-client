@@ -166,9 +166,34 @@ namespace Test.Unit
 
             try
             {
+                var consumer = new CancelRecordingConsumer(channel);
+                await channel.ConsumerDispatcher.HandleBasicConsumeOkAsync(consumer, ConsumerTag,
+                    CancellationToken.None);
                 channel.SetCloseReason(new ShutdownEventArgs(ShutdownInitiator.Application,
                     Constants.ReplySuccess, "closing"));
 
+                await session.DeliverBasicCancelAsync(ConsumerTag);
+
+                Assert.Empty(session.TransmittedCommands);
+            }
+            finally
+            {
+                await DisposeChannelAsync(session, channel);
+            }
+        }
+
+        [Fact]
+        public async Task TestServerSentBasicCancelForUnknownTagIsNotAnswered_GH2066()
+        {
+            using var session = new TestSession(new TestSessionOptions
+            {
+                ChannelNumber = 1,
+                ServerAcceptsConsumerCancelOk = true
+            });
+            var channel = CreateChannel(session);
+
+            try
+            {
                 await session.DeliverBasicCancelAsync(ConsumerTag);
 
                 Assert.Empty(session.TransmittedCommands);
