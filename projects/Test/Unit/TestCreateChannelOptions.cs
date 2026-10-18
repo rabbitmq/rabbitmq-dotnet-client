@@ -31,9 +31,7 @@
 
 using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
 using RabbitMQ.Client;
-using RabbitMQ.Client.Impl;
 using Xunit;
 
 namespace Test.Unit
@@ -43,16 +41,8 @@ namespace Test.Unit
         [Fact]
         public void ConstructorDefaultsConsumerDispatchConcurrencyToOne()
         {
-            /*
-             * Pins the constructor's default rather than the field initializer's. The field is
-             * declared `= null` and its documentation describes null as "inherit from the factory",
-             * but the public constructor defaults the parameter to 1 and assigns it unconditionally,
-             * so options built through the constructor never inherit unless null is passed.
-             * That divergence is what #2027 set out to remove; it stays on purpose, because
-             * changing the default would compile everywhere and split behaviour by rebuild rather
-             * than break a build (see the remarks on the member). This test exists so the two cannot
-             * drift apart silently again.
-             */
+            // Pins the constructor's default, not the field initializer's `= null`; the two
+            // diverge on purpose, for the reasons on the member's remarks.
             var options = new CreateChannelOptions(publisherConfirmationsEnabled: false,
                 publisherConfirmationTrackingEnabled: false);
 
@@ -64,11 +54,7 @@ namespace Test.Unit
         [Fact]
         public void ConstructedOptionsDoNotInheritConnectionFactoryConsumerDispatchConcurrency()
         {
-            /*
-             * The counterpart: because the constructor supplied 1, CreateOrUpdate has nothing to
-             * inherit into, so the factory's value is ignored. Passing null explicitly
-             * is what opts in - see ExplicitNullInherits... below.
-             */
+            // The constructor supplied 1, so CreateOrUpdate has nothing to inherit into.
             var options = new CreateChannelOptions(publisherConfirmationsEnabled: false,
                 publisherConfirmationTrackingEnabled: false);
             ConnectionConfig config = CreateConnectionConfig(consumerDispatchConcurrency: 4);
@@ -82,11 +68,8 @@ namespace Test.Unit
         [Fact]
         public void NoOptionsInheritsConnectionFactoryConsumerDispatchConcurrency()
         {
-            /*
-             * The path that does inherit, and the only one where the field initializers apply:
-             * CreateChannelAsync() with no options at all, which reaches the internal
-             * CreateChannelOptions(ConnectionConfig) constructor.
-             */
+            // The path that does inherit: no options at all, which reaches the internal
+            // CreateChannelOptions(ConnectionConfig) constructor.
             ConnectionConfig config = CreateConnectionConfig(consumerDispatchConcurrency: 4);
 
             CreateChannelOptions options = CreateChannelOptions.CreateOrUpdate(null, config);

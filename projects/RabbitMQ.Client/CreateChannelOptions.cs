@@ -76,22 +76,25 @@ namespace RabbitMQ.Client
         /// <remarks>
         /// Setting the rate limiter to <c>null</c> disables the rate limiting entirely.
         /// <para>
-        /// <b>That default applies only to options this library builds for you.</b> The
-        /// <see cref="CreateChannelOptions(bool, bool, RateLimiter, ushort?)"/> constructor defaults this
-        /// parameter to <c>null</c> and assigns it unconditionally, so options you construct yourself have
-        /// no rate limiter - and therefore no limit on outstanding publisher confirmations - unless you pass
-        /// one. This is the same divergence between field initializer and constructor default described on
-        /// <see cref="ConsumerDispatchConcurrency"/>, but with a safety mechanism rather than a number on
-        /// the other side of it.
+        /// <b>The constructor gives you no limiter, and the field initializer reaches no publish path.</b>
+        /// The <see cref="CreateChannelOptions(bool, bool, RateLimiter, ushort?)"/> constructor defaults
+        /// this parameter to <c>null</c> and assigns it unconditionally, so options you construct yourself
+        /// have no rate limiter unless you pass one. The initializer survives only on the options this
+        /// library builds internally, and those leave <see cref="PublisherConfirmationsEnabled"/> false, so
+        /// the publish path never consults it. This is the same divergence between field initializer and
+        /// constructor default described on <see cref="ConsumerDispatchConcurrency"/>.
         /// </para>
         /// <para>
-        /// <b>What a limiter of 128 does, if you pass one.</b> <see cref="ThrottlingRateLimiter"/> uses the
-        /// limit as both its permit and its queue limit, and begins throttling at the given percentage of
-        /// it - so at 128 and 50% it delays every publish once more than 64 confirmations are outstanding,
-        /// and beyond 256 in flight it refuses a lease, which surfaces as an
+        /// <b>What a limiter bounds, if you pass one.</b> <see cref="ThrottlingRateLimiter"/> uses the limit
+        /// as both its permit and its queue limit. A permit is held only while a publish is being sent and
+        /// is released before the broker's acknowledgement is awaited, so the limit bounds concurrent
+        /// <c>BasicPublishAsync</c> calls, not unacknowledged messages. The throttling percentage is an
+        /// available-permit floor rather than the point at which throttling begins: a delay applies once
+        /// available permits fall below <c>limit * percentage / 100</c>, so a lower percentage throttles
+        /// later and 1% never throttles at all. Once every permit and queue slot is taken, the limiter
+        /// waits a second and then refuses, which surfaces as an
         /// <see cref="System.InvalidOperationException"/> from the publish. Size it against how many
-        /// confirmations your application really keeps outstanding; it is a backpressure mechanism, not a
-        /// safety net you can leave at any value. See rabbitmq/rabbitmq-dotnet-client#2054.
+        /// publishes you have in flight at once. See rabbitmq/rabbitmq-dotnet-client#2054.
         /// </para>
         /// <para>
         /// <b>Its lifetime belongs to you.</b> Disposing an <see cref="IChannel"/> does not dispose
