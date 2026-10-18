@@ -505,7 +505,7 @@ The test is a timing assertion and does not assert a specific exception type. It
 
 `RecordedConsumerActuallyPassesTheTokenToBasicConsume_GH1997` closes that gap by pinning the body. It drives `RecordedConsumer.RecoverAsync` against a `DispatchProxy` `IChannel` that captures the token `basic.consume` was handed, asserts `basic.consume` was reached at all so the test cannot pass vacuously, and then asserts the captured token is the one supplied. `net8.0` only, because `DispatchProxy` does not exist on `net472`; the behaviour is framework-independent. Note the `#if NET` guard only ever bites in the `build-win32` job - `Unit.csproj` adds `net472` solely under `IsOSPlatform('Windows')`, so a Linux run targets `net8.0` alone and never compiles the excluded branch. Do not assert the token with `Assert.Equal`: `CancellationToken` does not override `ToString()`, so the failure prints `System.Threading.CancellationToken` for both expected and actual and says nothing - measured, and the reason the test asserts on `Equals` with a message naming `CanBeCanceled` and whether the captured token is `CancellationToken.None`.
 
-What still has no test is the cancellation *latency* the fix improves. `TestToxiproxy.TestConsumerRecoveryContinuationTimeoutIsRetried_GH1993` already builds the necessary state (a `RecoveringConsumerAsync` handler plus a `Rate=0` toxic so the consume goes out but the reply cannot return), so adding a concurrent close with a stopwatch assertion there is the natural way to reach it.
+What still has no test is the cancellation *latency* the fix improves. `TestToxiproxy.TestConsumerRecoveryContinuationTimeoutIsRetried_GH1993` already builds the necessary state (a `RecoveringConsumerAsync` handler plus a downstream `timeout` toxic so the consume goes out but the reply cannot return), so adding a concurrent close with a stopwatch assertion there is the natural way to reach it.
 
 ### #2006
 
@@ -514,6 +514,16 @@ What still has no test is the cancellation *latency* the fix improves. `TestToxi
 Verified by mutation: deleting the early return, moving either the tag write or the `IsRunning` write above it, and dropping `Cancel()` from `Quiesce()` each fail one test, and the integration test fails with the clear reverted.
 
 Two changes have no test, and these are gaps rather than decisions. Restoring `Quiesce()`'s early return leaves all 248 unit tests green, since the race needs the flag set with the token still live and no harness reaches that deterministically. Deleting `AsyncEventingBasicConsumer`'s suppression of `RegisteredAsync` also leaves the suite green, and that one is cheap to cover without a broker.
+
+### Stalling a connection in the Toxiproxy tests (#2072)
+
+Four tests need the broker's reply withheld while the connection stays open, so a continuation timeout fires rather than the socket failing. They use a `timeout` toxic with `Timeout = 0` on the downstream direction, which stops data without closing the connection.
+
+**Do not use a `BandwidthToxic` with `Rate = 0` for this.** That is what they used until #2072, and it worked by accident: a non-positive rate left Toxiproxy's packet-splitting loop with a split size of zero, emitting empty chunks forever without forwarding the payload. Shopify/toxiproxy#764 fixed that hang on purpose in 2.13.0, where a non-positive rate now falls through to the unthrottled send path, so the tests stopped blocking and asserted nothing. The hang is not coming back, and the image is unpinned again on the strength of the `timeout` toxic.
+
+Measured on 2026-10-18: against 2.13.0 the rate-0 version failed three of the four locally, and the `timeout` version passed the whole class on 2.13.0, on 2.12.0, and twice through the unpinned setup script. A heartbeat does not interfere, because the continuation timeouts under test are milliseconds to seconds while the stall only has to outlast them.
+
+The two `Rate = 1` toxics are a different mechanism and are unaffected: they throttle the write path rather than stalling a reply.
 
 ### Running against a local broker
 

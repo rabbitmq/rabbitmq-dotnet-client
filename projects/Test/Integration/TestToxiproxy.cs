@@ -527,15 +527,17 @@ namespace Test.Integration
             await using IChannel ch = await conn.CreateChannelAsync();
 
             string toxicName = $"rmq-localhost-bandwidth-{Now}-{GenerateShortUuid()}";
-            var bandwidthToxic = new BandwidthToxic
+            // A timeout toxic, not a rate-0 BandwidthToxic: the latter only stalled through an
+            // upstream bug that 2.13.0 fixed. #2072, and the shutdown doc's Toxiproxy section.
+            var stallToxic = new TimeoutToxic
             {
                 Name = toxicName
             };
-            bandwidthToxic.Attributes.Rate = 0;
-            bandwidthToxic.Toxicity = 1.0;
-            bandwidthToxic.Stream = ToxicDirection.DownStream;
+            stallToxic.Attributes.Timeout = 0;
+            stallToxic.Toxicity = 1.0;
+            stallToxic.Stream = ToxicDirection.DownStream;
 
-            Task<BandwidthToxic> addToxicTask = _toxiproxyManager.AddToxicAsync(bandwidthToxic);
+            Task<TimeoutToxic> addToxicTask = _toxiproxyManager.AddToxicAsync(stallToxic);
 
             await Task.Delay(TimeSpan.FromSeconds(1));
 
@@ -622,17 +624,17 @@ namespace Test.Integration
             IConsumerDispatcher dispatcher = impl.ConsumerDispatcher;
 
             string toxicName = $"rmq-dispose-dispatcher-bandwidth-{Now}-{GenerateShortUuid()}";
-            var bandwidthToxic = new BandwidthToxic
+            var stallToxic = new TimeoutToxic
             {
                 Name = toxicName,
                 Toxicity = 1.0,
                 Stream = ToxicDirection.DownStream
             };
-            bandwidthToxic.Attributes.Rate = 0;
+            stallToxic.Attributes.Timeout = 0;
 
             try
             {
-                await _toxiproxyManager.AddToxicAsync(bandwidthToxic);
+                await _toxiproxyManager.AddToxicAsync(stallToxic);
                 await Task.Delay(TimeSpan.FromSeconds(1));
 
                 // The channel is still open, so dispose aborts it; the abort swallows the
@@ -1081,14 +1083,14 @@ namespace Test.Integration
                     return;
                 }
 
-                var bandwidthToxic = new BandwidthToxic
+                var stallToxic = new TimeoutToxic
                 {
                     Name = toxicName,
                     Toxicity = 1.0,
                     Stream = ToxicDirection.DownStream
                 };
-                bandwidthToxic.Attributes.Rate = 0;
-                await _toxiproxyManager.AddToxicAsync(bandwidthToxic);
+                stallToxic.Attributes.Timeout = 0;
+                await _toxiproxyManager.AddToxicAsync(stallToxic);
             };
 
             // Sever the connection, then restore it so recovery can proceed.
@@ -1197,13 +1199,13 @@ namespace Test.Integration
             IChannel abortCh = await conn.CreateChannelAsync();
 
             string toxicName = $"rmq-close-timeout-bandwidth-{Now}-{GenerateShortUuid()}";
-            var bandwidthToxic = new BandwidthToxic
+            var stallToxic = new TimeoutToxic
             {
                 Name = toxicName,
                 Toxicity = 1.0,
                 Stream = ToxicDirection.DownStream
             };
-            bandwidthToxic.Attributes.Rate = 0;
+            stallToxic.Attributes.Timeout = 0;
 
             /*
              * The cancellation timer and Stopwatch do not share a clock source, so the timer can
@@ -1216,7 +1218,7 @@ namespace Test.Integration
 
             try
             {
-                await _toxiproxyManager.AddToxicAsync(bandwidthToxic);
+                await _toxiproxyManager.AddToxicAsync(stallToxic);
                 await Task.Delay(TimeSpan.FromSeconds(1));
 
                 // A graceful close rethrows. The assertion below is only that the completing token is
