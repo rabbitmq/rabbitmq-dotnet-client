@@ -525,6 +525,8 @@ Measured on 2026-10-18: against 2.13.0 the rate-0 version failed three of the fo
 
 The two `Rate = 1` toxics are a different mechanism and are unaffected: they throttle the write path rather than stalling a reply.
 
+**Both container images stay floating, deliberately.** `gha-setup.sh` runs `ghcr.io/shopify/toxiproxy:latest` and `rabbitmq:management` with `--pull always`, so an upstream release that breaks this client shows up in CI on the next run rather than whenever someone remembers to bump a pin. That is the point: the cost is an occasional morning of red pull requests, and the alternative is testing against versions the project no longer ships against. Do not pin either one to make a red build go away; find what changed, as #2072 did.
+
 ### Running against a local broker
 
 Integration and sequential-integration tests need a broker. The CI setup script is the source of truth:
