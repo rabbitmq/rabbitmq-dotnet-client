@@ -409,6 +409,24 @@ Three waits are deliberately still cancellable, and none of them is a *semaphore
 
 It could not deadlock the seven re-acquires even then, and **not** because it ran strictly after them: the channel loop ran each channel's `RecoverConsumersAsync` and then that channel's recovery handlers, so with two or more channels the first channel's handlers ran *before* the second channel's consumer loop. What made it safe was simply that this is all one sequential task - there is never a second holder to contend with, and a wedged handler meant the remaining consumer loops never started rather than blocking on a semaphore.
 
+## Issue #2006: the consumer shutdown reason and why clearing it is safe
+
+`AsyncDefaultBasicConsumer.ShutdownReason` documents itself as null unless the channel has shut down, but nothing ever cleared it, so after a recovered connection drop a consumer served deliveries again while still reporting the shutdown that triggered the recovery. `HandleBasicConsumeOkAsync` now clears it, because that is where the broker confirms the registration.
+
+The shutdown always precedes the re-registration, by the ordering this document establishes above: the pre-shutdown chain reaches `SessionBase` teardown, which awaits `ConsumerDispatcher.ShutdownAsync(reason)` and so the dispatcher's worker, while recovery starts from a public `ConnectionShutdownAsync` handler. Every consumer's `HandleChannelShutdownAsync` has therefore run before recovery can clear anything.
+
+Nothing in the suite can falsify that ordering. A test recording the order of a consumer's callbacks across a recovery stays green with the pre-shutdown `InvokeAsync` made fire-and-forget, so it was not added: the margin is too large to lose, the competing write needing a reconnect, handshake, `channel.open` and `basic.consume` after `Task.Delay(NetworkRecoveryInterval)` against one already-queued work item. Do not read the green suite as evidence the sequential awaits are what make it work.
+
+The clear is skipped when the work item's token is already cancelled, so a registration confirmed on a dying channel records nothing at all - no tag, no `IsRunning`, no clear. An unconditional clear would leave a dead channel reading as healthy; the stale reason is the fail-safe answer. `Quiesce()` has no `if (IsQuiescing) return;` early exit, so a second caller still reaches `Cancel()`, which is idempotent on a source that is never disposed (#1976). That does not make the flag and the token agree, and is not meant to: #2074 covers the window, including why cancelling first would be worse.
+
+The guard narrows the window rather than closing it, because the token is read and `_shutdownReason` written as two steps. Above a dispatch concurrency of one, separate workers take the consume-ok and the shutdown item with nothing ordering them; at any concurrency the dispatcher's own `IsQuiescing` check and its write are not atomic, so a consume-ok can pass the check and land behind the shutdown items.
+
+**That residue is reproducible.** Driving the shipped `HandleBasicConsumeOkAsync` and `HandleChannelShutdownAsync` concurrently in the order the dispatcher can produce, three runs of 400,000 trials cleared the reason despite a recorded shutdown 881, 1060 and 1272 times; 21, 185 and 59 of those also had `IsRunning` true. An independent reproduction on a 12-core box got 3510, 6083 and 2977, so treat the counts as machine-dependent and the non-zero as not. The large majority therefore rest at a null reason with `IsRunning` false, which `main` cannot produce because `main` never writes null - it rests at (reason, false). This fix introduces that fail-open state; it is #2016, where the unsynchronised state on this class is tracked.
+
+Both properties are `Volatile`-accessed because they are written from a dispatcher worker and read from application threads, and a plain auto-property read hoists out of a polling loop. `SessionBase.CloseReason` uses the pattern for the same reason.
+
+Known limits, not fixed here. The value is per consumer instance rather than per tag, so one confirmed registration clears it for an instance registered under several tags. `IsRunning` has the mirror-image problem on cancel. A suppressed registration leaves an empty `ConsumerTags` payload and still receives already-queued deliveries, which is #2073.
+
 ## Relevant timeouts
 
 These are easy to confuse; distinguishing which one a hang tracks is the key diagnostic signal.
@@ -488,6 +506,14 @@ The test is a timing assertion and does not assert a specific exception type. It
 `RecordedConsumerActuallyPassesTheTokenToBasicConsume_GH1997` closes that gap by pinning the body. It drives `RecordedConsumer.RecoverAsync` against a `DispatchProxy` `IChannel` that captures the token `basic.consume` was handed, asserts `basic.consume` was reached at all so the test cannot pass vacuously, and then asserts the captured token is the one supplied. `net8.0` only, because `DispatchProxy` does not exist on `net472`; the behaviour is framework-independent. Note the `#if NET` guard only ever bites in the `build-win32` job - `Unit.csproj` adds `net472` solely under `IsOSPlatform('Windows')`, so a Linux run targets `net8.0` alone and never compiles the excluded branch. Do not assert the token with `Assert.Equal`: `CancellationToken` does not override `ToString()`, so the failure prints `System.Threading.CancellationToken` for both expected and actual and says nothing - measured, and the reason the test asserts on `Equals` with a message naming `CanBeCanceled` and whether the captured token is `CancellationToken.None`.
 
 What still has no test is the cancellation *latency* the fix improves. `TestToxiproxy.TestConsumerRecoveryContinuationTimeoutIsRetried_GH1993` already builds the necessary state (a `RecoveringConsumerAsync` handler plus a `Rate=0` toxic so the consume goes out but the reply cannot return), so adding a concurrent close with a stopwatch assertion there is the natural way to reach it.
+
+### #2006
+
+`projects/Test/Unit/TestConsumerShutdownReason.cs` covers the state transitions with no broker; `TestConsumerRecovery.TestConsumerShutdownReasonIsClearedAfterRecovery_GH2006` covers them against one, using a delivery rather than the registration event as its barrier so a recovery that re-registered and then failed cannot satisfy it.
+
+Verified by mutation: deleting the early return, moving either the tag write or the `IsRunning` write above it, and dropping `Cancel()` from `Quiesce()` each fail one test, and the integration test fails with the clear reverted.
+
+Two changes have no test, and these are gaps rather than decisions. Restoring `Quiesce()`'s early return leaves all 248 unit tests green, since the race needs the flag set with the token still live and no harness reaches that deterministically. Deleting `AsyncEventingBasicConsumer`'s suppression of `RegisteredAsync` also leaves the suite green, and that one is cheap to cover without a broker.
 
 ### Running against a local broker
 

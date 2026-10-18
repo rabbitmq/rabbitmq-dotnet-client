@@ -67,7 +67,11 @@ namespace RabbitMQ.Client
         /// Called upon successful registration of the consumer with the broker.
         /// </summary>
         /// <param name="consumerTag">Consumer tag this consumer is registered.</param>
-        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <param name="cancellationToken">
+        /// The consumer dispatcher's shutdown token. Already cancelled means the channel is going down, so
+        /// the registration will never deliver and an implementation should not record it as live. An
+        /// implementation that calls a base method must forward this, or that check cannot fire.
+        /// </param>
         Task HandleBasicConsumeOkAsync(string consumerTag, CancellationToken cancellationToken = default);
 
         /// <summary>
