@@ -192,16 +192,19 @@ namespace Test.Unit
         {
             byte[] rented = ArrayPool<byte>.Shared.Rent(method.GetRequiredBufferSize());
             int written = method.WriteTo(rented);
-
-            return GetCommandReceived()(new IncomingCommand
-            {
-                CommandId = method.ProtocolCommandId,
-                Method = new RentedMemory(new ReadOnlyMemory<byte>(rented, 0, written), rented)
-            }, CancellationToken.None);
+            return DeliverEncodedMethodAsync(method.ProtocolCommandId, rented, written);
         }
 
         public Task DeliverBasicCancelAsync(string consumerTag)
             => DeliverMethodAsync(new BasicCancel(consumerTag, Nowait: true));
+
+        // The client has no encoder for connection.secure; its only argument is a longstr.
+        public Task DeliverConnectionSecureAsync(byte[] challenge)
+        {
+            byte[] rented = ArrayPool<byte>.Shared.Rent(4 + challenge.Length);
+            int written = WireFormatting.WriteLongstr(ref rented.GetStart(), challenge);
+            return DeliverEncodedMethodAsync(ProtocolCommandId.ConnectionSecure, rented, written);
+        }
 
         public void Dispose()
         {
@@ -218,6 +221,15 @@ namespace Test.Unit
             }
 
             return options;
+        }
+
+        private Task DeliverEncodedMethodAsync(ProtocolCommandId commandId, byte[] rented, int written)
+        {
+            return GetCommandReceived()(new IncomingCommand
+            {
+                CommandId = commandId,
+                Method = new RentedMemory(new ReadOnlyMemory<byte>(rented, 0, written), rented)
+            }, CancellationToken.None);
         }
 
         private CommandReceivedAction GetCommandReceived()
