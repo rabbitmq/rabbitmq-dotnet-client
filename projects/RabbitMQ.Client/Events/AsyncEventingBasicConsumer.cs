@@ -68,6 +68,14 @@ namespace RabbitMQ.Client.Events
         {
             await base.HandleBasicConsumeOkAsync(consumerTag, cancellationToken)
                 .ConfigureAwait(false);
+
+            // The base records nothing once the channel is going down (#2006), so do not announce a
+            // registration it did not make - handlers read this event as "the consumer is live".
+            if (cancellationToken.IsCancellationRequested)
+            {
+                return;
+            }
+
             if (!_registeredAsyncWrapper.IsEmpty)
             {
                 await _registeredAsyncWrapper.InvokeAsync(this, new ConsumerEventArgs(new[] { consumerTag }, cancellationToken))
