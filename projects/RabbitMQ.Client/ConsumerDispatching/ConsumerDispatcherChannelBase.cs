@@ -222,11 +222,8 @@ namespace RabbitMQ.Client.ConsumerDispatching
 
         public void Quiesce()
         {
-            if (IsQuiescing)
-            {
-                return;
-            }
-
+            // No early return on IsQuiescing: a second caller must still reach Cancel(). It is
+            // idempotent and _shutdownCts is never disposed (#1976), so repeating it is free.
             Interlocked.Exchange(ref _isQuiescing, 1);
             try
             {

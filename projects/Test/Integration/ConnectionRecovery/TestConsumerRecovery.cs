@@ -87,5 +87,64 @@ namespace Test.Integration.ConnectionRecovery
             Assert.True(_channel.IsOpen);
             await AssertConsumerCountAsync(q, 0);
         }
+
+        [Fact]
+        public async Task TestConsumerShutdownReasonIsClearedAfterRecovery_GH2006()
+        {
+            // The delivery barrier below holds only at a concurrency of one, so pin the fixture's
+            // default. #2006, docs/internal/connection-shutdown-and-cancellation.md.
+            Assert.Equal((ushort)1, _consumerDispatchConcurrency);
+
+            string q = (await _channel.QueueDeclareAsync(GenerateQueueName(), false, true, false)).QueueName;
+            var consumer = new AsyncEventingBasicConsumer(_channel);
+
+            // The consume-ok runs on the dispatcher, so it need not have happened when
+            // BasicConsumeAsync returns; observe the initial state from the event, not the call.
+            var firstRegistrationTcs =
+                new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+            consumer.RegisteredAsync += (sender, ea) =>
+            {
+                firstRegistrationTcs.TrySetResult(true);
+                return Task.CompletedTask;
+            };
+
+            // Asserts the transition, not "null before, null after": without this a change that
+            // stopped delivering the shutdown would leave both assertions passing.
+            ShutdownEventArgs shutdownReasonSeen = null;
+            consumer.ShutdownAsync += (sender, ea) =>
+            {
+                shutdownReasonSeen = consumer.ShutdownReason;
+                return Task.CompletedTask;
+            };
+
+            var deliveredAfterRecoveryTcs =
+                new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+            consumer.ReceivedAsync += (sender, ea) =>
+            {
+                deliveredAfterRecoveryTcs.TrySetResult(true);
+                return Task.CompletedTask;
+            };
+
+            await _channel.BasicConsumeAsync(q, true, consumer);
+            await WaitAsync(firstRegistrationTcs, "consumer registered");
+
+            Assert.True(consumer.IsRunning);
+            Assert.Null(consumer.ShutdownReason);
+
+            await CloseAndWaitForRecoveryAsync();
+
+            Assert.True(shutdownReasonSeen is not null,
+                "the consumer never observed a shutdown reason, so the connection drop did not " +
+                "reach this consumer and the clear-on-recovery assertions below prove nothing");
+
+            // A delivery, not the registration event: the registration count can be satisfied by a
+            // recovery that re-registered and then failed, leaving the state read mid-attempt.
+            await _channel.BasicPublishAsync(string.Empty, q, _encoding.GetBytes("after recovery"));
+            await WaitAsync(deliveredAfterRecoveryTcs, "delivery after recovery");
+
+            Assert.True(_channel.IsOpen);
+            Assert.True(consumer.IsRunning);
+            Assert.Null(consumer.ShutdownReason);
+        }
     }
 }
