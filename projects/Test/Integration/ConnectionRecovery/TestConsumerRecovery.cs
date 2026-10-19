@@ -29,6 +29,8 @@
 //  Copyright (c) 2007-2026 Broadcom. All Rights Reserved.
 //---------------------------------------------------------------------------
 
+using System;
+using System.Threading;
 using System.Threading.Tasks;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
@@ -145,6 +147,118 @@ namespace Test.Integration.ConnectionRecovery
             Assert.True(_channel.IsOpen);
             Assert.True(consumer.IsRunning);
             Assert.Null(consumer.ShutdownReason);
+        }
+
+        [Fact]
+        public async Task TestBasicConsumeRejectsATagInUseOnTheChannel_GH2080()
+        {
+            string q = (await _channel.QueueDeclareAsync(GenerateQueueName(), false, true, false)).QueueName;
+            string tag = GenerateShortUuid();
+            var consumer = new AsyncEventingBasicConsumer(_channel);
+            var deliveredTcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+            consumer.ReceivedAsync += (sender, ea) =>
+            {
+                deliveredTcs.TrySetResult(true);
+                return Task.CompletedTask;
+            };
+            await _channel.BasicConsumeAsync(q, true, tag, consumer);
+
+            ArgumentException ex = await Assert.ThrowsAsync<ArgumentException>(() =>
+                _channel.BasicConsumeAsync(q, true, tag, new AsyncEventingBasicConsumer(_channel)));
+            Assert.Equal("consumerTag", ex.ParamName);
+
+            // Sent to the broker, the duplicate closes the connection with 530 and this delivery never arrives.
+            await _channel.BasicPublishAsync(string.Empty, q, _encoding.GetBytes("after duplicate"));
+            await WaitAsync(deliveredTcs, "delivery to the first consumer");
+            Assert.True(_conn.IsOpen);
+            Assert.True(_channel.IsOpen);
+            await AssertConsumerCountAsync(q, 1);
+        }
+
+        [Fact]
+        public async Task TestBasicConsumeWithARecoveredTagIsRejectedAndTheConsumerSurvives_GH2080()
+        {
+            string q = (await _channel.QueueDeclareAsync(GenerateQueueName(), false, true, false)).QueueName;
+            string tag = GenerateShortUuid();
+            var consumer = new AsyncEventingBasicConsumer(_channel);
+            var deliveredTcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+            consumer.ReceivedAsync += (sender, ea) =>
+            {
+                deliveredTcs.TrySetResult(true);
+                return Task.CompletedTask;
+            };
+            await _channel.BasicConsumeAsync(q, true, tag, consumer);
+
+            await CloseAndWaitForRecoveryAsync();
+
+            // An application re-subscribing with its stored tag after a connection loss.
+            await Assert.ThrowsAsync<ArgumentException>(() => _channel.BasicConsumeAsync(q, true, tag, consumer));
+
+            await _channel.BasicPublishAsync(string.Empty, q, _encoding.GetBytes("after recovery"));
+            await WaitAsync(deliveredTcs, "delivery to the recovered consumer");
+            Assert.True(_conn.IsOpen);
+            Assert.True(_channel.IsOpen);
+            await AssertConsumerCountAsync(q, 1);
+        }
+
+        [Fact]
+        public async Task TestRecoverySkipsATagTheApplicationRegisteredFirst_GH2080()
+        {
+            Exception recoveryFailure = null;
+            var exceptionHandler = new TopologyRecoveryExceptionHandler
+            {
+                ConsumerRecoveryExceptionCondition = (c, ex) => true,
+                ConsumerRecoveryExceptionHandlerAsync = (c, ex, connection) =>
+                {
+                    recoveryFailure = ex;
+                    return Task.CompletedTask;
+                }
+            };
+
+            AutorecoveringConnection conn = await CreateAutorecoveringConnectionWithTopologyRecoveryExceptionHandlerAsync(exceptionHandler);
+            IChannel ch = await conn.CreateChannelAsync();
+            try
+            {
+                string q = (await ch.QueueDeclareAsync(GenerateQueueName(), false, true, false)).QueueName;
+                string tag = GenerateShortUuid();
+                var consumer = new AsyncEventingBasicConsumer(ch);
+                var deliveredTcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+                consumer.ReceivedAsync += (sender, ea) =>
+                {
+                    deliveredTcs.TrySetResult(true);
+                    return Task.CompletedTask;
+                };
+                await ch.BasicConsumeAsync(q, true, tag, consumer);
+
+                // Recovery runs this with _recordedEntitiesSemaphore released and the new inner channel
+                // installed, which is the window in which an application consume reaches it first.
+                int subscribedDuringRecovery = 0;
+                conn.RecoveringConsumerAsync += async (sender, ea) =>
+                {
+                    if (ea.ConsumerTag == tag && Interlocked.Exchange(ref subscribedDuringRecovery, 1) == 0)
+                    {
+                        await ch.BasicConsumeAsync(q, true, tag, consumer);
+                    }
+                };
+
+                await CloseAndWaitForRecoveryAsync(conn);
+
+                Assert.Equal(1, subscribedDuringRecovery);
+                Assert.Null(recoveryFailure);
+
+                await ch.BasicPublishAsync(string.Empty, q, _encoding.GetBytes("after recovery"));
+                await WaitAsync(deliveredTcs, "delivery after recovery");
+                Assert.True(conn.IsOpen);
+                Assert.True(ch.IsOpen);
+                await AssertConsumerCountAsync(ch, q, 1);
+            }
+            finally
+            {
+                await ch.CloseAsync();
+                await conn.CloseAsync();
+                await ch.DisposeAsync();
+                await conn.DisposeAsync();
+            }
         }
     }
 }
