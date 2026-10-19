@@ -1169,6 +1169,13 @@ namespace RabbitMQ.Client.Impl
 
             try
             {
+                // The broker answers a reused tag by closing the whole connection with 530. Checked
+                // under _rpcSemaphore so an earlier BasicCancelAsync has already removed its tag.
+                if (false == string.IsNullOrEmpty(consumerTag) && ConsumerDispatcher.IsRegisteredConsumer(consumerTag))
+                {
+                    throw new ArgumentException($"consumer tag '{consumerTag}' is already in use on this channel", nameof(consumerTag));
+                }
+
                 k.StartTimeout();
 
                 enqueued = Enqueue(k);

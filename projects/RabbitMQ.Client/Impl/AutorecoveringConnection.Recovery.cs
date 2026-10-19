@@ -764,6 +764,14 @@ namespace RabbitMQ.Client.Impl
                     }
                 }
 
+                // Skip if the application has already subscribed with this tag and that consumer is live.
+                // #2080, docs/internal/channel-state-across-recovery.md.
+                if (channelToUse is Channel { ConsumerDispatcher: var dispatcher }
+                    && dispatcher.IsRegisteredConsumer(consumer.ConsumerTag))
+                {
+                    continue;
+                }
+
                 string oldTag = consumer.ConsumerTag;
                 try
                 {

@@ -100,6 +100,24 @@ keeps `TakeOver` and `DropTakenOverHandlers` symmetrical: the latter exists to u
 channel abandoned before installation (#1988), and state carried by `TakeOver` but not dropped there
 is a trap for whoever adds the next one.
 
+## Consumer tags across recovery (#2080)
+
+Consumer recovery re-sends each recorded tag on the new inner channel, and `Channel.BasicConsumeAsync`
+throws `ArgumentException` without sending when the tag is already in that channel's dispatcher map.
+The broker treats a reused tag as a connection error, 530 `NOT_ALLOWED`, and
+`ShouldTriggerConnectionRecovery` recovers from it. Without the local check, an application that
+re-subscribes with its stored tag after a connection loss drives a loop that never ends: recovery
+restores the consumer, the application's consume closes the connection, and the record survives the
+failed call because `AutorecoveringChannel.BasicConsumeAsync` records only after consume-ok. This
+loop was reproduced on 5.2.0 and 6.6.0, which have the same recording design.
+
+The application's consume can also reach the new channel before recovery does. `_innerChannel` is
+installed before `RecoverConsumersAsync` runs, and `AutorecoveringChannel.BasicConsumeAsync` takes
+`_recordedEntitiesSemaphore` only after the broker answers, so it can register the tag while recovery
+holds the semaphore or has released it around a user callback. `RecoverConsumersAsync` therefore
+skips a tag the new channel already has. That consumer is live, and the application's
+`RecordConsumerAsync` replaces the record once recovery releases the semaphore.
+
 ## What the tests do and do not pin
 
 `projects/Test/Integration/ConnectionRecovery/TestChannelStateRecovery.cs`, five tests. Each fails

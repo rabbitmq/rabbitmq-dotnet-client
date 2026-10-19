@@ -584,12 +584,9 @@ namespace Test.Integration
 
                 Assert.True(recoveredConsumerReceivedTcs.Wait(TimeSpan.FromSeconds(5)));
 
-                await ch.BasicConsumeAsync(queueWithExceptionConsumer, true, "exception.consumer", consumerToRecover);
-                Assert.Fail("Expected an exception");
-            }
-            catch (OperationInterruptedException e)
-            {
-                AssertShutdownError(e.ShutdownReason, 530); // NOT_ALLOWED - not allowed to reuse consumer tag
+                await Assert.ThrowsAsync<ArgumentException>(() =>
+                    ch.BasicConsumeAsync(queueWithExceptionConsumer, true, "exception.consumer", consumerToRecover));
+                Assert.True(ch.IsOpen);
             }
             finally
             {
