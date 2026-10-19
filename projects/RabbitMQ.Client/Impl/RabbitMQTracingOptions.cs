@@ -49,6 +49,19 @@ namespace RabbitMQ.Client
         public bool UsePublisherAsParent { get; set; } = true;
 
         /// <summary>
+        /// When <see langword="true"/>, publish, delivery and fetch spans carry
+        /// <c>messaging.message.body.size</c>, and publish spans also carry
+        /// <c>messaging.message.envelope.size</c>. Defaults to <see langword="false"/>.
+        /// </summary>
+        /// <remarks>
+        /// The semantic convention marks both attributes Opt-In, which it defines as "instrumentations
+        /// SHOULD populate the attribute if and only if the user configures the instrumentation to do
+        /// so". They are cheap to compute here, so the only cost of turning them on is the bytes they
+        /// add to every exported span.
+        /// </remarks>
+        public bool IncludeMessageSizes { get; set; }
+
+        /// <summary>
         /// Injects the current <see cref="Activity"/> context into a published message's headers.
         /// Defaults to W3C trace-context propagation using
         /// <see cref="DistributedContextPropagator.Current"/>. Assigning <see langword="null"/>

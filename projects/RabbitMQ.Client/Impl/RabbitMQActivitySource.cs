@@ -29,6 +29,7 @@ namespace RabbitMQ.Client
         internal const string MessagingDestinationAnonymous = "messaging.destination.anonymous";
         internal const string MessagingBodySize = "messaging.message.body.size";
         internal const string MessagingEnvelopeSize = "messaging.message.envelope.size";
+        internal const string NetworkTransport = "network.transport";
         internal const string ProtocolName = "network.protocol.name";
         internal const string ProtocolVersion = "network.protocol.version";
         internal const string RabbitMQDeliveryTag = "messaging.rabbitmq.message.delivery_tag";
@@ -179,15 +180,16 @@ namespace RabbitMQ.Client
 
             bool useRoutingKey = tracing?.UseRoutingKeyAsOperationName ?? process.UseRoutingKeyAsOperationName;
             bool usePublisherAsParent = tracing?.UsePublisherAsParent ?? process.UsePublisherAsParent;
+            bool includeMessageSizes = tracing?.IncludeMessageSizes ?? process.IncludeMessageSizes;
 
             if (tracing?.Propagator is not null)
             {
                 PropagatorAdapter adapter = tracing.GetOrCreateAdapter();
-                return new ResolvedTracingOptions(useRoutingKey, usePublisherAsParent,
+                return new ResolvedTracingOptions(useRoutingKey, usePublisherAsParent, includeMessageSizes,
                     adapter.Injector, adapter.Extractor);
             }
 
-            return new ResolvedTracingOptions(useRoutingKey, usePublisherAsParent,
+            return new ResolvedTracingOptions(useRoutingKey, usePublisherAsParent, includeMessageSizes,
                 process.ContextInjector, process.ContextExtractor);
         }
 
@@ -212,12 +214,39 @@ namespace RabbitMQ.Client
             return activity is not null && ReferenceEquals(activity.Source, s_publisherSource);
         }
 
-        internal static readonly IEnumerable<KeyValuePair<string, object?>> CreationTags = new[]
+        internal static readonly KeyValuePair<string, object?>[] CreationTags = new[]
         {
             new KeyValuePair<string, object?>(MessagingSystem, "rabbitmq"),
             new KeyValuePair<string, object?>(ProtocolName, "amqp"),
-            new KeyValuePair<string, object?>(ProtocolVersion, "0.9.1")
+            new KeyValuePair<string, object?>(ProtocolVersion, "0.9.1"),
+            new KeyValuePair<string, object?>(NetworkTransport, "tcp")
         };
+
+        /*
+         * rabbitmq.md names eight attributes that "SHOULD be provided at span creation time (if
+         * provided at all)" because a sampler can only see what creation carries. These are the
+         * three of them this client knows at that point; messaging.system is already in
+         * CreationTags, server.address and server.port are not reachable here (#2064), and the
+         * partition and template attributes do not apply. Composed from CreationTags rather than
+         * repeated, so the two cannot drift.
+         */
+        private static KeyValuePair<string, object?>[] MessagingCreationTags(string operationName,
+            string operationType, string destination)
+        {
+            bool haveDestination = false == string.IsNullOrEmpty(destination);
+            var tags = new KeyValuePair<string, object?>[CreationTags.Length + (haveDestination ? 3 : 2)];
+            Array.Copy(CreationTags, tags, CreationTags.Length);
+
+            int i = CreationTags.Length;
+            tags[i++] = new KeyValuePair<string, object?>(MessagingOperationName, operationName);
+            tags[i++] = new KeyValuePair<string, object?>(MessagingOperationType, operationType);
+            if (haveDestination)
+            {
+                tags[i] = new KeyValuePair<string, object?>(MessagingDestination, destination);
+            }
+
+            return tags;
+        }
 
         internal static Activity? OpenConnection(bool isReconnection)
         {
@@ -266,11 +295,14 @@ namespace RabbitMQ.Client
             string spanName = SpanName(MessagingOperationNameBasicPublish, destination, anonymous, tracing);
 
             Activity? activity = linkedContext == default
-                ? s_publisherSource.StartRabbitMQActivity(spanName, ActivityKind.Producer)
-                : s_publisherSource.StartLinkedRabbitMQActivity(spanName, ActivityKind.Producer, linkedContext);
+                ? s_publisherSource.StartRabbitMQActivity(spanName, ActivityKind.Producer,
+                    tags: MessagingCreationTags(MessagingOperationNameBasicPublish, MessagingOperationTypeSend, destination))
+                : s_publisherSource.StartLinkedRabbitMQActivity(spanName, ActivityKind.Producer, linkedContext,
+                    tags: MessagingCreationTags(MessagingOperationNameBasicPublish, MessagingOperationTypeSend, destination));
             if (activity != null && activity.IsAllDataRequested)
             {
-                PopulateMessagingTags(MessagingOperationTypeSend, MessagingOperationNameBasicPublish, routingKey, destination, 0, basicProperties, bodySize, activity);
+                PopulateMessagingTags(MessagingOperationTypeSend, MessagingOperationNameBasicPublish, routingKey, destination, 0, basicProperties, bodySize,
+                    tracing.IncludeMessageSizes, activity);
                 SetAnonymous(activity, anonymous);
             }
 
@@ -291,15 +323,13 @@ namespace RabbitMQ.Client
 
             Activity? activity = s_subscriberSource.StartRabbitMQActivity(
                 SpanName(MessagingOperationNameBasicGet, destination, anonymous, tracing),
-                ActivityKind.Client);
+                ActivityKind.Client,
+                tags: MessagingCreationTags(MessagingOperationNameBasicGet, MessagingOperationTypeReceive, destination));
             if (activity != null && activity.IsAllDataRequested)
             {
-                // The same operation name as a fetch that returned a message: an empty result is an
-                // outcome, and encoding an outcome in messaging.operation.name is not valid.
-                activity
-                    .SetTag(MessagingOperationType, MessagingOperationTypeReceive)
-                    .SetTag(MessagingOperationName, MessagingOperationNameBasicGet)
-                    .SetTag(RabbitMQMessageReceived, false);
+                // operation.name is the same as a fetch that returned a message, and is a creation
+                // tag: an empty result is an outcome, and encoding an outcome in it is not valid.
+                activity.SetTag(RabbitMQMessageReceived, false);
 
                 SetAnonymous(activity, anonymous);
 
@@ -329,13 +359,14 @@ namespace RabbitMQ.Client
 
             Activity? activity = s_subscriberSource.StartLinkedRabbitMQActivity(
                 SpanName(MessagingOperationNameBasicGet, destination, anonymous, tracing), ActivityKind.Client,
-                linkedContext, parentContext);
+                linkedContext, parentContext,
+                tags: MessagingCreationTags(MessagingOperationNameBasicGet, MessagingOperationTypeReceive, destination));
 
 
             if (activity != null && activity.IsAllDataRequested)
             {
                 PopulateMessagingTags(MessagingOperationTypeReceive, MessagingOperationNameBasicGet, routingKey,
-                    destination, deliveryTag, readOnlyBasicProperties, bodySize, activity);
+                    destination, deliveryTag, readOnlyBasicProperties, bodySize, tracing.IncludeMessageSizes, activity);
                 activity.SetTag(RabbitMQMessageReceived, true);
                 SetAnonymous(activity, anonymous);
             }
@@ -362,24 +393,27 @@ namespace RabbitMQ.Client
             Activity? activity = s_subscriberSource.StartLinkedRabbitMQActivity(
                 // anonymous: false unavoidably, since a delivery frame carries no queue (#2055).
                 SpanName(MessagingOperationNameBasicDeliver, destination, anonymous: false, tracing),
-                ActivityKind.Consumer, linkedContext, parentContext);
+                ActivityKind.Consumer, linkedContext, parentContext,
+                tags: MessagingCreationTags(MessagingOperationNameBasicDeliver, MessagingOperationTypeProcess, destination));
             if (activity != null && activity.IsAllDataRequested)
             {
                 PopulateMessagingTags(MessagingOperationTypeProcess, MessagingOperationNameBasicDeliver, routingKey,
-                    destination, deliveryTag, readOnlyBasicProperties, bodySize, activity);
+                    destination, deliveryTag, readOnlyBasicProperties, bodySize, tracing.IncludeMessageSizes, activity);
             }
 
             return activity;
         }
 
         private static Activity? StartRabbitMQActivity(this ActivitySource source, string name, ActivityKind kind,
-            ActivityContext parentContext = default)
+            ActivityContext parentContext = default, IEnumerable<KeyValuePair<string, object?>>? tags = null)
         {
-            return source.CreateActivity(name, kind, parentContext, idFormat: ActivityIdFormat.W3C, tags: CreationTags)?.Start();
+            return source.CreateActivity(name, kind, parentContext, idFormat: ActivityIdFormat.W3C,
+                tags: tags ?? CreationTags)?.Start();
         }
 
         private static Activity? StartLinkedRabbitMQActivity(this ActivitySource source, string name, ActivityKind kind,
-            ActivityContext linkedContext = default, ActivityContext parentContext = default)
+            ActivityContext linkedContext = default, ActivityContext parentContext = default,
+            IEnumerable<KeyValuePair<string, object?>>? tags = null)
         {
             List<ActivityLink>? links = null;
             if (linkedContext != default)
@@ -389,15 +423,16 @@ namespace RabbitMQ.Client
             }
             return source.CreateActivity(name, kind, parentContext: parentContext,
                     links: links, idFormat: ActivityIdFormat.W3C,
-                    tags: CreationTags)
+                    tags: tags ?? CreationTags)
                 ?.Start();
         }
 
         private static void PopulateMessagingTags(string operationType, string operationName, string routingKey,
-            string destination, ulong deliveryTag, IReadOnlyBasicProperties readOnlyBasicProperties, int bodySize,
+            string destination, ulong deliveryTag, IReadOnlyBasicProperties readOnlyBasicProperties, int bodySize, bool includeMessageSizes,
             Activity activity)
         {
-            PopulateMessagingTags(operationType, operationName, routingKey, destination, deliveryTag, bodySize, activity);
+            PopulateMessagingTags(operationType, operationName, routingKey, destination, deliveryTag, bodySize,
+                includeMessageSizes, activity);
 
             if (!string.IsNullOrEmpty(readOnlyBasicProperties.CorrelationId))
             {
@@ -522,20 +557,18 @@ namespace RabbitMQ.Client
         }
 
         private static void PopulateMessagingTags(string operationType, string operationName, string routingKey,
-            string destination, ulong deliveryTag, int bodySize, Activity activity)
+            string destination, ulong deliveryTag, int bodySize, bool includeMessageSizes, Activity activity)
         {
-            activity
-                .SetTag(MessagingOperationType, operationType)
-                .SetTag(MessagingOperationName, operationName)
-                .SetTag(MessagingBodySize, bodySize);
+            // operation.type, operation.name and destination.name are creation tags now, so a
+            // sampler can see them; see MessagingCreationTags.
 
-            // routing_key is Conditionally Required "If not empty"; destination.name is Required
-            // and its guard is unreachable, but emitting an empty string would be worse.
-            if (false == string.IsNullOrEmpty(destination))
+            // Opt-In: populate if and only if the user asked for it.
+            if (includeMessageSizes)
             {
-                activity.SetTag(MessagingDestination, destination);
+                activity.SetTag(MessagingBodySize, bodySize);
             }
 
+            // routing_key is Conditionally Required "If not empty".
             if (false == string.IsNullOrEmpty(routingKey))
             {
                 activity.SetTag(MessagingDestinationRoutingKey, routingKey);
@@ -552,9 +585,16 @@ namespace RabbitMQ.Client
          * itself so the cheap HasListeners() test guards the AsyncLocal read on a path
          * that runs for every AMQP method transmitted.
          */
-        internal static void PopulateMessageEnvelopeSizeOnAmbientPublisherActivity(int size)
+        internal static void PopulateMessageEnvelopeSizeOnAmbientPublisherActivity(int size,
+            ConnectionTracingOptions? tracing)
         {
             if (!PublisherHasListeners)
+            {
+                return;
+            }
+
+            // Opt-In, so resolve the flag here rather than per frame above the guard.
+            if (false == (tracing?.IncludeMessageSizes ?? s_tracingOptions.IncludeMessageSizes))
             {
                 return;
             }

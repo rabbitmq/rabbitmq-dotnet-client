@@ -392,15 +392,23 @@ The convention is `{messaging.operation.name} {destination}`, where `{destinatio
 
 `messaging.operation.name = "fetch (empty)"` encoded an outcome into the operation name. #1980 emits `fetch` with `messaging.rabbitmq.message.received = false` instead. That attribute is not in the registry - it is a client addition in a namespace the convention owns, which is a known compromise, and the outcome also remains legible from the destination, since an empty fetch names only the queue while a hit names all three parts.
 
-### `messaging.message.envelope.size` and `body.size` are Opt-In
+### `messaging.message.envelope.size` and `body.size` are Opt-In, and now gated
 
-Opt-In means "SHOULD NOT be collected by default". The client always emits both when sampling. Defensible for a client library, but worth knowing.
+Opt-In is defined as "instrumentations SHOULD populate the attribute if and only if the user configures the instrumentation to do so", with a separate "instrumentation that doesn't support configuration MUST NOT populate Opt-In attributes". That second sentence does not apply here, because this client does support configuration, so emitting them unconditionally was a SHOULD deviation rather than a MUST violation. Worth keeping straight: the two were conflated in review.
 
-### Sampling-relevant attributes are not provided at span creation time - open, missed by the original audit
+Both now sit behind `IncludeMessageSizes`, off by default, on `RabbitMQTracingOptions` and overridable per connection through `ConnectionTracingOptions`. `body.size` is gated in `PopulateMessagingTags`, which has the resolved options at every call site. `envelope.size` is gated inside `PopulateMessageEnvelopeSizeOnAmbientPublisherActivity`, which `SessionBase` calls for every AMQP method transmitted and which therefore takes the raw `ConnectionTracingOptions?` and resolves the flag *after* the `PublisherHasListeners` guard, so a connection with tracing off pays an argument push and nothing else.
 
-`rabbitmq.md` repeats, per span: `messaging.destination.name`, `messaging.operation.name` and `messaging.operation.type` "can be important for making sampling decisions and SHOULD be provided **at span creation time** (if provided at all)". The client passes only `CreationTags` - `messaging.system` and the `network.protocol.*` pair - to `CreateActivity`, then `SetTag`s all three afterwards. A sampler therefore cannot key on the destination, and a span sampled as `PropagationData` carries none of the three.
+### Sampling-relevant attributes at span creation time
 
-This is not a regression and #1980 did not introduce it, but #1980 makes the fix nearly free: the destination is now computed *before* `CreateActivity` because the span name needs it. The original audit did not list it, which is the more interesting fact - the audit checked attribute names and values and did not check *when* they are set.
+`rabbitmq.md` repeats, per span, that certain attributes "can be important for making sampling decisions and SHOULD be provided **at span creation time** (if provided at all)". **The list is eight attributes, not three.** An earlier revision of this page named only `messaging.destination.name`, `messaging.operation.name` and `messaging.operation.type`; the sentence also names `messaging.system`, `messaging.destination.partition.id`, `messaging.destination.template`, `server.address` and `server.port`. Do not rely on the three-item version.
+
+Measured, so it is not an inference: a listener whose `Sample` callback reads `ActivityCreationOptions.Tags` sees exactly the tags passed to `CreateActivity`, and those tags also land in `Activity.Tags` and are returned by `GetTagItem`. A span sampled `PropagationData` keeps its creation tags and gets no post-creation tags at all, which is what makes `TestSamplingRelevantAttributesReachTheSampler_GH1980` discriminating.
+
+Five of the eight are settled. `messaging.system` was already a creation tag. The three messaging attributes are creation tags now, composed from `CreationTags` by `MessagingCreationTags` so the shared and per-span lists cannot drift, and deliberately not added to `CreationTags` itself because the ambient-pollution test requires connection spans to carry no messaging attributes. `partition.id` and `template` do not apply to this client.
+
+`server.address` and `server.port` are **not** fixed and are not cheap to fix. They do not reach a publish span from the tracing call at all: `SessionBase` and `Connection.WriteAsync` tag `Activity.Current` from the frame-writing path, which is the only place the endpoint is known, and `RabbitMQActivitySource.BasicPublish` receives no endpoint. Moving them to creation time means plumbing the endpoint through `Channel.BasicPublishAsync`. Tracked separately.
+
+The original audit did not list any of this, which is the more interesting fact - it checked attribute names and values and did not check *when* they are set.
 
 Lower value, same gap: `messaging.destination.anonymous` and `messaging.destination.temporary` are Conditionally Required "If value is `true`" and are never emitted, though a server-named queue is knowable to the client at the `BasicGet` call site.
 

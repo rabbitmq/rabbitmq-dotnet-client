@@ -89,7 +89,7 @@ namespace Test.SequentialIntegration
         [InlineData(false, false)]
         public async Task TestPublisherAndConsumerActivityTagsAsync(bool useRoutingKeyAsOperationName, bool usePublisherAsParent)
         {
-            using var tracingOptions = new TracingConfigurationScope();
+            using var tracingOptions = new TracingConfigurationScope().WithMessageSizes();
             RabbitMQActivitySource.UseRoutingKeyAsOperationName = useRoutingKeyAsOperationName;
             RabbitMQActivitySource.TracingOptions.UsePublisherAsParent = usePublisherAsParent;
             var activities = new List<Activity>();
@@ -128,7 +128,7 @@ namespace Test.SequentialIntegration
         [InlineData(false, false)]
         public async Task TestPublisherWithCachedStringsAndConsumerActivityTagsAsync(bool useRoutingKeyAsOperationName, bool usePublisherAsParent)
         {
-            using var tracingOptions = new TracingConfigurationScope();
+            using var tracingOptions = new TracingConfigurationScope().WithMessageSizes();
             RabbitMQActivitySource.UseRoutingKeyAsOperationName = useRoutingKeyAsOperationName;
             RabbitMQActivitySource.TracingOptions.UsePublisherAsParent = usePublisherAsParent;
             var activities = new List<Activity>();
@@ -169,7 +169,7 @@ namespace Test.SequentialIntegration
         [InlineData(false, false)]
         public async Task TestPublisherWithPublicationAddressAndConsumerActivityTagsAsync(bool useRoutingKeyAsOperationName, bool usePublisherAsParent)
         {
-            using var tracingOptions = new TracingConfigurationScope();
+            using var tracingOptions = new TracingConfigurationScope().WithMessageSizes();
             RabbitMQActivitySource.UseRoutingKeyAsOperationName = useRoutingKeyAsOperationName;
             RabbitMQActivitySource.TracingOptions.UsePublisherAsParent = usePublisherAsParent;
             var activities = new List<Activity>();
@@ -213,7 +213,7 @@ namespace Test.SequentialIntegration
         [InlineData(false, false, false)]
         public async Task TestPublisherAndBasicGetActivityTagsAsync(bool useRoutingKeyAsOperationName, bool usePublisherAsParent, bool useMessageId)
         {
-            using var tracingOptions = new TracingConfigurationScope();
+            using var tracingOptions = new TracingConfigurationScope().WithMessageSizes();
             RabbitMQActivitySource.UseRoutingKeyAsOperationName = useRoutingKeyAsOperationName;
             RabbitMQActivitySource.TracingOptions.UsePublisherAsParent = usePublisherAsParent;
             var activities = new List<Activity>();
@@ -250,7 +250,7 @@ namespace Test.SequentialIntegration
         [InlineData(false, false)]
         public async Task TestPublisherWithCachedStringsAndBasicGetActivityTagsAsync(bool useRoutingKeyAsOperationName, bool usePublisherAsParent)
         {
-            using var tracingOptions = new TracingConfigurationScope();
+            using var tracingOptions = new TracingConfigurationScope().WithMessageSizes();
             RabbitMQActivitySource.UseRoutingKeyAsOperationName = useRoutingKeyAsOperationName;
             RabbitMQActivitySource.TracingOptions.UsePublisherAsParent = usePublisherAsParent;
             var activities = new List<Activity>();
@@ -287,7 +287,7 @@ namespace Test.SequentialIntegration
         [InlineData(false, false)]
         public async Task TestPublisherWithPublicationAddressAndBasicGetActivityTagsAsync(bool useRoutingKeyAsOperationName, bool usePublisherAsParent)
         {
-            using var tracingOptions = new TracingConfigurationScope();
+            using var tracingOptions = new TracingConfigurationScope().WithMessageSizes();
             RabbitMQActivitySource.UseRoutingKeyAsOperationName = useRoutingKeyAsOperationName;
             RabbitMQActivitySource.TracingOptions.UsePublisherAsParent = usePublisherAsParent;
             var activities = new List<Activity>();
@@ -327,6 +327,59 @@ namespace Test.SequentialIntegration
         /// leaves process-global tracing state mutated for whatever runs next - see the
         /// public-API discussion on rabbitmq/rabbitmq-dotnet-client#1967.
         /// </remarks>
+        [Fact]
+        public async Task TestMessageSizeAttributesAreOffByDefault_GH1980()
+        {
+            // No WithMessageSizes(): both attributes are Opt-In, which the convention defines as
+            // populate "if and only if the user configures the instrumentation to do so".
+            using var plainNames = new TracingConfigurationScope().WithPlainOperationNames();
+
+            using ActivityRecorder publishRecorder =
+                new(RabbitMQActivitySource.PublisherSourceName, "publish");
+            publishRecorder.VerifyParent = false;
+
+            QueueDeclareOk q = await _channel.QueueDeclareAsync();
+            await _channel.BasicPublishAsync("", q.QueueName, Encoding.UTF8.GetBytes("sized"));
+
+            Activity publishActivity = publishRecorder.VerifyActivityRecordedOnce();
+            publishActivity.HasNoTag(RabbitMQActivitySource.MessagingBodySize);
+            publishActivity.HasNoTag(RabbitMQActivitySource.MessagingEnvelopeSize);
+        }
+
+        [Fact]
+        public async Task TestSamplingRelevantAttributesReachTheSampler_GH1980()
+        {
+            /*
+             * rabbitmq.md: these "SHOULD be provided at span creation time (if provided at all)"
+             * because a sampler sees only what creation carries. Sampling PropagationData rather
+             * than AllData is what makes this discriminating: a span that is not recording gets no
+             * post-creation tags at all, so the three can only be here if they were creation tags.
+             */
+            using var plainNames = new TracingConfigurationScope().WithPlainOperationNames();
+
+            var sampled = new List<KeyValuePair<string, object>>();
+            using var listener = new ActivityListener
+            {
+                ShouldListenTo = source => source.Name == RabbitMQActivitySource.PublisherSourceName,
+                Sample = (ref ActivityCreationOptions<ActivityContext> options) =>
+                {
+                    sampled.AddRange(options.Tags);
+                    return ActivitySamplingResult.PropagationData;
+                }
+            };
+            ActivitySource.AddActivityListener(listener);
+
+            QueueDeclareOk q = await _channel.QueueDeclareAsync();
+            await _channel.BasicPublishAsync("", q.QueueName, Encoding.UTF8.GetBytes("sampled"));
+
+            Assert.Contains(new KeyValuePair<string, object>(
+                RabbitMQActivitySource.MessagingDestination, q.QueueName), sampled);
+            Assert.Contains(new KeyValuePair<string, object>(
+                RabbitMQActivitySource.MessagingOperationName, "publish"), sampled);
+            Assert.Contains(new KeyValuePair<string, object>(
+                RabbitMQActivitySource.MessagingOperationType, "send"), sampled);
+        }
+
         [Fact]
         public async Task TestPublishFailureIsRecordedOnTheSendActivity_GH1967()
         {
@@ -654,6 +707,10 @@ namespace Test.SequentialIntegration
         [Fact]
         public async Task TestAmqpOperationsDoNotTagAnUnrelatedAmbientActivity_GH1967()
         {
+            // The envelope-size assertions below are the point of this test, so opt the Opt-In
+            // attribute in rather than weaken them.
+            using var tracingOptions = new TracingConfigurationScope().WithMessageSizes();
+
             /*
              * rabbitmq/rabbitmq-dotnet-client#1967
              *

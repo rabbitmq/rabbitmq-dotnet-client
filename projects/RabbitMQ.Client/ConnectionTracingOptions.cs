@@ -64,6 +64,13 @@ namespace RabbitMQ.Client
         public bool? UsePublisherAsParent { get; set; }
 
         /// <summary>
+        /// Emit <c>messaging.message.body.size</c> on publish, delivery and fetch spans, and
+        /// <c>messaging.message.envelope.size</c> on publish spans. Both are Opt-In in the semantic
+        /// convention, so they are off unless asked for. <see langword="null"/> inherits.
+        /// </summary>
+        public bool? IncludeMessageSizes { get; set; }
+
+        /// <summary>
         /// Propagates trace context into published messages and out of received ones.
         /// <see langword="null"/> inherits, which ultimately means
         /// <see cref="DistributedContextPropagator.Current"/>.

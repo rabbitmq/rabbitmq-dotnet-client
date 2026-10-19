@@ -385,6 +385,8 @@ namespace Test.SequentialIntegration
                 {
                     options.UseRoutingKeyAsOperationName = useRoutingKeyAsOperationName;
                     options.UsePublisherAsParent = usePublisherAsParent;
+                    // The size attributes are Opt-In; these tests assert them.
+                    options.IncludeMessageSizes = true;
                 })
                 .AddInMemoryExporter(exportedItems)
                 .Build();
@@ -444,6 +446,8 @@ namespace Test.SequentialIntegration
                 {
                     options.UseRoutingKeyAsOperationName = useRoutingKeyAsOperationName;
                     options.UsePublisherAsParent = usePublisherAsParent;
+                    // The size attributes are Opt-In; these tests assert them.
+                    options.IncludeMessageSizes = true;
                 })
                 .AddInMemoryExporter(exportedItems)
                 .Build();
@@ -504,6 +508,8 @@ namespace Test.SequentialIntegration
                 {
                     options.UseRoutingKeyAsOperationName = useRoutingKeyAsOperationName;
                     options.UsePublisherAsParent = usePublisherAsParent;
+                    // The size attributes are Opt-In; these tests assert them.
+                    options.IncludeMessageSizes = true;
                 })
                 .AddInMemoryExporter(exportedItems)
                 .Build();
@@ -569,6 +575,8 @@ namespace Test.SequentialIntegration
                 {
                     options.UseRoutingKeyAsOperationName = useRoutingKeyAsOperationName;
                     options.UsePublisherAsParent = usePublisherAsParent;
+                    // The size attributes are Opt-In; these tests assert them.
+                    options.IncludeMessageSizes = true;
                 })
                 .AddInMemoryExporter(exportedItems)
                 .Build();
