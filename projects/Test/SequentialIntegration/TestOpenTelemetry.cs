@@ -379,6 +379,14 @@ namespace Test.SequentialIntegration
         [InlineData(false, false)]
         public async Task TestPublisherAndConsumerActivityTagsAsync(bool useRoutingKeyAsOperationName, bool usePublisherAsParent)
         {
+            /*
+             * Declared before the provider so it is disposed after it: this overload of
+             * AddRabbitMQInstrumentation replaces the process-wide RabbitMQActivitySource
+             * .TracingOptions, so without the scope IncludeMessageSizes below leaks into every
+             * later test in the assembly, which CollectionPerAssembly runs in this same process.
+             */
+            using var tracingOptions = new TracingConfigurationScope();
+
             var exportedItems = new List<Activity>();
             using var tracer = Sdk.CreateTracerProviderBuilder()
                 .AddRabbitMQInstrumentation(options =>
@@ -440,6 +448,14 @@ namespace Test.SequentialIntegration
         [InlineData(false, false)]
         public async Task TestPublisherWithPublicationAddressAndConsumerActivityTagsAsync(bool useRoutingKeyAsOperationName, bool usePublisherAsParent)
         {
+            /*
+             * Declared before the provider so it is disposed after it: this overload of
+             * AddRabbitMQInstrumentation replaces the process-wide RabbitMQActivitySource
+             * .TracingOptions, so without the scope IncludeMessageSizes below leaks into every
+             * later test in the assembly, which CollectionPerAssembly runs in this same process.
+             */
+            using var tracingOptions = new TracingConfigurationScope();
+
             var exportedItems = new List<Activity>();
             using var tracer = Sdk.CreateTracerProviderBuilder()
                 .AddRabbitMQInstrumentation(options =>
@@ -502,6 +518,14 @@ namespace Test.SequentialIntegration
         [InlineData(false, false)]
         public async Task TestPublisherWithCachedStringsAndConsumerActivityTagsAsync(bool useRoutingKeyAsOperationName, bool usePublisherAsParent)
         {
+            /*
+             * Declared before the provider so it is disposed after it: this overload of
+             * AddRabbitMQInstrumentation replaces the process-wide RabbitMQActivitySource
+             * .TracingOptions, so without the scope IncludeMessageSizes below leaks into every
+             * later test in the assembly, which CollectionPerAssembly runs in this same process.
+             */
+            using var tracingOptions = new TracingConfigurationScope();
+
             var exportedItems = new List<Activity>();
             using var tracer = Sdk.CreateTracerProviderBuilder()
                 .AddRabbitMQInstrumentation(options =>
@@ -569,6 +593,14 @@ namespace Test.SequentialIntegration
         [InlineData(false, false, false)]
         public async Task TestPublisherAndBasicGetActivityTagsAsync(bool useRoutingKeyAsOperationName, bool usePublisherAsParent, bool useMessageId)
         {
+            /*
+             * Declared before the provider so it is disposed after it: this overload of
+             * AddRabbitMQInstrumentation replaces the process-wide RabbitMQActivitySource
+             * .TracingOptions, so without the scope IncludeMessageSizes below leaks into every
+             * later test in the assembly, which CollectionPerAssembly runs in this same process.
+             */
+            using var tracingOptions = new TracingConfigurationScope();
+
             var exportedItems = new List<Activity>();
             using var tracer = Sdk.CreateTracerProviderBuilder()
                 .AddRabbitMQInstrumentation(options =>

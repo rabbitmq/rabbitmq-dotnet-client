@@ -392,6 +392,41 @@ The convention is `{messaging.operation.name} {destination}`, where `{destinatio
 
 `messaging.operation.name = "fetch (empty)"` encoded an outcome into the operation name. #1980 emits `fetch` with `messaging.rabbitmq.message.received = false` instead. That attribute is not in the registry - it is a client addition in a namespace the convention owns, which is a known compromise, and the outcome also remains legible from the destination, since an empty fetch names only the queue while a hit names all three parts.
 
+### Detecting an anonymous destination, and why the test is the `amq.gen-` prefix alone
+
+A span name is an aggregation key, so a value that changes on every declaration gives a backend one operation per queue. The `{destination}` placeholder rule guards against that by allowing `messaging.destination.name` in a span name only when the destination is neither temporary nor anonymous. Before #1980 a fetch on a server-named queue produced `fetch amq.gen-TXm_2rj7...`.
+
+What the detection covers, and what it misses, both follow from how the broker mints the name. `rabbit_guid:string/2` produces `<prefix>-<base64url(guid)>`, and `rabbit_amqqueue:derive_name_prefix/1` falls back to `amq.gen` only when `x-name-prefix` is absent, empty, or the wrong type. So the prefix test covers the default and leaves two holes, both needing a name's *provenance* rather than its text: a client that passes `x-name-prefix` gets `<prefix>-<base64url>` from the same generator and is equally unique per declaration, and a queue somebody deliberately named `amq.gen-something` is stripped for nothing. #2055 carries that.
+
+**Do not copy the OpenTelemetry Java instrumentation's canonical-UUID arm.** It treats a bare UUID as generated because Spring AMQP mints queue names that way. In .NET a GUID is an ordinary deliberate queue name, and the arm matched 13 of this repository's own tests when tried.
+
+`deliver` spans cannot carry `messaging.destination.anonymous` at all, because a delivery frame carries no queue; same gap as #2055. `messaging.destination.temporary` is never emitted either, since `autoDelete` and `exclusive` are not available at the span site, and the Java instrumentation returns `false` for it unconditionally.
+
+Measured span names after the fix, with `messaging.destination.name` keeping the full value in every row including the generated one:
+
+| case | span name | `messaging.destination.anonymous` |
+|---|---|---|
+| publish, named exchange | `publish probe-ex:warning` | absent |
+| publish, default exchange + generated queue | `publish` | set |
+| fetch, named queue | `fetch probe-ex:warning:probe-q` | absent |
+| fetch, generated queue, hit and empty alike | `fetch` | set |
+| deliver | `deliver probe-ex:warning` | absent, see above |
+
+### Attribute coverage per span, measured against v1.44.0
+
+Counted from spans captured against a live broker rather than read off the code, against each span's own table in `rabbitmq.md`:
+
+| span | Required | Conditionally Required | Recommended | Opt-In |
+|---|---|---|---|---|
+| publish (Send) | 3/3 | 3/7 | 4/8 | 2/2 |
+| fetch (Receive) | 3/3 | 4/8 | 0/8 | 1/2 |
+| empty fetch (Receive) | 3/3 | 2/8 | 0/8 | 0/2 |
+| deliver (Process) | 3/3 | 3/8 | 0/6 | 1/2 |
+
+Every `Required` attribute is present on every span. The absent `Conditionally Required` ones are conditions this client does not meet: `messaging.batch.message_count` (it never batches), `messaging.destination.template` (RabbitMQ has no destination templates), `messaging.destination.temporary` (above), and on the empty fetch the routing key and delivery tag, there being no message. `error.type` is wired on publish and deliver; a failed `basic.get` creates no span at all, which is #2065.
+
+The Opt-In column counts what the code *can* emit; since #1980 both of those attributes are off unless `IncludeMessageSizes` is set. The Recommended asymmetry, where only publish carries the server and peer attributes, is #2064.
+
 ### `messaging.message.envelope.size` and `body.size` are Opt-In, and now gated
 
 Opt-In is defined as "instrumentations SHOULD populate the attribute if and only if the user configures the instrumentation to do so", with a separate "instrumentation that doesn't support configuration MUST NOT populate Opt-In attributes". That second sentence does not apply here, because this client does support configuration, so emitting them unconditionally was a SHOULD deviation rather than a MUST violation. Worth keeping straight: the two were conflated in review.
