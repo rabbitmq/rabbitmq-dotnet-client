@@ -842,7 +842,8 @@ namespace RabbitMQ.Client.Impl
                     await ModelSendAsync(in method, cancellationToken)
                         .ConfigureAwait(false);
                 }
-                catch (Exception ex) when (ex is IOException or AlreadyClosedException)
+                catch (Exception ex) when (ex is IOException or AlreadyClosedException
+                    or System.Threading.Channels.ChannelClosedException)
                 {
                     // Ignored. The channel or connection may have closed
                     // between the IsOpen check and the send.
@@ -982,8 +983,16 @@ namespace RabbitMQ.Client.Impl
                  * because ClosedViaPeerAsync will stop the main loop
                  */
                 var replyMethod = new ConnectionCloseOk();
-                await ModelSendAsync(in replyMethod, cancellationToken)
-                    .ConfigureAwait(false);
+                try
+                {
+                    await ModelSendAsync(in replyMethod, cancellationToken)
+                        .ConfigureAwait(false);
+                }
+                catch (System.Threading.Channels.ChannelClosedException)
+                {
+                    // The write loop has stopped; the peer's reason must still be recorded.
+                    // #2066, docs/internal/connection-shutdown-and-cancellation.md.
+                }
 
                 await Session.Connection.ClosedViaPeerAsync(reason)
                     .ConfigureAwait(false);

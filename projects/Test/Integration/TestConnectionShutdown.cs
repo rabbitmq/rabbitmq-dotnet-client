@@ -30,10 +30,12 @@
 //---------------------------------------------------------------------------
 
 using System;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
 using RabbitMQ.Client;
+using RabbitMQ.Client.Events;
 using RabbitMQ.Client.Exceptions;
 using RabbitMQ.Client.Framing;
 using RabbitMQ.Client.Impl;
@@ -445,6 +447,44 @@ namespace Test.Integration
                 // Closing the connection must not re-fire the already-closed channel's shutdown.
                 await conn.CloseAsync();
                 Assert.Equal(1, Volatile.Read(ref shutdownCount));
+            }
+            finally
+            {
+                await conn.DisposeAsync();
+            }
+        }
+
+        [Fact]
+        public async Task TestPeerCloseReasonSurvivesStoppedWriteLoop_GH2066()
+        {
+            ConnectionFactory cf = CreateConnectionFactory();
+            cf.AutomaticRecoveryEnabled = false;
+
+            var conn = (Connection)await CreateConnectionAsyncWithRetries(cf);
+            using var util = new Util(_output);
+            try
+            {
+                var shutdownTcs = new TaskCompletionSource<ShutdownEventArgs>(TaskCreationOptions.RunContinuationsAsynchronously);
+                conn.ConnectionShutdownAsync += (_, args) =>
+                {
+                    shutdownTcs.TrySetResult(args);
+                    return Task.CompletedTask;
+                };
+
+                // What WriteLoopAsync does when a socket write fails: the close-ok then
+                // fails with ChannelClosedException.
+                var frameHandler = (SocketFrameHandler)conn.FrameHandler;
+                var writer = (ChannelWriter<OutgoingFrame>)typeof(SocketFrameHandler)
+                    .GetField("_channelWriter", BindingFlags.Instance | BindingFlags.NonPublic)!
+                    .GetValue(frameHandler)!;
+                Assert.True(writer.TryComplete(new System.IO.IOException("write loop stopped")));
+
+                await util.CloseConnectionAsync(cf.ClientProvidedName);
+
+                await shutdownTcs.Task.WaitAsync(WaitSpan);
+                ShutdownEventArgs reason = await shutdownTcs.Task;
+                Assert.Equal(ShutdownInitiator.Peer, reason.Initiator);
+                Assert.Equal(Constants.ConnectionForced, reason.ReplyCode);
             }
             finally
             {

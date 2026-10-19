@@ -427,6 +427,12 @@ Both properties are `Volatile`-accessed because they are written from a dispatch
 
 Known limits, not fixed here. The value is per consumer instance rather than per tag, so one confirmed registration clears it for an instance registered under several tags. `IsRunning` has the mirror-image problem on cancel. A suppressed registration leaves an empty `ConsumerTags` payload and still receives already-queued deliveries, which is #2073.
 
+## Issue #2066: a reply sent after the write loop has stopped
+
+`SocketFrameHandler.WriteAsync` only queues a frame; it never raises the socket's `IOException`. Once the writer is completed, by `WriteLoopAsync` after a failed write (#1930) or by `CloseAsync` before it sets `_closed`, a send fails with `ChannelClosedException`, an `InvalidOperationException`, wrapping the write loop's exception in the first case and nothing in the second. The exception is an unwrapped `OperationCanceledException` instead when the internal, test-only `SocketFlushTimeout` fired. A handler on the receive path that lets it escape reaches `MainLoop`'s general catch, and the connection reports `InternalError` (541) with the `ChannelClosedException`.
+
+The two courtesy replies, `basic.cancel-ok` and `connection.close-ok`, therefore tolerate it. `HandleConnectionCloseAsync` catches it around the send alone and still calls `ClosedViaPeerAsync`, because the broker's `connection.close` carries the real reason. Adding it to the outer filter beside `IOException` would skip that call and leave the main loop reading until the socket drops. Against a local broker that came 30 seconds later as a reset, and the connection reported 541 with the `IOException` instead of the broker's 320. `AlreadyClosedException` from the send still skips `ClosedViaPeerAsync`: session 0 gets a close reason only in `Connection.FinishCloseAsync`, after `_closed` is set, so the connection's reason is already recorded and `ClosedViaPeerAsync` would throw the same exception.
+
 ## Relevant timeouts
 
 These are easy to confuse; distinguishing which one a hang tracks is the key diagnostic signal.
