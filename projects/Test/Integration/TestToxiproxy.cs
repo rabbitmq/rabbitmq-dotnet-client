@@ -541,16 +541,24 @@ namespace Test.Integration
 
             await Task.Delay(TimeSpan.FromSeconds(1));
 
-            bool sawContinuationTimeout = false;
+            /*
+             * #1802 was a disposed SemaphoreSlim surfacing while the channel shut down, which an
+             * RPC outrunning its continuation timeout is what triggers. So the contract is that
+             * no ObjectDisposedException appears, not which exception wins the race between the
+             * 5 ms timeout and the stalled connection failing. That race is resolved differently
+             * per platform: Windows has been seen to report the pipe completing first (#2083),
+             * which the previous OperationCanceledException-only catch turned into a flake.
+             */
+            Exception caught = null;
             TimeSpan originalContinuationTimeout = ch.ContinuationTimeout;
             try
             {
                 ch.ContinuationTimeout = TimeSpan.FromMilliseconds(5);
                 QueueDeclareOk q = await ch.QueueDeclareAsync();
             }
-            catch (OperationCanceledException)
+            catch (Exception ex)
             {
-                sawContinuationTimeout = true;
+                caught = ex;
             }
             finally
             {
@@ -562,9 +570,25 @@ namespace Test.Integration
 
             await _toxiproxyManager.RemoveToxicAsync(toxicName);
 
-            await ch.CloseAsync();
+            // The connection may already be gone on the path above, so this must not be the
+            // thing that fails the test.
+            try
+            {
+                await ch.CloseAsync();
+            }
+            catch (AlreadyClosedException)
+            {
+            }
 
-            Assert.True(sawContinuationTimeout);
+            Assert.NotNull(caught);
+
+            // ToString() rather than the type, because #1802 surfaced as a nested
+            // ObjectDisposedException inside an AMQP close reason rather than as the outer type.
+            Assert.DoesNotContain(nameof(ObjectDisposedException), caught.ToString());
+
+            // Which of the two it was is worth having in the log, since only one of them
+            // exercised the continuation-timeout path.
+            _output.WriteLine($"GH1802: the stalled RPC failed with {caught.GetType().Name}");
         }
 
         /*
