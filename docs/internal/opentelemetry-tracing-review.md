@@ -390,7 +390,9 @@ The convention is `{messaging.operation.name} {destination}`, where `{destinatio
 
 ### `fetch (empty)` was not a valid operation name - FIXED
 
-`messaging.operation.name = "fetch (empty)"` encoded an outcome into the operation name. #1980 emits `fetch` with `messaging.rabbitmq.message.received = false` instead. That attribute is not in the registry - it is a client addition in a namespace the convention owns, which is a known compromise, and the outcome also remains legible from the destination, since an empty fetch names only the queue while a hit names all three parts.
+`messaging.operation.name = "fetch (empty)"` encoded an outcome into the operation name. #1980 emits `fetch` with `messaging.rabbitmq.message.received = false` instead, and the outcome also remains legible from the destination, since an empty fetch names only the queue while a hit names all three parts.
+
+**Three of the five attributes this client emits under `messaging.rabbitmq.` are its own, in a namespace the convention owns.** The v1.44.0 registry defines `messaging.rabbitmq.destination.routing_key` and `messaging.rabbitmq.message.delivery_tag` and nothing else under that prefix. `message.received`, `connection.is_reconnection` and `connection.automatic_recovery` are additions, so the convention assigns them no requirement level, no default and no sampling guidance, and a later upstream definition of any of those keys with different semantics or a different type would silently conflict with what this client already emits. `message.received` carries the most risk of the three, since it sits beside a real registry attribute under `messaging.rabbitmq.message.` and so reads as specified. Taking them upstream, or renaming them out of the convention's namespace, are the two ways to remove that exposure; neither has been done.
 
 ### Detecting an anonymous destination, and why the test is the `amq.gen-` prefix alone
 
