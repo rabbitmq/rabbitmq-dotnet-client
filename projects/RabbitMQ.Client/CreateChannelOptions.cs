@@ -37,11 +37,28 @@ namespace RabbitMQ.Client
     /// <summary>
     /// Channel creation options.
     /// </summary>
+    /// <remarks>
+    /// One instance may be reused for any number of <see cref="IConnection.CreateChannelAsync"/>
+    /// calls, on any number of connections, including concurrent ones: this library copies the
+    /// instance rather than writing a connection's configuration into it, so every value a channel
+    /// takes from its connection comes from the connection it was created on.
+    /// Through 7.2.2 the instance was written to instead, so a channel could read another
+    /// connection's continuation timeout, or another connection's
+    /// <see cref="IConnectionFactory.ConsumerDispatchConcurrency"/> where
+    /// <see cref="ConsumerDispatchConcurrency"/> was <c>null</c>. See
+    /// rabbitmq/rabbitmq-dotnet-client#2034.
+    /// <para>
+    /// Reuse does not make the members per-channel.
+    /// <see cref="OutstandingPublisherConfirmationsRateLimiter"/> is carried by reference, so a
+    /// single limiter bounds every channel built from the instance on every connection; its own
+    /// remarks cover what it bounds and who disposes it.
+    /// </para>
+    /// </remarks>
     public sealed class CreateChannelOptions
     {
-        private ushort? _connectionConfigConsumerDispatchConcurrency;
-        private TimeSpan _connectionConfigContinuationTimeout;
-        private ConnectionTracingOptions? _connectionConfigTracingOptions;
+        private readonly ushort? _connectionConfigConsumerDispatchConcurrency;
+        private readonly TimeSpan _connectionConfigContinuationTimeout;
+        private readonly ConnectionTracingOptions? _connectionConfigTracingOptions;
 
         /// <summary>
         /// Enable or disable publisher confirmations on this channel. Defaults to <c>false</c>
@@ -70,19 +87,19 @@ namespace RabbitMQ.Client
         /// If the publisher confirmation tracking is enabled, this represents the rate limiter used to
         /// throttle additional attempts to publish once the threshold is reached.
         ///
-        /// This field initializes to a <see cref="ThrottlingRateLimiter"/> with a limit of 128 and a throttling
-        /// percentage of 50%, but see the remarks: that is not what the constructor gives you.
+        /// Options you construct yourself have no rate limiter unless you pass one; see the remarks.
         /// </summary>
         /// <remarks>
         /// Setting the rate limiter to <c>null</c> disables the rate limiting entirely.
         /// <para>
-        /// <b>The constructor gives you no limiter, and the field initializer reaches no publish path.</b>
-        /// The <see cref="CreateChannelOptions(bool, bool, RateLimiter, ushort?)"/> constructor defaults
-        /// this parameter to <c>null</c> and assigns it unconditionally, so options you construct yourself
-        /// have no rate limiter unless you pass one. The initializer survives only on the options this
-        /// library builds internally, and those leave <see cref="PublisherConfirmationsEnabled"/> false, so
-        /// the publish path never consults it. This is the same divergence between field initializer and
-        /// constructor default described on <see cref="ConsumerDispatchConcurrency"/>.
+        /// <b>The constructor gives you no limiter.</b> The
+        /// <see cref="CreateChannelOptions(bool, bool, RateLimiter, ushort?)"/> constructor defaults this
+        /// parameter to <c>null</c> and assigns it unconditionally. A
+        /// <see cref="ThrottlingRateLimiter"/> with a limit of 128 and a throttling percentage of 50%
+        /// reaches only the options this library builds for itself, and those leave
+        /// <see cref="PublisherConfirmationsEnabled"/> false, so the publish path never consults it.
+        /// <see cref="ConsumerDispatchConcurrency"/> is the member that does declare a default twice,
+        /// and describes what that costs.
         /// </para>
         /// <para>
         /// <b>What a limiter bounds, if you pass one.</b> <see cref="ThrottlingRateLimiter"/> uses the limit
@@ -98,14 +115,15 @@ namespace RabbitMQ.Client
         /// </para>
         /// <para>
         /// <b>Its lifetime belongs to you.</b> Disposing an <see cref="IChannel"/> does not dispose
-        /// this limiter: it is shared by every channel created from these options, and a recovering
-        /// channel reuses them, so a channel disposing it would break the survivors. This changed in
-        /// 7.3.0: earlier versions disposed it, though only on the synchronous path or for a limiter
-        /// that overrode <c>DisposeAsyncCore</c>, which <see cref="ThrottlingRateLimiter"/> did not.
-        /// The default above needs no disposal; a limiter that owns a timer does.
+        /// this limiter: every channel built from one options object carries it by reference, as does
+        /// every channel a recovery rebuilds, so a channel disposing it would break the survivors.
+        /// This changed in 7.3.0: earlier versions disposed it, though only on the synchronous path or
+        /// for a limiter that overrode <c>DisposeAsyncCore</c>, which
+        /// <see cref="ThrottlingRateLimiter"/> did not. A <see cref="ThrottlingRateLimiter"/> needs no
+        /// disposal; a limiter that owns a timer does.
         /// </para>
         /// </remarks>
-        public readonly RateLimiter? OutstandingPublisherConfirmationsRateLimiter = new ThrottlingRateLimiter(128);
+        public readonly RateLimiter? OutstandingPublisherConfirmationsRateLimiter;
 
         /// <summary>
         /// Set to a value greater than one to enable concurrent processing. For a concurrency greater than one <see cref="IAsyncBasicConsumer"/>
@@ -141,10 +159,10 @@ namespace RabbitMQ.Client
         /// change rather than an implementation detail. See rabbitmq/rabbitmq-dotnet-client#2027.
         /// </para>
         /// <para>
-        /// <see cref="OutstandingPublisherConfirmationsRateLimiter"/> diverges the same way, and more
-        /// sharply: its field initializer is a limiter with a limit of 128, while the constructor parameter
-        /// defaults to <c>null</c> and is likewise assigned unconditionally - and <c>null</c> there disables
-        /// rate limiting rather than selecting a different value.
+        /// <see cref="OutstandingPublisherConfirmationsRateLimiter"/> has no such divergence: this type
+        /// declares one default for it, the parameter's <c>null</c>, which is what a caller gets. That
+        /// <c>null</c> is sharper than this member's, because it disables rate limiting rather than
+        /// selecting a different value.
         /// </para>
         /// <para>
         /// A value of 0 is treated as 1. Zero would leave the channel's consumer dispatcher with no
@@ -180,31 +198,31 @@ namespace RabbitMQ.Client
 
         internal ConnectionTracingOptions? TracingOptions => _connectionConfigTracingOptions;
 
-        internal CreateChannelOptions(ConnectionConfig connectionConfig)
+        // A null source is channel 0 and CreateChannelAsync with no options. #2034 and the remarks
+        // on this type carry why this copies rather than writing into the caller's instance.
+        private CreateChannelOptions(CreateChannelOptions? source, ConnectionConfig connectionConfig)
         {
-            _connectionConfigConsumerDispatchConcurrency = connectionConfig.ConsumerDispatchConcurrency;
-            _connectionConfigContinuationTimeout = connectionConfig.ContinuationTimeout;
-            _connectionConfigTracingOptions = connectionConfig.TracingOptions;
-        }
-
-        private CreateChannelOptions WithConnectionConfig(ConnectionConfig connectionConfig)
-        {
-            _connectionConfigConsumerDispatchConcurrency = connectionConfig.ConsumerDispatchConcurrency;
-            _connectionConfigContinuationTimeout = connectionConfig.ContinuationTimeout;
-            _connectionConfigTracingOptions = connectionConfig.TracingOptions;
-            return this;
-        }
-
-        internal static CreateChannelOptions CreateOrUpdate(CreateChannelOptions? createChannelOptions, ConnectionConfig config)
-        {
-            if (createChannelOptions is null)
+            if (source is not null)
             {
-                return new CreateChannelOptions(config);
+                PublisherConfirmationsEnabled = source.PublisherConfirmationsEnabled;
+                PublisherConfirmationTrackingEnabled = source.PublisherConfirmationTrackingEnabled;
+                OutstandingPublisherConfirmationsRateLimiter = source.OutstandingPublisherConfirmationsRateLimiter;
+                ConsumerDispatchConcurrency = source.ConsumerDispatchConcurrency;
             }
             else
             {
-                return createChannelOptions.WithConnectionConfig(config);
+                // Here rather than as a field initializer, which would run on the copy path too and
+                // then be overwritten, one throwaway limiter per channel. #2032.
+                OutstandingPublisherConfirmationsRateLimiter = new ThrottlingRateLimiter(128);
             }
+
+            _connectionConfigConsumerDispatchConcurrency = connectionConfig.ConsumerDispatchConcurrency;
+            _connectionConfigContinuationTimeout = connectionConfig.ContinuationTimeout;
+            _connectionConfigTracingOptions = connectionConfig.TracingOptions;
         }
+
+        internal static CreateChannelOptions ForConnection(CreateChannelOptions? createChannelOptions,
+            ConnectionConfig config)
+            => new CreateChannelOptions(createChannelOptions, config);
     }
 }
