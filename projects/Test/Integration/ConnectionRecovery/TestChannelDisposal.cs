@@ -37,6 +37,7 @@ using System.Threading.Tasks;
 using RabbitMQ.Client;
 using RabbitMQ.Client.ConsumerDispatching;
 using RabbitMQ.Client.Events;
+using RabbitMQ.Client.Exceptions;
 using RabbitMQ.Client.Impl;
 using Xunit;
 using Xunit.Abstractions;
@@ -66,6 +67,33 @@ namespace Test.Integration.ConnectionRecovery
     {
         public TestChannelDisposal(ITestOutputHelper output) : base(output)
         {
+        }
+
+        [Fact]
+        public async Task TestDisposingAClosedChannelDeregistersIt_GH2024()
+        {
+            await using IConnection conn = await _connFactory.CreateConnectionAsync();
+            var arc = (AutorecoveringConnection)conn;
+            int channelsBefore = arc.RecordedChannelsCount;
+            int consumersBefore = arc.RecordedConsumersCount;
+
+            IChannel ch = await conn.CreateChannelAsync();
+            string q = (await ch.QueueDeclareAsync(GenerateQueueName(), false, true, false)).QueueName;
+            await ch.BasicConsumeAsync(q, true, new AsyncEventingBasicConsumer(ch));
+            Assert.Equal(channelsBefore + 1, arc.RecordedChannelsCount);
+            Assert.Equal(consumersBefore + 1, arc.RecordedConsumersCount);
+
+            // A passive declare of a queue that does not exist is a channel-level NOT_FOUND, which
+            // closes the channel while the connection stays healthy. That is the state the leak
+            // needs: DisposeAsync only deregisters as a side effect of aborting an open channel.
+            await Assert.ThrowsAnyAsync<OperationInterruptedException>(() =>
+                ch.QueueDeclarePassiveAsync(GenerateQueueName()));
+            Assert.False(ch.IsOpen, "the broker did not close the channel, so this test proves nothing");
+
+            await ch.DisposeAsync();
+
+            Assert.Equal(channelsBefore, arc.RecordedChannelsCount);
+            Assert.Equal(consumersBefore, arc.RecordedConsumersCount);
         }
 
         [Fact]

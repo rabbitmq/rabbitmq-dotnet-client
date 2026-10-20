@@ -397,6 +397,20 @@ namespace RabbitMQ.Client.Impl
                     await this.AbortAsync()
                         .ConfigureAwait(false);
                 }
+                else if (_connection.IsOpen)
+                {
+                    /*
+                     * A channel the broker closed on a healthy connection is deregistered here,
+                     * because the abort that normally does it runs only while the channel is open.
+                     * Gated on the connection: a channel disposed while the connection is down must
+                     * stay recorded, since recovery is what drops it and that is the only path on
+                     * which AutomaticallyRecoverAsync returns false. It also cannot move into the
+                     * finally below, where ConsumerTags already throws. #2024.
+                     */
+                    await _connection.DeleteRecordedChannelAsync(this,
+                        channelsSemaphoreHeld: false, recordedEntitiesSemaphoreHeld: false)
+                            .ConfigureAwait(false);
+                }
             }
             finally
             {
