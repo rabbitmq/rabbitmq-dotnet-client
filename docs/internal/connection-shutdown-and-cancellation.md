@@ -517,11 +517,13 @@ Two changes have no test, and these are gaps rather than decisions. Restoring `Q
 
 ### Stalling a connection in the Toxiproxy tests (#2072)
 
-Four tests need the broker's reply withheld while the connection stays open, so a continuation timeout fires rather than the socket failing. They use a `timeout` toxic with `Timeout = 0` on the downstream direction, which stops data without closing the connection.
+Four tests need the broker's reply withheld while the connection stays open, so a continuation timeout fires rather than the socket failing. They use a `timeout` toxic with `Timeout = 0` on the downstream direction, which stops data without closing the connection **on Linux**. Windows has not been shown to behave the same way: see #2083.
 
 **Do not use a `BandwidthToxic` with `Rate = 0` for this.** That is what they used until #2072, and it worked by accident: a non-positive rate left Toxiproxy's packet-splitting loop with a split size of zero, emitting empty chunks forever without forwarding the payload. Shopify/toxiproxy#764 fixed that hang on purpose in 2.13.0, where a non-positive rate now falls through to the unthrottled send path, so the tests stopped blocking and asserted nothing. The hang is not coming back, and the image is unpinned again on the strength of the `timeout` toxic.
 
-Measured on 2026-10-18: against 2.13.0 the rate-0 version failed three of the four locally, and the `timeout` version passed the whole class on 2.13.0, on 2.12.0, and twice through the unpinned setup script. A heartbeat does not interfere, because the continuation timeouts under test are milliseconds to seconds while the stall only has to outlast them.
+Measured on 2026-10-18, **all of it on Linux**: against 2.13.0 the rate-0 version failed three of the four locally, and the `timeout` version passed the whole class on 2.13.0, on 2.12.0, and twice through the unpinned setup script. A separate probe held a connection open past 45 seconds under the toxic at a 60-second heartbeat with no traffic in flight, which is where the "without closing the connection" claim above comes from. A heartbeat does not interfere on that platform, because the continuation timeouts under test are milliseconds to seconds while the stall only has to outlast them.
+
+**None of that transfers to Windows, and taking it as platform-independent was the mistake.** `TestRpcContinuationTimeout_GH1802` has since failed once in four `integration-win32` runs of identical code, with the client observing `EndOfStreamException: Pipe is completed` inside the 5 ms window it depends on. #2083 carries it, and the fix shape there is to assert the invariant rather than which exception wins the race.
 
 The two `Rate = 1` toxics are a different mechanism and are unaffected: they throttle the write path rather than stalling a reply.
 
