@@ -65,7 +65,7 @@ namespace Test.Integration.GH
         {
             /*
              * Note:
-             * Testing that the task is actually canceled requires a hacked RabbitMQ server.
+             * Testing that the task is cancelled requires a hacked RabbitMQ server.
              * Modify deps/rabbit/src/rabbit_channel.erl, handle_cast for basic.consume_ok
              * Before send/2, add timer:sleep(1000), then `make run-broker`
              *

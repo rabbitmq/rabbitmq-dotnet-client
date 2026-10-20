@@ -50,7 +50,7 @@ namespace Test.SequentialIntegration
      */
     /*
      * Every test here reads or writes the deprecated process-wide statics on purpose - pinning their
-     * behaviour is the point, and #2009 deprecates them in favour of ConnectionFactory.TracingOptions
+     * behavior is the point, and #2009 deprecates them in favor of ConnectionFactory.TracingOptions
      * without changing what they do. The suppression covers the class body rather than each site.
      */
 #pragma warning disable CS0618

@@ -111,7 +111,7 @@ namespace RabbitMQ.Client.Events
         public ushort MethodId { get; }
 
         /// <summary>
-        /// One of the standardised AMQP reason codes. See RabbitMQ.Client.Framing.*.Constants.
+        /// One of the standardized AMQP reason codes. See RabbitMQ.Client.Framing.*.Constants.
         /// </summary>
         public ushort ReplyCode { get; }
 

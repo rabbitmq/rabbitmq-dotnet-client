@@ -2,7 +2,7 @@
 
 This document covers what happens when recovering a single topology entity fails, why the two classification paths give different answers, and why the obvious fix for the difference does not work. Issues #1993 and #1995 are the history.
 
-**Nothing here describes a change.** This is the behaviour as it stands, plus an account of one attempt to change it that was measured to make things worse and abandoned. Read the "Why the obvious fix does not work" section before proposing a fix for #1995.
+**Nothing here describes a change.** This is the behavior as it stands, plus an account of one attempt to change it that was measured to make things worse and abandoned. Read the "Why the obvious fix does not work" section before proposing a fix for #1995.
 
 ## The two paths
 
@@ -54,7 +54,7 @@ Two things follow for whoever picks #1995 up:
 - Fixing it well needs at least one of a **retry cap with backoff** and a **way for a handler to signal that it handled the failure**. Neither exists today.
 - The verdict cannot be a pure function of the reply code, because the same code means different things depending on whether the channel is shared.
 
-**The first of those is contested, and a fair reading of the evidence is that it is argued rather than measured.** The counter-argument is that skip-and-continue is already `main`'s behaviour on the handler path, so a fix that adds retries *only* for the narrow unknown-fate class - an `AlreadyClosedException` whose operation was never transmitted, where the entity is definitely un-recovered - would never retry a refusal a handler had seen, and so could not livelock on one. That is not obviously wrong. What makes it doubtful is the shared consumer channel again: a channel-level refusal closes that channel whatever the client classifies it as, so the sibling consumers behind it raise exactly that unknown-fate `AlreadyClosedException`, get retried, and meet the original refusal again. The livelock would then be reached through the narrow class rather than avoided by narrowing to it.
+**The first of those is contested, and a fair reading of the evidence is that it is argued rather than measured.** The counter-argument is that skip-and-continue is already `main`'s behavior on the handler path, so a fix that adds retries *only* for the narrow unknown-fate class - an `AlreadyClosedException` whose operation was never transmitted, where the entity is definitely un-recovered - would never retry a refusal a handler had seen, and so could not livelock on one. That is not obviously wrong. What makes it doubtful is the shared consumer channel again: a channel-level refusal closes that channel whatever the client classifies it as, so the sibling consumers behind it raise exactly that unknown-fate `AlreadyClosedException`, get retried, and meet the original refusal again. The livelock would then be reached through the narrow class rather than avoided by narrowing to it.
 
 That reasoning has **not** been measured, unlike the two regressions above, so treat it as the reason to test a narrow fix rather than as a reason to reject one. Whoever picks #1995 up should build the shared-channel case first and find out.
 

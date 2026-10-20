@@ -139,7 +139,7 @@ namespace RabbitMQ.Client
 
         /// <summary>
         /// Asynchronously create a connection using a list of endpoints.
-        /// The selection behaviour can be overridden by configuring the EndpointResolverFactory.
+        /// The selection behavior can be overridden by configuring the EndpointResolverFactory.
         /// </summary>
         /// <param name="endpoints">
         /// List of endpoints to use for the initial
@@ -154,7 +154,7 @@ namespace RabbitMQ.Client
 
         /// <summary>
         /// Asynchronously create a connection using a list of endpoints.
-        /// The selection behaviour can be overridden by configuring the EndpointResolverFactory.
+        /// The selection behavior can be overridden by configuring the EndpointResolverFactory.
         /// </summary>
         /// <param name="endpoints">
         /// List of endpoints to use for the initial

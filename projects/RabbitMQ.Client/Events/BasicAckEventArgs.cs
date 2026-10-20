@@ -50,7 +50,7 @@ namespace RabbitMQ.Client.Events
         ///is true.</summary>
         public readonly ulong DeliveryTag;
 
-        ///<summary>Whether this acknowledgement applies to one message
+        ///<summary>Whether this acknowledgment applies to one message
         ///or multiple messages.</summary>
         public readonly bool Multiple;
     }

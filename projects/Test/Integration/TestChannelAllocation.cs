@@ -132,7 +132,7 @@ namespace Test.Integration
             }
 
             // In the current implementation the list should actually
-            // already be sorted, but we don't want to force that behaviour
+            // already be sorted, but we don't want to force that behavior
             channels.Sort(CompareChannels);
 
             int k = 1;

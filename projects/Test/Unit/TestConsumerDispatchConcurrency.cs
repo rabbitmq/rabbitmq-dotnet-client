@@ -103,7 +103,7 @@ namespace Test.Unit
         public void DispatcherReportsAtLeastOneReaderLoop_GH2035(ushort requested, ushort expected)
         {
             /*
-             * The companion to the behavioural case above: the reported concurrency must agree with
+             * The companion to the behavioral case above: the reported concurrency must agree with
              * the floor. Expectations are written out per row rather than computed, so the assertion
              * cannot restate the implementation it is checking.
              */

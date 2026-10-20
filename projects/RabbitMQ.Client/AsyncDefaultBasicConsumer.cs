@@ -127,7 +127,7 @@ namespace RabbitMQ.Client
         /// </summary>
         /// <remarks>
         /// This is a no-op implementation. It will not acknowledge deliveries via <see cref="IChannel.BasicAckAsync"/>
-        /// if consuming in automatic acknowledgement mode.
+        /// if consuming in automatic acknowledgment mode.
         /// Subclasses must copy or fully use delivery body before returning.
         /// Accessing the body at a later point is unsafe as its memory can
         /// be already released.

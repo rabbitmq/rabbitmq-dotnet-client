@@ -10,7 +10,7 @@ The findings were split into three groups, because they carry very different ris
 
 | Group | Content | Status |
 |---|---|---|
-| A | Behavioural defects: ambient-span pollution, failures never recorded, untagged `tcp connection attempt`, the null-`Headers` extractor path, a wrong comment | **Fixed.** Sections below are marked `FIXED` individually. |
+| A | Behavioral defects: ambient-span pollution, failures never recorded, untagged `tcp connection attempt`, the null-`Headers` extractor path, a wrong comment | **Fixed.** Sections below are marked `FIXED` individually. |
 | B | Semantic-convention conformance. Each one changes emitted span names or attributes, and several break existing test assertions. | Open |
 | C | Public API: per-provider tracing configuration. Must land before #1923. | **Split into two PRs, both for 7.3.0.** The validation and documentation land first; the per-connection ownership model follows once its API shape is settled. See below. |
 
@@ -208,7 +208,7 @@ Per-`TracerProvider` configuration turned out not to be achievable at all, which
 The work was therefore split in two, both parts targeted at 7.3.0. Landing first is the part that is unambiguously a defect, plus honest documentation of the part that is inherent:
 
 - The three setters reject `null` with `ArgumentNullException`, so a mistake surfaces at the assignment rather than as a `NullReferenceException` thrown from inside the client on some later publish.
-- All four members, and both `RabbitMQTracingOptions` properties, now document that the configuration is process-wide, that the last writer wins, and that disposal restores nothing. `TestTracingConfiguration.ConfigurationIsProcessWideAcrossTracerProviders` characterizes it so the documentation cannot drift from the behaviour.
+- All four members, and both `RabbitMQTracingOptions` properties, now document that the configuration is process-wide, that the last writer wins, and that disposal restores nothing. `TestTracingConfiguration.ConfigurationIsProcessWideAcrossTracerProviders` characterizes it so the documentation cannot drift from the behavior.
 - The README gained the scope explanation, the span-name table, and both options.
 
 @danielmarbach's review reframed the real fix as ownership: the configuration belongs to the connection that performs the operation. @paulomorgado independently asked for the same shape, "a process-wide static default, that could be overridden by each connection (or connection factory)". That is the right model and it follows in its own PR rather than being dropped. Two attempts at it were reverted out of this PR, and the reasons are worth recording, because they are not obvious and the next attempt will hit them again.
@@ -219,7 +219,7 @@ The work was therefore split in two, both parts targeted at 7.3.0. Landing first
 
 - **Whole-object fallback loses the other layer.** Resolution was `tracing ?? s_tracingOptions`, and a fresh `RabbitMQTracingOptions` pre-seeds the *client's* built-in delegates. So `cf.TracingOptions = new RabbitMQTracingOptions { UsePublisherAsParent = false }` - a span-shaping tweak, and exactly what the new docs told users to write - switched that connection off OpenTelemetry propagation. Messages went out with `traceparent` and no `baggage` header, `Propagators.DefaultTextMapPropagator` was never consulted so a B3 or Jaeger propagator was ignored, and the deliver path stopped resetting `Baggage.Current` per message. Spans still exported, so the wiring looked correct.
 - **The same fallback made the two configuration points mutually exclusive.** Configuring a factory and then passing `configure` to the builder-only overload silently ignored the latter, because the factory's non-null instance won as a whole.
-- **A factory-scoped call stopped configuring the process.** `AddRabbitMQInstrumentation(builder, factory, ...)` no longer installed the OpenTelemetry delegates globally, so any connection the caller does not own - a second factory, or one built inside MassTransit, EasyNetQ or Rebus - quietly fell back to the built-in propagation. That is the same behaviour break that had already been rejected as unshippable in a minor release when considering repurposing the no-argument overload.
+- **A factory-scoped call stopped configuring the process.** `AddRabbitMQInstrumentation(builder, factory, ...)` no longer installed the OpenTelemetry delegates globally, so any connection the caller does not own - a second factory, or one built inside MassTransit, EasyNetQ or Rebus - quietly fell back to the built-in propagation. That is the same behavior break that had already been rejected as unshippable in a minor release when considering repurposing the no-argument overload.
 
 The fix for all three is **per-member** fallback: each member `null` meaning "inherit the layer below", rather than one nullable options object. Where those nullable members live is the open question, and it is a compatibility decision rather than a technical one.
 
@@ -256,7 +256,7 @@ Two further constraints for that work:
 
 @danielmarbach also dismantled the premise the four options rested on: `v7.2.0`'s `ConnectionFactory` had no tracing members at all, so the per-connection layer is entirely unshipped and unconstrained by compatibility. The shipped type is a *defaults* type - complete, standalone, delegates pre-seeded - while the connection layer wants an *override* type: partial, `null` meaning inherit, not usable standalone. One type playing both roles is what created the pre-seeding that caused the propagation loss.
 
-So: **`ConnectionTracingOptions`**, a new type for the connection layer, every member nullable. `bool? UseRoutingKeyAsOperationName`, `bool? UsePublisherAsParent`, and `DistributedContextPropagator? Propagator` - no delegates. `RabbitMQTracingOptions` is untouched as the process-wide defaults type, and its unshipped instance delegates become `internal` (they remain the storage the deprecated statics read and write). `RabbitMQ.Client.OpenTelemetry` ships `OpenTelemetryPropagator`, the bridge the guidance describes. Naming follows house style: `CreateChannelOptions` is already an override type in behaviour and does not encode that in its name.
+So: **`ConnectionTracingOptions`**, a new type for the connection layer, every member nullable. `bool? UseRoutingKeyAsOperationName`, `bool? UsePublisherAsParent`, and `DistributedContextPropagator? Propagator` - no delegates. `RabbitMQTracingOptions` is untouched as the process-wide defaults type, and its unshipped instance delegates become `internal` (they remain the storage the deprecated statics read and write). `RabbitMQ.Client.OpenTelemetry` ships `OpenTelemetryPropagator`, the bridge the guidance describes. Naming follows house style: `CreateChannelOptions` is already an override type in behavior and does not encode that in its name.
 
 The statics are now `[Obsolete]` warnings, which the earlier constraint forbade only because no replacement existed. It does now.
 
@@ -265,7 +265,7 @@ Measured before committing to any of it, because each could have invalidated the
 | Question | Answer |
 |---|---|
 | Is `DistributedContextPropagator` subclassable, and `Current` assignable, on **.NET Framework 4.8**? | Yes, at `DiagnosticSource` 9.0.4 and 10.0.0 both |
-| Does a bridge reproduce today's OpenTelemetry behaviour end to end? | Yes - header names, baggage value, consumer-side `Baggage.Current`, and publish/consume trace linkage all identical against a live broker |
+| Does a bridge reproduce today's OpenTelemetry behavior end to end? | Yes - header names, baggage value, consumer-side `Baggage.Current`, and publish/consume trace linkage all identical against a live broker |
 | Does `ActivityContext` -> traceparent string -> `TryParse` lose anything? | No, including `tracestate` and the `Recorded` flag |
 | Does `Propagator` need a `DiagnosticSource` bump? | No. `CreateW3CPropagator` is 10.x-only, but subclassing is not |
 | Is `Propagators.DefaultTextMapPropagator.Fields` safe to read? | **No** - it is a no-op propagator returning `null` when only `OpenTelemetry.Api` is referenced, so the bridge guards it |
@@ -287,7 +287,7 @@ The resolution splits the two concerns, which is what @paulomorgado had also ask
 - `AddRabbitMQInstrumentation(builder, factory, ...)` stays as the shortcut for when both objects are on hand, and now just delegates to `UseOpenTelemetryTracing`.
 - Only the four `RabbitMQActivitySource` statics remain `[Obsolete]`: they are the unowned mutation surface #1981 reported, and the package writes them internally behind a suppression.
 
-Repurposing `AddRabbitMQInstrumentation()` into a subscribe-only call, as the review sketch suggested, was rejected. It currently installs OpenTelemetry's `Baggage` propagation and honours `Propagators.DefaultTextMapPropagator`, and the client's built-in fallback (`DistributedContextPropagator.Current`) does neither. Silently dropping baggage propagation is a behaviour break, not a bug fix, so it cannot ship in a minor release; a subscribe-only shape can be considered at the next major.
+Repurposing `AddRabbitMQInstrumentation()` into a subscribe-only call, as the review sketch suggested, was rejected. It currently installs OpenTelemetry's `Baggage` propagation and honors `Propagators.DefaultTextMapPropagator`, and the client's built-in fallback (`DistributedContextPropagator.Current`) does neither. Silently dropping baggage propagation is a behavior break, not a bug fix, so it cannot ship in a minor release; a subscribe-only shape can be considered at the next major.
 
 Also rejected: a DI-resolving overload. `OpenTelemetry.Api.ProviderBuilderExtensions` (netstandard2.0 and net8.0, depending only on `OpenTelemetry.Api` plus `Microsoft.Extensions.DependencyInjection.Abstractions`) exposes `AddInstrumentation<T>(Func<IServiceProvider, T>)`, so resolving the factory from the container inside the builder callback is feasible. It costs a new package dependency and assumes the application registered `ConnectionFactory` itself rather than a wrapper, a pool, or `IConnection`.
 
@@ -395,7 +395,7 @@ Opt-In means "SHOULD NOT be collected by default". The client always emits both 
 Two extractor fixes in Group A, one of which turned out not to be cosmetic:
 
 - `OpenTelemetryContextExtractor` passed `props.Headers` to `Propagators.DefaultTextMapPropagator.Extract` with no null check, unlike `DefaultContextExtractor` which returns early. With null headers the getter dereferenced null once per propagator field; the outcome was correct only because `catch (Exception)` swallowed it. That blanket catch was load-bearing rather than defensive, and its logger line was commented out, so a genuine extraction failure was silent. Now: an early return for null `Headers`, a `carrier != null` guard in the getter, and a comment explaining that the catch is now defensive-only (a custom `IDictionary` reaching the header table could still throw from `TryGetValue`, and a failed extraction must not fail the delivery). That early return is *not* purely cosmetic, though: the non-early path also runs `Baggage.Current = parentContext.Baggage`, which resets ambient baggage to empty for a header-less message. Returning early skipped that reset, and because `Baggage.Current` is `AsyncLocal` and the consumer dispatcher reuses one async flow across deliveries, a header-less delivery then inherited the previous message's baggage. Fixed by resetting `Baggage.Current = default` in the early-return branch; `TestContextExtractorHandlesPropertiesWithNoHeaders_GH1967` was extended to seed non-empty baggage and assert the extract clears it.
-- `DefaultContextSetter`'s comment said "Only propagate headers if they haven't already been set"; the code assigns unconditionally. The overwrite is the right behaviour - the comment was wrong, and now says so.
+- `DefaultContextSetter`'s comment said "Only propagate headers if they haven't already been set"; the code assigns unconditionally. The overwrite is the right behavior - the comment was wrong, and now says so.
 
 ## Consumer concurrency: no defects found
 
@@ -425,7 +425,7 @@ Three gaps found by the review of the Group A branch itself, all now closed:
 
 - **Exception event *count* was unasserted,** so the duplicate-recording defect above went unnoticed. `HasRecordedExceptionOnce` fixes this; see that section.
 - **Span parenting was unasserted.** All the new recorders set `VerifyParent = false`, which is unavoidable through the recorder - `ExpectedParent` has to be set before the recorder sees anything, and the ambient activity does not exist that early. `TestAmqpOperationsDoNotTagAnUnrelatedAmbientActivity_GH1967` now asserts `Assert.Same(appActivity, publishActivity.Parent)` directly instead, so scoping the tags to the publisher source cannot silently detach the publish span from the caller's trace. A detached span would show `Parent is null`, so the assertion is not vacuous.
-- **The null-`Headers` extractor guard had no test.** `TestContextExtractorHandlesPropertiesWithNoHeaders_GH1967` pins the observable contract: no headers extracts to `default` without throwing, and the extract resets ambient baggage. The return-value half would also have passed *before* the fix (swallowing the `NullReferenceException` reached the same result), and protects the outcome if someone later narrows or removes that blanket `catch`. The baggage-reset assertion, added with the baggage fix above, fails on the pre-fix early return, so the test now guards a real behaviour rather than only a latent one.
+- **The null-`Headers` extractor guard had no test.** `TestContextExtractorHandlesPropertiesWithNoHeaders_GH1967` pins the observable contract: no headers extracts to `default` without throwing, and the extract resets ambient baggage. The return-value half would also have passed *before* the fix (swallowing the `NullReferenceException` reached the same result), and protects the outcome if someone later narrows or removes that blanket `catch`. The baggage-reset assertion, added with the baggage fix above, fails on the pre-fix early return, so the test now guards a real behavior rather than only a latent one.
 
 Still open, and both belong to Group B:
 

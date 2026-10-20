@@ -135,12 +135,12 @@ namespace RabbitMQ.Client
         string? ClientProvidedName { get; }
 
         /// <summary>
-        /// Signalled when an exception occurs in a callback invoked by the connection.
+        /// Signaled when an exception occurs in a callback invoked by the connection.
         /// </summary>
         /// <remarks>
-        /// This event is signalled when a ConnectionShutdown handler
+        /// This event is signaled when a ConnectionShutdown handler
         /// throws an exception. If, in future, more events appear on
-        /// <see cref="IConnection"/>, then this event will be signalled whenever one
+        /// <see cref="IConnection"/>, then this event will be signaled whenever one
         /// of those event handlers throws an exception, as well.
         /// </remarks>
         event AsyncEventHandler<CallbackExceptionEventArgs> CallbackExceptionAsync;
@@ -233,7 +233,7 @@ namespace RabbitMQ.Client
         /// <param name="reasonText">A message indicating the reason for closing the connection.</param>
         /// <param name="timeout">
         /// How long to wait for the in-progress close operations to complete, after which the
-        /// wait ends and this call fails rather than waiting further. The value is honoured
+        /// wait ends and this call fails rather than waiting further. The value is honored
         /// as given for a graceful close, down to a one second minimum. That minimum exists because
         /// the timeout also bounds the close handshake itself, not only the wait for the peer's reply:
         /// a smaller value cancels the close before it transmits anything, which leaves the connection
@@ -254,7 +254,7 @@ namespace RabbitMQ.Client
         /// teardown that never throws, so its value to a caller is returning promptly, and its wait
         /// is bounded by this timeout alone. A larger request, including
         /// <see cref="System.Threading.Timeout.InfiniteTimeSpan"/> and
-        /// <see cref="TimeSpan.MaxValue"/>, is capped at 10 seconds rather than honoured.
+        /// <see cref="TimeSpan.MaxValue"/>, is capped at 10 seconds rather than honored.
         /// </para>
         /// </param>
         /// <param name="abort">Whether or not this close is an abort (ignores certain exceptions).</param>

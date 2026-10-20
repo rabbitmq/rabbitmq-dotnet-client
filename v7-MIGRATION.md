@@ -71,7 +71,7 @@ RabbitMQActivitySource.ContextInjector = (activity, headers) => { /* ... */ };
 factory.TracingOptions = new ConnectionTracingOptions { Propagator = myPropagator };
 ```
 
-To customise OpenTelemetry propagation rather than replace it, decorate the supplied bridge instead of writing a propagator from scratch:
+To customize OpenTelemetry propagation rather than replace it, decorate the supplied bridge instead of writing a propagator from scratch:
 
 ```csharp
 factory.UseOpenTelemetryTracing(options =>
@@ -80,7 +80,7 @@ factory.UseOpenTelemetryTracing(options =>
 
 Why a propagator and not delegates: a library propagates through `DistributedContextPropagator`, and bridging OpenTelemetry's own `TextMapPropagator` is an application-root concern. That is what keeps `RabbitMQ.Client` free of an OpenTelemetry dependency, with the bridge living in `RabbitMQ.Client.OpenTelemetry`.
 
-Note one behaviour change that comes from a dependency rather than from this client. `RabbitMQ.Client.OpenTelemetry` requires `System.Diagnostics.DiagnosticSource` 10.x, whose default propagator is the W3C one; the core client alone resolves 9.x, whose default is the legacy propagator. Baggage is therefore emitted in the `baggage` header when the OpenTelemetry package is installed and in the non-standard `Correlation-Context` header when it is not. If you rely on the header name, set `DistributedContextPropagator.Current` explicitly at your application root.
+Note one behavior change that comes from a dependency rather than from this client. `RabbitMQ.Client.OpenTelemetry` requires `System.Diagnostics.DiagnosticSource` 10.x, whose default propagator is the W3C one; the core client alone resolves 9.x, whose default is the legacy propagator. Baggage is therefore emitted in the `baggage` header when the OpenTelemetry package is installed and in the non-standard `Correlation-Context` header when it is not. If you rely on the header name, set `DistributedContextPropagator.Current` explicitly at your application root.
 
 ## Timed-out protocol operations
 
