@@ -40,7 +40,7 @@ using Xunit.Abstractions;
 
 namespace Test.SequentialIntegration
 {
-    // The conformance behaviour the other tracing tests cannot see: they publish to the default
+    // The conformance behavior the other tracing tests cannot see: they publish to the default
     // exchange with a routing key equal to the queue name, which collapses the destination to one
     // component. Issue #1980.
     public class TestSemanticConventions : SequentialIntegrationFixture
