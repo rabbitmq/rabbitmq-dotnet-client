@@ -134,7 +134,7 @@ namespace RabbitMQ.Client.Impl
             }
 
             OutgoingFrame bytes = Framing.SerializeToFrames(ref Unsafe.AsRef(in cmd), ChannelNumber);
-            RabbitMQActivitySource.PopulateMessageEnvelopeSizeOnAmbientPublisherActivity(bytes.Size);
+            RabbitMQActivitySource.PopulateMessageEnvelopeSizeOnAmbientPublisherActivity(bytes.Size, Connection.TracingOptions);
             return Connection.WriteAsync(bytes, cancellationToken);
         }
 
@@ -162,7 +162,7 @@ namespace RabbitMQ.Client.Impl
             try
             {
                 bytes = Framing.SerializeToFrames(ref Unsafe.AsRef(in cmd), ref Unsafe.AsRef(in header), body, bodyOwner, ChannelNumber, Connection.MaxPayloadSize);
-                RabbitMQActivitySource.PopulateMessageEnvelopeSizeOnAmbientPublisherActivity(bytes.Size);
+                RabbitMQActivitySource.PopulateMessageEnvelopeSizeOnAmbientPublisherActivity(bytes.Size, Connection.TracingOptions);
                 return Connection.WriteAsync(bytes, cancellationToken);
             }
             catch
@@ -193,7 +193,7 @@ namespace RabbitMQ.Client.Impl
             try
             {
                 bytes = Framing.SerializeToFrames(ref Unsafe.AsRef(in cmd), ref Unsafe.AsRef(in header), body, bodyOwner, ChannelNumber, Connection.MaxPayloadSize);
-                RabbitMQActivitySource.PopulateMessageEnvelopeSizeOnAmbientPublisherActivity(bytes.Size);
+                RabbitMQActivitySource.PopulateMessageEnvelopeSizeOnAmbientPublisherActivity(bytes.Size, Connection.TracingOptions);
                 return Connection.WriteAsync(bytes, cancellationToken);
             }
             catch
