@@ -72,7 +72,7 @@ namespace RabbitMQ.Client
         /// To wait infinitely for the close operations to complete use <see cref="System.Threading.Timeout.InfiniteTimeSpan"/>.
         /// </para>
         /// <para>
-        /// The value is honoured as given, down to a one second minimum. That minimum exists because
+        /// The value is honored as given, down to a one second minimum. That minimum exists because
         /// the timeout also bounds the close handshake itself, not only the wait for the peer's reply:
         /// a smaller value cancels the close before it transmits anything, which leaves the connection
         /// open on the broker even though this client reports it closed. A timeout that elapses while
@@ -225,8 +225,8 @@ namespace RabbitMQ.Client
         /// basis.
         /// <para>
         /// An abort is always bounded, between 5 and 10 seconds, so unlike
-        /// <see cref="CloseAsync(IConnection,TimeSpan)"/> it does not honour
-        /// <see cref="Timeout.InfiniteTimeSpan"/> and does not honour an arbitrarily large value
+        /// <see cref="CloseAsync(IConnection,TimeSpan)"/> it does not honor
+        /// <see cref="Timeout.InfiniteTimeSpan"/> and does not honor an arbitrarily large value
         /// either. Abort exists to tear the connection down and return promptly without throwing, and
         /// its wait is bounded by this timeout alone, because the caller's cancellation token is
         /// deliberately neutralized on an open connection. An unbounded abort would therefore have

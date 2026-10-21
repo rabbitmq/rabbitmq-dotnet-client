@@ -665,7 +665,7 @@ namespace RabbitMQ.Client
          * the logs migration below into a three-site edit instead of one.
          *
          * The exception event is the one signal here on a deprecation path: the
-         * exceptions-on-spans convention is deprecated in favour of recording
+         * exceptions-on-spans convention is deprecated in favor of recording
          * exceptions as log records, and Activity.AddException is expected to follow.
          * The status and error.type are unaffected by that change. Keeping all three
          * in one helper is what makes the eventual migration a single edit. See

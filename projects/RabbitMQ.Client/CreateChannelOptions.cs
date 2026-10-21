@@ -104,7 +104,7 @@ namespace RabbitMQ.Client
         /// <para>
         /// <b>What a limiter bounds, if you pass one.</b> <see cref="ThrottlingRateLimiter"/> uses the limit
         /// as both its permit and its queue limit. A permit is held only while a publish is being sent and
-        /// is released before the broker's acknowledgement is awaited, so the limit bounds concurrent
+        /// is released before the broker's acknowledgment is awaited, so the limit bounds concurrent
         /// <c>BasicPublishAsync</c> calls, not unacknowledged messages. The throttling percentage is an
         /// available-permit floor rather than the point at which throttling begins: a delay applies once
         /// available permits fall below <c>limit * percentage / 100</c>, so a lower percentage throttles
@@ -151,9 +151,9 @@ namespace RabbitMQ.Client
         /// </list>
         /// <para>
         /// The constructor default is not <c>null</c>. Changing it would compile everywhere and
-        /// change behaviour silently rather than break a build: C# bakes an optional parameter's default into
+        /// change behavior silently rather than break a build: C# bakes an optional parameter's default into
         /// the caller's assembly, so applications that upgraded without rebuilding would keep the old
-        /// behaviour while rebuilt ones switched, and code reading this member back would see
+        /// behavior while rebuilt ones switched, and code reading this member back would see
         /// <see cref="System.Nullable{T}.Value"/> throw at run time where it previously returned 1. The
         /// default is also part of this library's recorded public API surface, so changing it is an API
         /// change rather than an implementation detail. See rabbitmq/rabbitmq-dotnet-client#2027.

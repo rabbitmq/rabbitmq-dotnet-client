@@ -463,7 +463,7 @@ namespace RabbitMQ.Client
         /// Asynchronously create a connection using a list of hostnames using the configured port.
         /// By default each hostname is tried in a random order until a successful connection is
         /// found or the list is exhausted using the DefaultEndpointResolver.
-        /// The selection behaviour can be overridden by configuring the EndpointResolverFactory.
+        /// The selection behavior can be overridden by configuring the EndpointResolverFactory.
         /// </summary>
         /// <param name="hostnames">
         /// List of hostnames to use for the initial
@@ -484,7 +484,7 @@ namespace RabbitMQ.Client
         /// Asynchronously create a connection using a list of hostnames using the configured port.
         /// By default each endpoint is tried in a random order until a successful connection is
         /// found or the list is exhausted.
-        /// The selection behaviour can be overridden by configuring the EndpointResolverFactory.
+        /// The selection behavior can be overridden by configuring the EndpointResolverFactory.
         /// </summary>
         /// <param name="hostnames">
         /// List of hostnames to use for the initial
@@ -511,7 +511,7 @@ namespace RabbitMQ.Client
         /// <summary>
         /// Asynchronously create a connection using a list of endpoints. By default each endpoint will be tried
         /// in a random order until a successful connection is found or the list is exhausted.
-        /// The selection behaviour can be overridden by configuring the EndpointResolverFactory.
+        /// The selection behavior can be overridden by configuring the EndpointResolverFactory.
         /// </summary>
         /// <param name="endpoints">
         /// List of endpoints to use for the initial
@@ -531,7 +531,7 @@ namespace RabbitMQ.Client
         /// <summary>
         /// Asynchronously create a connection using a list of endpoints. By default each endpoint will be tried
         /// in a random order until a successful connection is found or the list is exhausted.
-        /// The selection behaviour can be overridden by configuring the EndpointResolverFactory.
+        /// The selection behavior can be overridden by configuring the EndpointResolverFactory.
         /// </summary>
         /// <param name="endpoints">
         /// List of endpoints to use for the initial

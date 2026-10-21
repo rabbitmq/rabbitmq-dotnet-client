@@ -79,7 +79,7 @@ namespace RabbitMQ.Client
         /// <remarks>
         ///  <para>
         ///   Does nothing with the passed in information.
-        ///   Note that in particular, some delivered messages may require acknowledgement via <see cref="IChannel.BasicAckAsync"/>.
+        ///   Note that in particular, some delivered messages may require acknowledgment via <see cref="IChannel.BasicAckAsync"/>.
         ///   The implementation of this method in this class does NOT acknowledge such messages.
         ///  </para>
         ///  <para>

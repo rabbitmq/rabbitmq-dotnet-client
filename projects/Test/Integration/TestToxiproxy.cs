@@ -614,7 +614,7 @@ namespace Test.Integration
                 "stall the write loop and the scenario under test cannot be reached here");
         }
 
-        // Behavioural coverage for https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1988
+        // Behavioral coverage for https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1988
         //
         // Disposing a channel has to release its consumer dispatcher's worker, and the only thing
         // that does so is completing the dispatcher's work channel: the worker awaits
@@ -780,7 +780,7 @@ namespace Test.Integration
                 publishTasks.Add(PublishIgnoringErrorsAsync(ch, q.QueueName, body, cts.Token));
             }
 
-            // Wait until the completed-task count stabilises: once stable the 128-slot
+            // Wait until the completed-task count stabilizes: once stable the 128-slot
             // channel is full and the remaining publishers are blocked on WriteAsync.
             int prevDone = -1, stablePolls = 0;
             while (stablePolls < 5)
@@ -915,7 +915,7 @@ namespace Test.Integration
             bandwidthToxic.Attributes.Rate = 1; // 1 KB/s – reliably stalls the write loop
             await _toxiproxyManager.AddToxicAsync(bandwidthToxic);
 
-            // With confirms enabled, _confirmSemaphore(1,1) serialises publishes one
+            // With confirms enabled, _confirmSemaphore(1,1) serializes publishes one
             // at a time. Publishers fill the 128-slot channel almost instantly while the
             // stalled write loop cannot drain it. The publisher that encounters a full
             // channel blocks on WriteAsync while holding the semaphore; every subsequent
@@ -928,7 +928,7 @@ namespace Test.Integration
                 publishTasks.Add(PublishIgnoringErrorsAsync(ch, q.QueueName, body, cts.Token));
             }
 
-            // Wait until the completed-task count stabilises for at least 5 consecutive
+            // Wait until the completed-task count stabilizes for at least 5 consecutive
             // 100 ms polls.  Once it is stable we know:
             //  - the write loop's FlushAsync is blocked (Rate=1 exhausted OS buffers), and
             //  - a publisher is blocked on _channelWriter.WriteAsync while holding the
@@ -1187,7 +1187,7 @@ namespace Test.Integration
             }
         }
 
-        // Behavioural coverage for https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1996
+        // Behavioral coverage for https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1996
         //
         // A continuation that outruns ContinuationTimeout completes as cancelled, and the two close
         // paths then diverge in a way the public docs describe but nothing tested: a graceful close

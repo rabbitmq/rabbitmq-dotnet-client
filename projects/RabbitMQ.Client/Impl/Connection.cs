@@ -291,7 +291,7 @@ namespace RabbitMQ.Client.Impl
                  * ContinuationTimeout awaiting a channel.close-ok that can never arrive.
                  *
                  * We also intentionally do NOT pass cancellationToken to Task.Run: an
-                 * already-canceled token would produce a task that transitions straight
+                 * already-cancelled token would produce a task that transitions straight
                  * to Canceled without ever running MainLoop. MainLoop observes
                  * cancellation via _mainLoopCts instead.
                  */
@@ -539,7 +539,7 @@ namespace RabbitMQ.Client.Impl
         /// </summary>
         /// <remarks>
         /// <para>
-        /// A graceful close honours what the caller asked for. That is the point of #1973: the 30
+        /// A graceful close honors what the caller asked for. That is the point of #1973: the 30
         /// second floor this used to apply was not policy, it arrived as incidental scaffolding in
         /// PR #1809 while fixing an unrelated <see cref="ObjectDisposedException"/>, and it made
         /// <see cref="Timeout.InfiniteTimeSpan"/> - documented as the way to wait without a bound -

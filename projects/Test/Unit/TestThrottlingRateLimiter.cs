@@ -40,7 +40,7 @@ using Xunit;
 namespace Test.Unit
 {
     /// <summary>
-    /// Two behaviours of <see cref="ThrottlingRateLimiter"/> that #1988 changed and that nothing
+    /// Two behaviors of <see cref="ThrottlingRateLimiter"/> that #1988 changed and that nothing
     /// else covers: that an async dispose really disposes it, and that a cancelled acquisition does
     /// not consume a permit for good. Both are cheap and need no broker.
     /// </summary>

@@ -52,7 +52,7 @@ namespace RabbitMQ.Client
         /// a server-named queue would make span names unusable as an aggregation key.
         /// <see langword="null"/> inherits.
         /// <para>
-        /// The name predates the behaviour; before 7.3.0 only the routing key was appended.
+        /// The name predates the behavior; before 7.3.0 only the routing key was appended.
         /// </para>
         /// </summary>
         public bool? UseRoutingKeyAsOperationName { get; set; }

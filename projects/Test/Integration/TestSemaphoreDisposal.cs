@@ -111,7 +111,7 @@ namespace Test.Integration
              * recording and recovery paths, which run concurrently with disposal. A
              * recovery attempt parked on either one would never return.
              *
-             * MainSession._closingSemaphore is the closest analogue of #1968:
+             * MainSession._closingSemaphore is the closest analog of #1968:
              * Connection.DisposeAsync disposes the session after AbortAsync, while
              * MainLoop's FinishCloseAsync independently calls SetSessionClosingAsync.
              * If the latter is parked on the semaphore when disposal runs, MainLoop

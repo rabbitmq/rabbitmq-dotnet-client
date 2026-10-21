@@ -26,7 +26,7 @@ namespace RabbitMQ.Client
         /// Set it to <see langword="false"/> where a high-cardinality routing key or a server-named
         /// queue would make span names unusable as an aggregation key.
         /// <para>
-        /// The name predates the behaviour: before 7.3.0 only the routing key was appended, which
+        /// The name predates the behavior: before 7.3.0 only the routing key was appended, which
         /// left the exchange out of span names entirely. The appended value is now
         /// <c>messaging.destination.name</c>, of which the routing key is one component.
         /// </para>

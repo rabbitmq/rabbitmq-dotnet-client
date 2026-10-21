@@ -40,7 +40,7 @@ run against the netstandard2.0 client build.
   any non-abort timeout below `InternalConstants.DefaultConnectionCloseTimeout` (30s)
   up to 30s, so the test's own 6s `_waitSpan` was ignored; since
   [#1973](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1973) the caller's
-  value is honoured, so the budget is whatever the test asks for. Healthy runs finish
+  value is honored, so the budget is whatever the test asks for. Healthy runs finish
   in well under a second, so the 5s default is generous.
 
 Outcome, duration and failure message all come from the trx (`--logger trx`), so
@@ -135,4 +135,4 @@ A rate does not settle these, but it informs them:
 Whether the 30s floor overriding a caller-supplied 6s timeout is intended was the
 third question. It was answerable from history without a repro, was filed separately as
 [#1973](https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1973), and is now
-answered: it was not intended, and the caller's value is honoured.
+answered: it was not intended, and the caller's value is honored.

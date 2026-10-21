@@ -198,7 +198,7 @@ namespace Test.SequentialIntegration
             ConnectionFactory returned = cf.UseOpenTelemetryTracing(options =>
             {
                 options.UseRoutingKeyAsOperationName = false;
-                // Customising propagation means decorating the propagator, which is the extension
+                // Customizing propagation means decorating the propagator, which is the extension
                 // point a library is supposed to offer. UseOpenTelemetryTracing has already installed
                 // the OpenTelemetry bridge, so wrap whatever it put there rather than assuming.
                 options.Propagator = new MarkerAddingPropagator(options.Propagator, markerHeader, marker);

@@ -106,6 +106,11 @@ private long _continuationTimeoutTicks;
 - Describe current behavior. Keep history only where it explains an invariant that
   still holds or guards against a likely regression, which on a `docs/internal/` page
   is the rejected-design record above.
+- American spelling in comments, XML docs and Markdown: behavior, honor, favor,
+  customize, labeled, synchronized. Identifiers, runtime strings, `CHANGELOG.md`,
+  `HISTORY.md` and `projects/specs/` keep whatever they have. `cancelled` is the
+  prevailing prose spelling and stays; use one `l` only when naming a BCL member such
+  as `OperationCanceledException` (#2028).
 
 ### Text from outside the repository
 

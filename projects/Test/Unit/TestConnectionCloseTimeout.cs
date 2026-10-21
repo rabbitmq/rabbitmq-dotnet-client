@@ -40,7 +40,7 @@ namespace Test.Unit
     /// <summary>
     /// rabbitmq/rabbitmq-dotnet-client#1973
     ///
-    /// <see cref="Connection.ResolveCloseTimeout"/> honours what the caller asked for. The 30 second
+    /// <see cref="Connection.ResolveCloseTimeout"/> honors what the caller asked for. The 30 second
     /// floor it used to apply to every graceful close was not policy: it arrived as incidental
     /// scaffolding in PR #1809 while fixing an unrelated <see cref="ObjectDisposedException"/>, and
     /// it made <see cref="Timeout.InfiniteTimeSpan"/> unreachable (-1ms compares below any
@@ -82,7 +82,7 @@ namespace Test.Unit
             /*
              * The headline of #1973: every one of these used to resolve to 30 seconds. The 6 second
              * case is the one the issue calls out by name. One second is included because it is the
-             * minimum, and must be honoured rather than raised.
+             * minimum, and must be honored rather than raised.
              */
             TimeSpan timeout = TimeSpan.FromSeconds(seconds);
 
@@ -123,7 +123,7 @@ namespace Test.Unit
              * exactly and no other negative value: loosening it to `timeout < TimeSpan.Zero`, or to
              * `(long)timeout.TotalMilliseconds == -1`, must fail here.
              *
-             * The cases are chosen from measured constructor behaviour. The constructor validates
+             * The cases are chosen from measured constructor behavior. The constructor validates
              * (long)delay.TotalMilliseconds >= -1, and that cast truncates toward zero, which splits
              * the sub-2ms negatives into two regimes with opposite hazards:
              *
@@ -165,7 +165,7 @@ namespace Test.Unit
             Assert.Equal(Timeout.InfiniteTimeSpan,
                 Connection.ResolveCloseTimeout(Timeout.InfiniteTimeSpan, abort: false));
 
-            // The largest value still expressible as a bound is honoured as given.
+            // The largest value still expressible as a bound is honored as given.
             Assert.Equal(ceiling, Connection.ResolveCloseTimeout(ceiling, abort: false));
             Assert.Equal(ceiling,
                 Connection.ResolveCloseTimeout(ceiling + TimeSpan.FromMilliseconds(1), abort: false));

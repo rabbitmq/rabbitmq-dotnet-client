@@ -59,7 +59,7 @@ namespace RabbitMQ.Client
         /// </summary>
         ShutdownEventArgs? CloseReason { get; }
 
-        /// <summary>Signalled when an unexpected message is delivered.</summary>
+        /// <summary>Signaled when an unexpected message is delivered.</summary>
         ///
         /// <remarks>
         /// Under certain circumstances it is possible for a channel to receive a
@@ -105,24 +105,24 @@ namespace RabbitMQ.Client
         string? CurrentQueue { get; }
 
         /// <summary>
-        /// Signalled when a Basic.Ack command arrives from the broker.
+        /// Signaled when a Basic.Ack command arrives from the broker.
         /// </summary>
         event AsyncEventHandler<BasicAckEventArgs> BasicAcksAsync;
 
         /// <summary>
-        /// Signalled when a Basic.Nack command arrives from the broker.
+        /// Signaled when a Basic.Nack command arrives from the broker.
         /// </summary>
         event AsyncEventHandler<BasicNackEventArgs> BasicNacksAsync;
 
         /// <summary>
-        /// Signalled when a Basic.Return command arrives from the broker.
+        /// Signaled when a Basic.Return command arrives from the broker.
         /// </summary>
         event AsyncEventHandler<BasicReturnEventArgs> BasicReturnAsync;
 
         /// <summary>
-        /// Signalled when an exception occurs in a callback invoked by the channel.
+        /// Signaled when an exception occurs in a callback invoked by the channel.
         ///
-        /// Examples of cases where this event will be signalled
+        /// Examples of cases where this event will be signaled
         /// include exceptions thrown in <see cref="IAsyncBasicConsumer"/> methods, or
         /// exceptions thrown in <see cref="ChannelShutdownAsync"/> delegates etc.
         /// </summary>

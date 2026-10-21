@@ -256,7 +256,7 @@ namespace RabbitMQ.Client.Impl
             CancellationToken cancellationToken = args.CancellationToken;
 
             bool enqueued = false;
-            // We should really try to close the channel and therefore we don't allow this to be canceled by the user
+            // We should really try to close the channel and therefore we don't allow this to be cancelled by the user
             var k = new ChannelCloseAsyncRpcContinuation(ContinuationTimeout, IsOpen ? CancellationToken.None : cancellationToken);
 
             await _rpcSemaphore.WaitAsync(k.CancellationToken)

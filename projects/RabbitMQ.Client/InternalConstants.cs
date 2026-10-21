@@ -77,9 +77,9 @@ namespace RabbitMQ.Client
         /// </summary>
         /// <remarks>
         /// An abort is best-effort teardown that never throws, so its value to a caller is that it
-        /// returns promptly. Honouring an arbitrarily large abort timeout defeats that: it turns
+        /// returns promptly. Honoring an arbitrarily large abort timeout defeats that: it turns
         /// "tear this down and move on" into a wait that can outlast the process. The caller's value
-        /// is still honoured between <see cref="DefaultConnectionAbortTimeout"/> and this ceiling, so
+        /// is still honored between <see cref="DefaultConnectionAbortTimeout"/> and this ceiling, so
         /// asking for longer is not an error, just capped.
         /// </remarks>
         internal static readonly TimeSpan MaxConnectionAbortTimeout = TimeSpan.FromSeconds(10);

@@ -236,7 +236,7 @@ namespace RabbitMQ.Client.Impl
                         // called), which aborted the WaitAsync above. We do NOT rethrow: a
                         // caller-cancelled close should complete quietly rather than surface an
                         // OperationCanceledException (this mirrors the abort path in
-                        // Connection.CloseAsync). Note the recovery loop has been signalled to
+                        // Connection.CloseAsync). Note the recovery loop has been signaled to
                         // cancel via _recoveryCancellationTokenSource but is NOT awaited here, so
                         // it may still be unwinding when this returns; cancellation is cooperative.
                     }
@@ -311,7 +311,7 @@ namespace RabbitMQ.Client.Impl
                  * the client never added to the channel's ConsumerDispatcher, so from then on every
                  * delivery for that consumer tag resolves to the FallbackConsumer and is discarded
                  * without being acked. With a non-zero prefetch the broker then waits forever for an
-                 * acknowledgement that cannot come, and the queue stops being consumed for good -
+                 * acknowledgment that cannot come, and the queue stops being consumed for good -
                  * silently, on a connection and channel that both still report IsOpen.
                  *
                  * https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1993
@@ -733,7 +733,7 @@ namespace RabbitMQ.Client.Impl
                          * Deliberately not the recovery token. A cancelled re-acquire escapes
                          * without the semaphore, and the outer finally then releases one it does not
                          * hold, raising SemaphoreFullException and replacing the real cancellation
-                         * with a 541. Waiting untokenised is bounded here, and issue #2038 is a
+                         * with a 541. Waiting untokenized is bounded here, and issue #2038 is a
                          * pre-existing deadlock that does not reach it. Both arguments are in
                          * docs/internal/connection-shutdown-and-cancellation.md, issue #1997.
                          */

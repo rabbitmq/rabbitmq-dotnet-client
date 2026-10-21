@@ -42,7 +42,7 @@ namespace RabbitMQ.Client
     /// <para>
     /// Some of the constructors take, as a convenience, a <see cref="System.Uri"/>
     /// instance representing an AMQP server address. The use of Uri
-    /// here is not standardised - Uri is simply a convenient
+    /// here is not standardized - Uri is simply a convenient
     /// container for internet-address-like components. In particular,
     /// the Uri "Scheme" property is ignored: only the "Host" and
     /// "Port" properties are extracted.

@@ -112,7 +112,7 @@ namespace Test.Integration
              * full close timeout before throwing a bare OperationCanceledException --
              * the 30-second net472 CI failure in #1968. It was 30 seconds because every
              * value below that was floored to it; since #1973 the caller's value is
-             * honoured, so the same failure would now last however long the caller asked
+             * honored, so the same failure would now last however long the caller asked
              * for.
              *
              * Two direct closes are the minimal deterministic form of that race.
