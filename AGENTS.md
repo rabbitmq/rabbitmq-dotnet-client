@@ -27,7 +27,11 @@ dedicated cleanup pass, and such a pass states which pull requests it covers.
   exposes it or cannot ship safely without it. Other findings and known gaps get an
   issue and a one-line link.
 - Release notes: short and user-facing. Keep changed limits, compatibility impact,
-  and required user action; drop measurements and internals.
+  and required user action; drop measurements and internals and link the
+  `docs/internal/` page instead. A change users will notice adds its note to
+  `docs/release-notes/<version>.md` in the same commit and carries the `release-notes`
+  label. Nothing enforces the pairing; `RELEASE.md` carries the reconciliation step
+  that stands in for a check (#2030).
 - Commit message: a subject and a few lines on why, not a copy of the description.
 - Review replies: answer the point without headings, link the fixing commit or say
   why no change is needed, and do not repeat the AI disclosure.
