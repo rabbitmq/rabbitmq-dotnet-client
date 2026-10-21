@@ -46,8 +46,14 @@ namespace RabbitMQ.Client
     public sealed class ConnectionTracingOptions
     {
         /// <summary>
-        /// Use the routing key as the operation name of a publish span.
+        /// Append the destination - <c>messaging.destination.name</c>, of which the routing key is
+        /// one component - to publish, delivery and fetch span names. Set it to
+        /// <see langword="false"/> for bare operation names where a high-cardinality routing key or
+        /// a server-named queue would make span names unusable as an aggregation key.
         /// <see langword="null"/> inherits.
+        /// <para>
+        /// The name predates the behaviour; before 7.3.0 only the routing key was appended.
+        /// </para>
         /// </summary>
         public bool? UseRoutingKeyAsOperationName { get; set; }
 
@@ -56,6 +62,13 @@ namespace RabbitMQ.Client
         /// <see langword="null"/> inherits.
         /// </summary>
         public bool? UsePublisherAsParent { get; set; }
+
+        /// <summary>
+        /// Emit <c>messaging.message.body.size</c> on publish, delivery and fetch spans, and
+        /// <c>messaging.message.envelope.size</c> on publish spans. Both are Opt-In in the semantic
+        /// convention, so they are off unless asked for. <see langword="null"/> inherits.
+        /// </summary>
+        public bool? IncludeMessageSizes { get; set; }
 
         /// <summary>
         /// Propagates trace context into published messages and out of received ones.
