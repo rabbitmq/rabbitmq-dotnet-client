@@ -89,8 +89,11 @@ namespace Test
                         connections = await _managementClient.GetConnectionsAsync();
                     } while (connections.Count == 0);
 
+                    // TryGetValue, not the indexer: this lists every connection on the broker, and
+                    // a client that sets no connection_name is any other AMQP library.
                     connectionToClose = connections.Where(c0 =>
-                        string.Equals((string)c0.ClientProperties["connection_name"], connectionClientProvidedName,
+                        c0.ClientProperties.TryGetValue("connection_name", out object clientProvidedName) &&
+                        string.Equals((string)clientProvidedName, connectionClientProvidedName,
                         StringComparison.InvariantCultureIgnoreCase)).FirstOrDefault();
                 }
                 catch (ArgumentNullException)
