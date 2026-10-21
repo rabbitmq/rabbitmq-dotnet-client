@@ -379,7 +379,7 @@ So an *uncancelled* token means the operation definitely timed out, because the 
 
 A close on an open channel or connection is a further exception: those deliberately build the continuation with `CancellationToken.None` so a close already under way is not truncated, so a cancelled caller token there does not even imply the request was never sent.
 
-**Paths that do not surface it as cancellation at all.** `CreateConnectionAsync` wraps it in `BrokerUnreachableException`; an abort swallows it, so `AbortAsync` can return successfully after waiting out the full budget; and topology recovery wraps it in a `TopologyRecoveryException`, which is logged and fails the recovery attempt rather than reaching any event handler - `ConnectionRecoveryErrorAsync` covers reconnection, not the topology phase. Waiting for a publisher confirmation is not bounded by this timeout at all.
+**Paths that do not surface it as cancellation at all.** `CreateConnectionAsync` wraps it in `BrokerUnreachableException`; an abort swallows it, so `AbortAsync` can return successfully after waiting out the full budget; and topology recovery wraps it in a `TopologyRecoveryException`, which is logged and fails the recovery attempt. Waiting for a publisher confirmation is not bounded by this timeout at all.
 
 Because `StartTimeout()` is the first statement inside the `try`, before `ModelSendAsync`, the budget is armed before the request is sent. Unless it is very small, a timeout therefore means the request reached the wire and the broker may still act on it.
 

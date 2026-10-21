@@ -135,11 +135,20 @@ namespace Test.Integration.ConnectionRecovery
             await CloseConnectionAsync(conn);
             await WaitAsync(recoveryEntered, "recovery to reach the consumer handler");
 
+            // Reconnection has succeeded by now, so any event from here on is the close. #2014.
+            int recoveryErrors = 0;
+            conn.ConnectionRecoveryErrorAsync += (sender, args) =>
+            {
+                Interlocked.Increment(ref recoveryErrors);
+                return Task.CompletedTask;
+            };
+
             await conn.CloseAsync();
 
             Assert.NotNull(conn.CloseReason);
             Assert.Equal(Constants.ReplySuccess, conn.CloseReason.ReplyCode);
             Assert.Equal("ClosedDuringRecovery", conn.CloseReason.ReplyText);
+            Assert.Equal(0, Volatile.Read(ref recoveryErrors));
         }
     }
 }

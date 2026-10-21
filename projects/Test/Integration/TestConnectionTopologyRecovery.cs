@@ -599,5 +599,63 @@ namespace Test.Integration
                 await conn.DisposeAsync();
             }
         }
+
+        [Fact]
+        public async Task TestConnectionRecoveryErrorIsRaisedWhenTopologyRecoveryFails_GH2014()
+        {
+            string queueName = GenerateQueueName();
+            var conflictingArguments = new Dictionary<string, object>
+            {
+                { Headers.XMaxPriority, 20 }
+            };
+
+            Exception recoveryError = null;
+            var errorTcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+            var recoveredTcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+
+            AutorecoveringConnection conn = await CreateAutorecoveringConnectionAsync();
+            conn.ConnectionRecoveryErrorAsync += (source, ea) =>
+            {
+                // A transient reconnect failure raises this too; wait for the topology one.
+                if (ea.Exception is TopologyRecoveryException)
+                {
+                    Interlocked.CompareExchange(ref recoveryError, ea.Exception, null);
+                    errorTcs.TrySetResult(true);
+                }
+                return Task.CompletedTask;
+            };
+            conn.RecoverySucceededAsync += (source, ea) =>
+            {
+                recoveredTcs.TrySetResult(true);
+                return Task.CompletedTask;
+            };
+
+            IChannel ch = await conn.CreateChannelAsync(_createChannelOptions);
+            try
+            {
+                await ch.QueueDeclareAsync(queueName, true, false, false);
+
+                // Recovery's re-declare now fails with 406, which fails the attempt and retries it.
+                await _channel.QueueDeleteAsync(queueName);
+                await _channel.QueueDeclareAsync(queueName, true, false, false,
+                    noWait: false, arguments: conflictingArguments);
+
+                await CloseConnectionAsync(conn);
+
+                await WaitAsync(errorTcs, "ConnectionRecoveryErrorAsync for the failed queue recovery");
+                Assert.Contains(queueName, recoveryError.Message);
+
+                await _channel.QueueDeleteAsync(queueName);
+                await WaitAsync(recoveredTcs, "recovery succeeded after the conflict was removed");
+            }
+            finally
+            {
+                // Stop recovery first, or an attempt in flight can re-create the queue after the delete.
+                await conn.CloseAsync();
+                await ch.DisposeAsync();
+                await conn.DisposeAsync();
+                await _channel.QueueDeleteAsync(queueName);
+            }
+        }
     }
 }
