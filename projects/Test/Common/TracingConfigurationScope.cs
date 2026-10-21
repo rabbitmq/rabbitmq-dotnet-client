@@ -64,6 +64,7 @@ namespace Test
         private readonly RabbitMQTracingOptions _options;
         private readonly bool _useRoutingKeyAsOperationName;
         private readonly bool _usePublisherAsParent;
+        private readonly bool _includeMessageSizes;
         private readonly Action<Activity, IDictionary<string, object>> _contextInjector;
         private readonly Func<IReadOnlyBasicProperties, ActivityContext> _contextExtractor;
 
@@ -72,6 +73,7 @@ namespace Test
             _options = RabbitMQActivitySource.TracingOptions;
             _useRoutingKeyAsOperationName = _options.UseRoutingKeyAsOperationName;
             _usePublisherAsParent = _options.UsePublisherAsParent;
+            _includeMessageSizes = _options.IncludeMessageSizes;
             _contextInjector = RabbitMQActivitySource.ContextInjector;
             _contextExtractor = RabbitMQActivitySource.ContextExtractor;
         }
@@ -87,11 +89,22 @@ namespace Test
             return this;
         }
 
+        /// <summary>
+        /// Sets <see cref="RabbitMQTracingOptions.IncludeMessageSizes"/>, which is off by default
+        /// because the two size attributes are Opt-In in the semantic convention.
+        /// </summary>
+        public TracingConfigurationScope WithMessageSizes()
+        {
+            _options.IncludeMessageSizes = true;
+            return this;
+        }
+
         public void Dispose()
         {
             RabbitMQActivitySource.TracingOptions = _options;
             _options.UseRoutingKeyAsOperationName = _useRoutingKeyAsOperationName;
             _options.UsePublisherAsParent = _usePublisherAsParent;
+            _options.IncludeMessageSizes = _includeMessageSizes;
             RabbitMQActivitySource.ContextInjector = _contextInjector;
             RabbitMQActivitySource.ContextExtractor = _contextExtractor;
         }

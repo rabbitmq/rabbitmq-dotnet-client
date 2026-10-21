@@ -2,6 +2,8 @@ RabbitMQ.Client.ConnectionFactory.TracingOptions.get -> RabbitMQ.Client.Connecti
 RabbitMQ.Client.ConnectionFactory.TracingOptions.set -> void
 RabbitMQ.Client.ConnectionTracingOptions
 RabbitMQ.Client.ConnectionTracingOptions.ConnectionTracingOptions() -> void
+RabbitMQ.Client.ConnectionTracingOptions.IncludeMessageSizes.get -> bool?
+RabbitMQ.Client.ConnectionTracingOptions.IncludeMessageSizes.set -> void
 RabbitMQ.Client.ConnectionTracingOptions.Propagator.get -> System.Diagnostics.DistributedContextPropagator?
 RabbitMQ.Client.ConnectionTracingOptions.Propagator.set -> void
 RabbitMQ.Client.ConnectionTracingOptions.UsePublisherAsParent.get -> bool?
@@ -28,3 +30,5 @@ static RabbitMQ.Client.IChannelExtensions.BasicPublishAsync(this RabbitMQ.Client
 static RabbitMQ.Client.IChannelExtensions.BasicPublishAsync(this RabbitMQ.Client.IChannel! channel, string! exchange, string! routingKey, bool mandatory, System.ReadOnlyMemory<byte> body, System.IDisposable? bodyOwner, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask
 static RabbitMQ.Client.IChannelExtensions.BasicPublishAsync<T>(this RabbitMQ.Client.IChannel! channel, RabbitMQ.Client.PublicationAddress! addr, T basicProperties, System.Buffers.ReadOnlySequence<byte> body, System.IDisposable? bodyOwner, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask
 static RabbitMQ.Client.IChannelExtensions.BasicPublishAsync<T>(this RabbitMQ.Client.IChannel! channel, RabbitMQ.Client.PublicationAddress! addr, T basicProperties, System.ReadOnlyMemory<byte> body, System.IDisposable? bodyOwner, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.ValueTask
+RabbitMQ.Client.RabbitMQTracingOptions.IncludeMessageSizes.get -> bool
+RabbitMQ.Client.RabbitMQTracingOptions.IncludeMessageSizes.set -> void
