@@ -21,7 +21,8 @@ the whole inventory rather than only the two members that were fixed.
 | `ContinuationTimeout` | yes | replayed from a wrapper field (#2031) |
 | `DefaultConsumer` | yes | replayed from a wrapper field (#2031) |
 | the dispatcher's consumer map | yes | repopulated by consumer recovery |
-| confirms enabled / tracking / rate limiter, `TracingOptions` | yes | re-derived from the same `CreateChannelOptions` |
+| confirms enabled / tracking / rate limiter, `TracingOptions` | yes | re-derived from the `CreateChannelOptions` the wrapper stored |
+| the consumer dispatcher's concurrency | yes | same stored options, through `Channel`'s constructor |
 | `_nextPublishSeqNo`, outstanding confirm TCSs, `_flowControlBlock`, `_closeReason`, `_rpcSemaphore`, `_continuationQueue` | reset, correctly | the broker resets them too |
 | **`CurrentQueue`** | **no** | nothing carries it - see below |
 | `basic.qos` `prefetchSize` | no | `AutorecoveringChannel` records only `prefetchCount` and replays `0` |
@@ -59,15 +60,18 @@ different change from #2031. It fails loudly today, which caps the cost of leavi
 
 ## Two non-obvious choices in the #2031 fix
 
-**`ContinuationTimeout` is captured in the constructor and replayed unconditionally.** Replaying only
-an explicit assignment - so an untouched channel "keeps following the connection config" - is the
-obvious conservative design and is wrong. `CreateChannelOptions.CreateOrUpdate` mutates the caller's
-own options instance **in place** via `WithConnectionConfig`, on every `CreateChannelAsync`. One
-options object shared across two connections therefore ends up holding the second connection's
-config, and a channel on the first connection that never touched the property adopts it at recovery
-time. Measured: a channel reading 30 s before recovery and 7 s after, having set nothing.
-`TestRecoveryDoesNotAdoptAnotherConnectionsTimeout_GH2031` pins it. The in-place mutation in
-`CreateChannelOptions` is pre-existing and worth its own issue.
+**`ContinuationTimeout` is replayed unconditionally.** The wrapper's `_continuationTimeoutTicks`
+starts at the inner channel's creation value and the public setter overwrites it, so recovery
+replays whatever was last assigned, or the creation value if nothing was.
+
+The alternative, replaying only an explicit assignment so that an untouched channel keeps following
+the connection config, was rejected because `CreateChannelOptions` wrote each connection's config into
+the caller's own options instance, which let a channel on one connection adopt another connection's
+timeout at recovery time. Measured then: the first connection's value before recovery and the
+second's after, having set nothing. #2034 removed that write, and the two designs now produce the
+same value in every case, because a connection's `ContinuationTimeout` cannot change and a channel
+always recovers onto the connection it was created on. The unconditional replay is kept for the
+simpler invariant, not because the alternative still breaks.
 
 The field is `long` ticks behind `Volatile`, not a `TimeSpan?`. `Nullable<TimeSpan>` is 16 bytes and
 reads as two loads of two sub-fields, the property setter holds no lock, and recovery reads it from
@@ -98,8 +102,14 @@ is a trap for whoever adds the next one.
 
 ## What the tests do and do not pin
 
-`projects/Test/Integration/ConnectionRecovery/TestChannelStateRecovery.cs`. All four tests fail
-individually under the obvious wrong implementations, including the conditional-replay design above.
+`projects/Test/Integration/ConnectionRecovery/TestChannelStateRecovery.cs`, five tests. Each fails
+individually under the obvious wrong implementation of what it covers, with two exceptions, both on
+`ContinuationTimeout`. Nothing discriminates the conditional-replay design, and nothing can, since
+the two produce the same value. And `TestRecoveryDoesNotAdoptAnotherConnectionsTimeout_GH2031` fails
+only if both the copy and the replay are removed: either one alone still yields the creating
+connection's value. What discriminates #2034 here is
+`TestRecoveryDoesNotAdoptAnotherConnectionsConcurrency_GH2034`, which asserts a value nothing
+replays, confirmed by reverting the copy and watching that test alone go red.
 
 `TestDefaultConsumerSurvivesRecovery_GH2031` is an **identity** assertion: it pins that the reference
 survives, not that the dispatcher consults it. Producing an unmatched consumer tag against a

@@ -697,8 +697,9 @@ namespace RabbitMQ.Client.Impl
                     {
                         // Neither _rpcSemaphore / _confirmSemaphore nor the
                         // publisher-confirmation rate limiter are disposed here. Disposing a
-                        // SemaphoreSlim with concurrent waiters strands them (#1976); the limiter
-                        // is shared with sibling and recovered channels (#1988). Reasoning in
+                        // SemaphoreSlim with concurrent waiters strands them (#1976); sibling and
+                        // recovery-rebuilt channels publish through the same limiter, and a
+                        // library-created one is left to the GC (#1988). Reasoning in
                         // docs/internal/connection-shutdown-and-cancellation.md.
                         MaybeSetExceptionOnConfirmsTcs();
                     }
@@ -762,13 +763,8 @@ namespace RabbitMQ.Client.Impl
                 await ConsumerDispatcher.DisposeAsync()
                     .ConfigureAwait(false);
 
-                /*
-                 * The publisher-confirmation rate limiter is deliberately NOT disposed: it belongs
-                 * to the CreateChannelOptions instance, is shared across every channel built from
-                 * those options, and a recovering channel reuses the same options, so disposing it
-                 * per channel breaks the survivors. The library-created default is left to the GC.
-                 * See issue #1988 and docs/internal/connection-shutdown-and-cancellation.md.
-                 */
+                // The publisher-confirmation rate limiter is not disposed here either, for the
+                // reason given on the synchronous path above.
                 _disposed = true;
             }
         }

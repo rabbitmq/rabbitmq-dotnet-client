@@ -53,9 +53,9 @@ namespace Test.Integration.ConnectionRecovery
     /// CancellationTokenSource, and it is created fresh per channel, so the wrapper
     /// must dispose it: once when the wrapper is disposed, and once per recovery for
     /// the dispatcher of the channel recovery replaces. The publisher-confirmation
-    /// rate limiter is deliberately not disposed with it: it lives on the reused
-    /// CreateChannelOptions and is shared across the original channel, every recovery,
-    /// and any sibling channel, so disposing it per channel would break the survivors.
+    /// rate limiter is not disposed with it: it belongs to the caller's
+    /// CreateChannelOptions and is carried by reference into the original channel, every
+    /// recovery, and any sibling channel, so disposing it per channel would break the survivors.
     /// Two private fields are read by reflection, and both are needed. The inner
     /// Channel's _disposed says the wrapper reached the inner channel's dispose path at
     /// all, which is the claim itself and the only signal here that discriminates. The
@@ -123,11 +123,10 @@ namespace Test.Integration.ConnectionRecovery
             /*
              * Give the channel an explicit publisher-confirmation rate limiter so the
              * post-recovery publish below actually acquires from it. The fixture's
-             * _createChannelOptions leaves the limiter null - the constructor parameter
-             * defaults to null, overriding the field initializer - which would make the
-             * regression guard vacuous. The limiter lives on the reused
-             * CreateChannelOptions and is shared across the original channel and every
-             * recovery. See #1988.
+             * _createChannelOptions leaves the limiter null, since the constructor parameter
+             * defaults to null, which would make the regression guard vacuous. The limiter
+             * belongs to the caller's CreateChannelOptions and reaches the original channel
+             * and every recovery by reference. See #1988.
              */
             using var rateLimiter = new ThrottlingRateLimiter(128);
             var channelOptions = new CreateChannelOptions(
@@ -187,7 +186,7 @@ namespace Test.Integration.ConnectionRecovery
                         "recovery must not dispose the channel it just installed. See #1988.");
 
                     /*
-                     * The publisher-confirmation rate limiter belongs to the reused
+                     * The publisher-confirmation rate limiter belongs to the caller's
                      * CreateChannelOptions, so it must survive recovery. Publishing with
                      * confirmation tracking acquires from it; before the ownership fix, disposing a
                      * channel disposed the limiter its replacement still publishes through.
