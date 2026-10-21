@@ -135,15 +135,12 @@ namespace Test.Unit
         public void ConcurrencyInheritedFromTheConnectionIsUsed_GH2035(ushort configured, ushort expected)
         {
             /*
-             * Covers the second arm of the resolution - the connection's value, used when the caller
-             * named none. Without this, deleting `?? _connectionConfigConsumerDispatchConcurrency`
-             * leaves the whole suite green while every CreateChannelAsync() with no options silently
-             * ignores ConnectionFactory.ConsumerDispatchConcurrency and runs a single dispatch loop.
-             * The integration assertions do not cover it either: they all create channels from
-             * explicit options, which pins the first arm.
+             * Carries the connection's value, the arm used when the caller named none, through to
+             * the dispatcher that consumes it. Deleting that arm makes every CreateChannelAsync()
+             * with no options run a single dispatch loop.
              */
             CreateChannelOptions options =
-                CreateChannelOptions.CreateOrUpdate(null, ConnectionConfigWithConcurrency(configured));
+                CreateChannelOptions.ForConnection(null, ConnectionConfigWithConcurrency(configured));
 
             Assert.Equal(configured, options.InternalConsumerDispatchConcurrency);
 

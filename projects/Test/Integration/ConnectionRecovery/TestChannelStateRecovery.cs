@@ -93,9 +93,9 @@ namespace Test.Integration.ConnectionRecovery
         [Fact]
         public async Task TestRecoveryDoesNotAdoptAnotherConnectionsTimeout_GH2031()
         {
-            // One CreateChannelOptions instance reused across two connections: CreateOrUpdate
-            // rewrites it in place, so the first channel must not pick up the second's timeout
-            // when it recovers. docs/internal/channel-state-across-recovery.md.
+            // One CreateChannelOptions instance reused across two connections. The unconditional
+            // replay alone satisfies this, so it does not discriminate #2034's fix; see the
+            // test section of docs/internal/channel-state-across-recovery.md before trimming it.
             TimeSpan firstConnectionTimeout = TimeSpan.FromSeconds(31);
             TimeSpan secondConnectionTimeout = TimeSpan.FromSeconds(7);
 
@@ -122,6 +122,52 @@ namespace Test.Integration.ConnectionRecovery
             Assert.True(firstChannel.IsOpen);
             Assert.Equal(firstConnectionTimeout, firstChannel.ContinuationTimeout);
             Assert.NotEqual(secondConnectionTimeout, firstChannel.ContinuationTimeout);
+        }
+
+        [Fact]
+        public async Task TestRecoveryDoesNotAdoptAnotherConnectionsConcurrency_GH2034()
+        {
+            // Dispatch concurrency is the deterministic form of #2034: nothing replays it, so a
+            // value another connection wrote reached the rebuilt channel. #2034.
+            // Neither value is Constants.DefaultConsumerDispatchConcurrency, the fixture's own
+            // default, or the dispatcher's floor for zero, so losing the connection's value fails
+            // this rather than landing back on 1.
+            const ushort firstConcurrency = 3;
+            const ushort secondConcurrency = 5;
+
+            // null, not omitted: the constructor's own default of 1 would short-circuit the
+            // resolution and the connection's value would never be consulted. #2027.
+            var sharedOptions = new CreateChannelOptions(publisherConfirmationsEnabled: false,
+                publisherConfirmationTrackingEnabled: false, consumerDispatchConcurrency: null);
+
+            ConnectionFactory firstFactory = CreateConnectionFactory();
+            firstFactory.AutomaticRecoveryEnabled = true;
+            firstFactory.ConsumerDispatchConcurrency = firstConcurrency;
+
+            await using IConnection firstConn = await firstFactory.CreateConnectionAsync();
+            await using IChannel firstChannel = await firstConn.CreateChannelAsync(sharedOptions);
+            Assert.Equal(firstConcurrency, DispatchConcurrencyOf(firstChannel));
+
+            ConnectionFactory secondFactory = CreateConnectionFactory();
+            secondFactory.AutomaticRecoveryEnabled = true;
+            secondFactory.ConsumerDispatchConcurrency = secondConcurrency;
+            await using IConnection secondConn = await secondFactory.CreateConnectionAsync();
+            await using IChannel secondChannel = await secondConn.CreateChannelAsync(sharedOptions);
+            Assert.Equal(secondConcurrency, DispatchConcurrencyOf(secondChannel));
+
+            await CloseAndWaitForRecoveryAsync((AutorecoveringConnection)firstConn);
+
+            Assert.True(firstChannel.IsOpen);
+            // The recovered inner channel, not the one asserted above: the wrapper forwards.
+            Assert.Equal(firstConcurrency, DispatchConcurrencyOf(firstChannel));
+        }
+
+        private static ushort DispatchConcurrencyOf(IChannel channel)
+        {
+            // Asserted, not cast blind: without automatic recovery this is a plain Channel and the
+            // cast would fail as if the guard had broken rather than as if it were not enforced.
+            var recovering = Assert.IsType<AutorecoveringChannel>(channel);
+            return recovering.ConsumerDispatcher.Concurrency;
         }
     }
 }
