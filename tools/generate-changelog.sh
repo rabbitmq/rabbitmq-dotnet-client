@@ -93,6 +93,7 @@ do
 done < <(gh issue list \
     --state closed \
     --milestone "$milestone" \
+    --limit 1000 \
     --json number,title,labels \
     --jq '.[] | [.number, .title, (.labels | tojson)] | @tsv')
 
@@ -118,6 +119,7 @@ do
 done < <(gh pr list \
     --state merged \
     --search "milestone:$milestone" \
+    --limit 1000 \
     --json number,title,author,closingIssuesReferences \
     --jq '.[] | [.number, .title, .author.login, (.closingIssuesReferences | tojson)] | @tsv')
 
