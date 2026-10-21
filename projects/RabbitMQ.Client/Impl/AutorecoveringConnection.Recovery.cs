@@ -387,7 +387,18 @@ namespace RabbitMQ.Client.Impl
             }
             catch (Exception e)
             {
-                ESLog.Error("Exception when recovering connection. Will try again after retry interval.", e);
+                // A cancelled token means close or dispose stopped recovery: still abort what it
+                // opened, since CloseAsync may not have waited, but as a normal close. #2037.
+                bool closing = cancellationToken.IsCancellationRequested;
+                if (closing)
+                {
+                    ESLog.Info("Connection recovery cancelled because the connection is closing.");
+                }
+                else
+                {
+                    ESLog.Error("Exception when recovering connection. Will try again after retry interval.", e);
+                }
+
                 try
                 {
                     /*
@@ -401,7 +412,9 @@ namespace RabbitMQ.Client.Impl
                      */
                     if (_innerConnection?.IsOpen == true)
                     {
-                        await _innerConnection.AbortAsync(Constants.InternalError, "FailedAutoRecovery",
+                        await _innerConnection.AbortAsync(
+                                (ushort)(closing ? Constants.ReplySuccess : Constants.InternalError),
+                                closing ? "ClosedDuringRecovery" : "FailedAutoRecovery",
                                 InternalConstants.MaxConnectionAbortTimeout)
                             .ConfigureAwait(false);
                     }
