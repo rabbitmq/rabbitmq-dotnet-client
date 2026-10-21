@@ -44,6 +44,18 @@ namespace RabbitMQ.Client
         // it, because what is waited on here is user callbacks. Best effort: expiry is not an error.
         internal static readonly TimeSpan ConsumerDispatcherDrainTimeout = TimeSpan.FromSeconds(2);
 
+        // A socket timeout's limit, and .NET Framework's CancellationTokenSource limit, used on every
+        // target so the ceiling does not depend on the build.
+        internal static readonly TimeSpan MaxCancellationTokenSourceDelay =
+            TimeSpan.FromMilliseconds(int.MaxValue);
+
+        // Clamped where the value is used rather than in the setters, so a property still returns
+        // what was assigned. Upper bound only. #2029.
+        internal static TimeSpan ClampToCancellationTokenSourceDelay(TimeSpan timeout)
+        {
+            return timeout > MaxCancellationTokenSourceDelay ? MaxCancellationTokenSourceDelay : timeout;
+        }
+
         /// <summary>
         /// The shortest graceful close budget that can actually complete a close.
         /// </summary>

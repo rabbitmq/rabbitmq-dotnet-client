@@ -548,7 +548,7 @@ namespace RabbitMQ.Client.Impl
         /// </para>
         /// <para>
         /// A timeout larger than <see cref="CancellationTokenSource"/> can express is clamped to
-        /// <see cref="s_maxCancellationTokenSourceDelay"/>. Passing it through instead would throw
+        /// <see cref="InternalConstants.MaxCancellationTokenSourceDelay"/>. Passing it through instead would throw
         /// <see cref="ArgumentOutOfRangeException"/> from the <see cref="CancellationTokenSource"/>
         /// constructor before the close reason is set, leaving the connection fully open with no
         /// shutdown attempted. It is deliberately clamped rather than promoted to
@@ -608,9 +608,9 @@ namespace RabbitMQ.Client.Impl
                 return timeout;
             }
 
-            if (timeout > s_maxCancellationTokenSourceDelay)
+            if (timeout > InternalConstants.MaxCancellationTokenSourceDelay)
             {
-                return s_maxCancellationTokenSourceDelay;
+                return InternalConstants.MaxCancellationTokenSourceDelay;
             }
 
             if (timeout < InternalConstants.MinConnectionCloseTimeout)
@@ -620,22 +620,6 @@ namespace RabbitMQ.Client.Impl
 
             return timeout;
         }
-
-        /// <summary>
-        /// The largest delay a <see cref="CancellationTokenSource"/> accepts on any runtime this
-        /// build can load on. A graceful timeout above it is clamped to it; nothing is compared
-        /// against it on the abort path, which has its own much smaller ceiling.
-        /// </summary>
-        /// <remarks>
-        /// The lower of the two runtime limits is used unconditionally rather than selected by target
-        /// framework. .NET Framework rejects any delay above <see cref="int.MaxValue"/> milliseconds
-        /// (roughly 24.86 days); modern .NET accepts up to <c>uint.MaxValue - 1</c> (roughly 49.7
-        /// days). Using the lower limit everywhere costs a caller asking for 30 days a bound of
-        /// roughly 24.86 days instead, which is indistinguishable in practice, and buys a value that
-        /// does not depend on which build the application happened to resolve.
-        /// </remarks>
-        internal static readonly TimeSpan s_maxCancellationTokenSourceDelay =
-            TimeSpan.FromMilliseconds(int.MaxValue);
 
         internal async Task ClosedViaPeerAsync(ShutdownEventArgs reason)
         {
