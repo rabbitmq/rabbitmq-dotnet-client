@@ -417,7 +417,7 @@ The shutdown always precedes the re-registration, by the ordering this document 
 
 Nothing in the suite can falsify that ordering. A test recording the order of a consumer's callbacks across a recovery stays green with the pre-shutdown `InvokeAsync` made fire-and-forget, so it was not added: the margin is too large to lose, the competing write needing a reconnect, handshake, `channel.open` and `basic.consume` after `Task.Delay(NetworkRecoveryInterval)` against one already-queued work item. Do not read the green suite as evidence the sequential awaits are what make it work.
 
-The clear is skipped when the work item's token is already cancelled, so a registration confirmed on a dying channel records nothing at all - no tag, no `IsRunning`, no clear. An unconditional clear would leave a dead channel reading as healthy; the stale reason is the fail-safe answer. `Quiesce()` has no `if (IsQuiescing) return;` early exit, so a second caller still reaches `Cancel()`, which is idempotent on a source that is never disposed (#1976). That does not make the flag and the token agree, and is not meant to: #2074 covers the window, including why cancelling first would be worse.
+The clear is skipped when the work item's token is already cancelled, so a registration confirmed on a dying channel records nothing at all - no tag, no `IsRunning`, no clear. An unconditional clear would leave a dead channel reading as healthy; the stale reason is the fail-safe answer. `IsQuiescing` reads the shutdown token, so the dispatcher cannot report quiescing while the token a work item carries is still live (#2074).
 
 The guard narrows the window rather than closing it, because the token is read and `_shutdownReason` written as two steps. Above a dispatch concurrency of one, separate workers take the consume-ok and the shutdown item with nothing ordering them; at any concurrency the dispatcher's own `IsQuiescing` check and its write are not atomic, so a consume-ok can pass the check and land behind the shutdown items.
 
@@ -511,9 +511,9 @@ What still has no test is the cancellation *latency* the fix improves. `TestToxi
 
 `projects/Test/Unit/TestConsumerShutdownReason.cs` covers the state transitions with no broker; `TestConsumerRecovery.TestConsumerShutdownReasonIsClearedAfterRecovery_GH2006` covers them against one, using a delivery rather than the registration event as its barrier so a recovery that re-registered and then failed cannot satisfy it.
 
-Verified by mutation: deleting the early return, moving either the tag write or the `IsRunning` write above it, and dropping `Cancel()` from `Quiesce()` each fail one test, and the integration test fails with the clear reverted.
+Verified by mutation: deleting the early return, moving either the tag write or the `IsRunning` write above it, each fail one test, dropping `Cancel()` from `Quiesce()` fails two, and the integration test fails with the clear reverted.
 
-Two changes have no test, and these are gaps rather than decisions. Restoring `Quiesce()`'s early return leaves all 248 unit tests green, since the race needs the flag set with the token still live and no harness reaches that deterministically. Deleting `AsyncEventingBasicConsumer`'s suppression of `RegisteredAsync` also leaves the suite green, and that one is cheap to cover without a broker.
+One change has no test, and it is a gap rather than a decision: deleting `AsyncEventingBasicConsumer`'s suppression of `RegisteredAsync` leaves the suite green, and it is cheap to cover without a broker.
 
 ### Stalling a connection in the Toxiproxy tests (#2072)
 

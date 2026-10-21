@@ -44,7 +44,6 @@ namespace RabbitMQ.Client.ConsumerDispatching
         private readonly System.Threading.Channels.ChannelWriter<WorkStruct> _writer;
         private readonly Task _worker;
         private readonly ushort _concurrency;
-        private long _isQuiescing;
         private bool _disposed;
         private readonly CancellationTokenSource _shutdownCts = new CancellationTokenSource();
 
@@ -222,9 +221,7 @@ namespace RabbitMQ.Client.ConsumerDispatching
 
         public void Quiesce()
         {
-            // No early return on IsQuiescing: a second caller must still reach Cancel(). It is
-            // idempotent and _shutdownCts is never disposed (#1976), so repeating it is free.
-            Interlocked.Exchange(ref _isQuiescing, 1);
+            // Cancel() is idempotent and _shutdownCts is never disposed (#1976), so repeating it is free.
             try
             {
                 _shutdownCts.Cancel();
@@ -284,13 +281,8 @@ namespace RabbitMQ.Client.ConsumerDispatching
             }
         }
 
-        protected bool IsQuiescing
-        {
-            get
-            {
-                return Interlocked.Read(ref _isQuiescing) == 1;
-            }
-        }
+        // The token is the only record, so quiescing and a cancelled token cannot disagree. #2074.
+        protected bool IsQuiescing => _shutdownToken.IsCancellationRequested;
 
         protected sealed override void ShutdownConsumer(IAsyncBasicConsumer consumer, ShutdownEventArgs reason)
         {
