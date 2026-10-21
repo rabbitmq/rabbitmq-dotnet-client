@@ -218,7 +218,8 @@ namespace RabbitMQ.Client.Impl
 
             if (task != null)
             {
-                using var timeoutTokenSource = new CancellationTokenSource(_config.RequestedConnectionTimeout);
+                using var timeoutTokenSource = new CancellationTokenSource(
+                    InternalConstants.ClampToCancellationTokenSourceDelay(_config.RequestedConnectionTimeout));
                 using var lts = CancellationTokenSource.CreateLinkedTokenSource(timeoutTokenSource.Token, cancellationToken);
                 try
                 {

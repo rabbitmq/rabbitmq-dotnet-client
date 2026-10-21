@@ -116,6 +116,8 @@ namespace RabbitMQ.Client.Impl
                 {
                     if (value != default)
                     {
+                        // Both take int milliseconds, which a larger value overflows. #2029.
+                        value = InternalConstants.ClampToCancellationTokenSourceDelay(value);
                         _socket.ReceiveTimeout = value;
                         _stream.ReadTimeout = (int)value.TotalMilliseconds;
                     }
@@ -133,6 +135,8 @@ namespace RabbitMQ.Client.Impl
             {
                 if (value != default)
                 {
+                    // See ReadTimeout.
+                    value = InternalConstants.ClampToCancellationTokenSourceDelay(value);
                     _socket.Client.SendTimeout = (int)value.TotalMilliseconds;
                     _stream.WriteTimeout = (int)value.TotalMilliseconds;
                 }

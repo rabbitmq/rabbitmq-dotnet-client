@@ -125,10 +125,8 @@ namespace RabbitMQ.Client.Impl
         /// Call this as the first statement inside the <c>try</c> whose <c>finally</c>
         /// releases the channel's RPC semaphore, not between the wait and the <c>try</c>.
         /// A throw from here would otherwise leak the semaphore permanently and deadlock
-        /// every subsequent RPC on the channel. Nothing can throw today, since
-        /// <c>ObjectDisposedException</c> is caught below and the constructor already
-        /// validated the same <c>TimeSpan</c>, so this is about not leaving the hazard
-        /// lying around.
+        /// every subsequent RPC on the channel. The delay is clamped because nothing
+        /// validates <c>ContinuationTimeout</c> before this call. #2029.
         /// </para>
         /// <para>
         /// See rabbitmq/rabbitmq-dotnet-client#1964.
@@ -138,7 +136,8 @@ namespace RabbitMQ.Client.Impl
         {
             try
             {
-                _continuationTimeoutCancellationTokenSource.CancelAfter(_continuationTimeout);
+                _continuationTimeoutCancellationTokenSource.CancelAfter(
+                    InternalConstants.ClampToCancellationTokenSourceDelay(_continuationTimeout));
             }
             catch (ObjectDisposedException)
             {

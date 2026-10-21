@@ -56,6 +56,18 @@ namespace Test.Unit
         private static readonly TimeSpan s_simulatedSemaphoreWait = TimeSpan.FromSeconds(5);
 
         [Fact]
+        public void TestStartTimeoutSurvivesAnUnusableContinuationTimeout_GH2029()
+        {
+            // The call site, not the helper: a value the source rejects used to reach CancelAfter.
+            using var k = new SimpleAsyncRpcContinuation(ProtocolCommandId.ExchangeDeclareOk,
+                TimeSpan.MaxValue, CancellationToken.None);
+
+            k.StartTimeout();
+
+            Assert.False(k.CancellationToken.IsCancellationRequested);
+        }
+
+        [Fact]
         public async Task TestTimeoutDoesNotStartAtConstruction()
         {
             using var k = new SimpleAsyncRpcContinuation(ProtocolCommandId.ExchangeDeclareOk,

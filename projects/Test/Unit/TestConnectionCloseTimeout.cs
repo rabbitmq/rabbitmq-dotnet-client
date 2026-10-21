@@ -156,7 +156,7 @@ namespace Test.Unit
              * timers and NetworkStream ignores its read timeout for asynchronous reads, leaving only
              * the broker's own detection of our silence - which never comes if heartbeats are off.
              */
-            TimeSpan ceiling = Connection.s_maxCancellationTokenSourceDelay;
+            TimeSpan ceiling = InternalConstants.MaxCancellationTokenSourceDelay;
 
             Assert.Equal(ceiling, Connection.ResolveCloseTimeout(TimeSpan.MaxValue, abort: false));
             Assert.Equal(ceiling, Connection.ResolveCloseTimeout(TimeSpan.FromDays(60), abort: false));
@@ -248,8 +248,8 @@ namespace Test.Unit
             {
                 TimeSpan.Zero, TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(6),
                 TimeSpan.FromSeconds(30), TimeSpan.FromMinutes(5), TimeSpan.FromDays(1),
-                Connection.s_maxCancellationTokenSourceDelay,
-                Connection.s_maxCancellationTokenSourceDelay + TimeSpan.FromDays(1),
+                InternalConstants.MaxCancellationTokenSourceDelay,
+                InternalConstants.MaxCancellationTokenSourceDelay + TimeSpan.FromDays(1),
                 TimeSpan.FromDays(60), TimeSpan.MaxValue
             };
 

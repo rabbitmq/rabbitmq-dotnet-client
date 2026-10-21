@@ -95,7 +95,8 @@ namespace RabbitMQ.Client.Impl
              * Create linked cancellation token that includes the connection timeout value
              * https://learn.microsoft.com/en-us/dotnet/standard/threading/how-to-listen-for-multiple-cancellation-requests
              */
-            using var timeoutTokenSource = new CancellationTokenSource(connectionTimeout);
+            using var timeoutTokenSource = new CancellationTokenSource(
+                InternalConstants.ClampToCancellationTokenSourceDelay(connectionTimeout));
             using var linkedTokenSource = CancellationTokenSource.CreateLinkedTokenSource(timeoutTokenSource.Token, cancellationToken);
 
             ITcpClient socket = socketFactory(family);

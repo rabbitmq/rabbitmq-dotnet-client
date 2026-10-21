@@ -439,7 +439,7 @@ These are easy to confuse; distinguishing which one a hang tracks is the key dia
 | `InternalConstants.MaxConnectionAbortTimeout` | 10s | Ceiling an abort is capped at, however much was asked for (#1973) |
 | `InternalConstants.DefaultConnectionCloseTimeout` | 30s | Default graceful close budget. Since #1973 it is only the default, **not** a floor: a caller's smaller value is honored down to `MinConnectionCloseTimeout` |
 | `InternalConstants.DefaultChannelDisposeTimeout`  | 5s  | Wait for server-originated channel close on dispose |
-| `Connection.s_maxCancellationTokenSourceDelay` | 24.86d | Largest bound the timer accepts on any runtime a build can load on; a larger graceful timeout is clamped to it, **not** treated as unbounded. Not consulted on the abort path |
+| `InternalConstants.MaxCancellationTokenSourceDelay` | 24.86d | Largest bound the timer accepts on any runtime a build can load on; a larger graceful timeout is clamped to it, **not** treated as unbounded, and so are `RequestedConnectionTimeout`, `ContinuationTimeout`, `HandshakeContinuationTimeout` and the socket timeouts (#2029). An abort budget is never compared against it |
 | `Timeout.InfiniteTimeSpan` as a graceful close timeout | none | **No budget at all.** A graceful close honors it (#1973), so a hang here matches no duration; an abort caps it at 10s |
 | `InternalConstants.MinConnectionCloseTimeout` | 1s | Floor for a graceful close, including `TimeSpan.Zero` and negatives. Small on purpose: below roughly this, the timeout cancels the close handshake before `connection.close` is transmitted, and that cancellation escapes before the teardown block, so the socket stays open and the broker keeps the connection while `IsOpen` reports false (measured) |
 
