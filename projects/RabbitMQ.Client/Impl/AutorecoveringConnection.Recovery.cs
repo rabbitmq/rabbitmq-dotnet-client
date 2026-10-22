@@ -423,6 +423,14 @@ namespace RabbitMQ.Client.Impl
                 {
                     ESLog.Warn("Exception when aborting previous auto recovery connection.", e2);
                 }
+
+                // Reconnection failures raise this in TryRecoverConnectionDelegateAsync; topology and
+                // channel failures land here. Re-read the token: the abort runs shutdown handlers. #2014.
+                if (false == cancellationToken.IsCancellationRequested && false == _connectionRecoveryErrorAsyncWrapper.IsEmpty)
+                {
+                    await _connectionRecoveryErrorAsyncWrapper.InvokeAsync(this, new ConnectionRecoveryErrorEventArgs(e, cancellationToken))
+                        .ConfigureAwait(false);
+                }
             }
 
             return false;
