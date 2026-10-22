@@ -51,6 +51,10 @@ namespace RabbitMQ.Client
                 cancellationToken);
 
         /// <summary>Asynchronously start a Basic content-class consumer.</summary>
+        /// <exception cref="InvalidOperationException">
+        /// <paramref name="consumerTag"/> is non-empty and already in use by a consumer on this channel,
+        /// including one restored by automatic recovery. Nothing is sent.
+        /// </exception>
         public static Task<string> BasicConsumeAsync(this IChannel channel,
             string queue,
             bool autoAck,
@@ -62,6 +66,10 @@ namespace RabbitMQ.Client
                 cancellationToken);
 
         /// <summary>Asynchronously start a Basic content-class consumer.</summary>
+        /// <exception cref="InvalidOperationException">
+        /// <paramref name="consumerTag"/> is non-empty and already in use by a consumer on this channel,
+        /// including one restored by automatic recovery. Nothing is sent.
+        /// </exception>
         public static Task<string> BasicConsumeAsync(this IChannel channel,
             string queue,
             bool autoAck,
