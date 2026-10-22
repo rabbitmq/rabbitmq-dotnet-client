@@ -34,6 +34,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
+using RabbitMQ.Client.Impl;
 using Xunit;
 using Xunit.Abstractions;
 using QueueDeclareOk = RabbitMQ.Client.QueueDeclareOk;
@@ -113,6 +114,32 @@ namespace Test.Integration.ConnectionRecovery
             }
 
             Assert.True(await receivedMessageSemaphore.WaitAsync(WaitSpan));
+        }
+
+        [Fact]
+        public async Task TestClosingDuringRecoveryIsAnOrderlyClose_GH2037()
+        {
+            await using AutorecoveringConnection conn = await CreateAutorecoveringConnectionAsync();
+            await using IChannel ch = await conn.CreateChannelAsync();
+            QueueDeclareOk q = await ch.QueueDeclareAsync(GenerateQueueName(), false, true, false);
+            await ch.BasicConsumeAsync(q, true, new AsyncEventingBasicConsumer(ch));
+
+            var recoveryEntered = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+            conn.RecoveringConsumerAsync += async (sender, args) =>
+            {
+                // Holds recovery inside the attempt until CloseAsync cancels the recovery token.
+                recoveryEntered.TrySetResult(true);
+                await Task.Delay(Timeout.InfiniteTimeSpan, args.CancellationToken);
+            };
+
+            await CloseConnectionAsync(conn);
+            await WaitAsync(recoveryEntered, "recovery to reach the consumer handler");
+
+            await conn.CloseAsync();
+
+            Assert.NotNull(conn.CloseReason);
+            Assert.Equal(Constants.ReplySuccess, conn.CloseReason.ReplyCode);
+            Assert.Equal("ClosedDuringRecovery", conn.CloseReason.ReplyText);
         }
     }
 }
