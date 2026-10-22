@@ -32,7 +32,9 @@
 #nullable enable
 
 using System.Collections.Generic;
+using System.IO;
 using System.Threading;
+using System.Threading.Channels;
 using System.Threading.Tasks;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
@@ -166,12 +168,66 @@ namespace Test.Unit
 
             try
             {
+                var consumer = new CancelRecordingConsumer(channel);
+                await channel.ConsumerDispatcher.HandleBasicConsumeOkAsync(consumer, ConsumerTag,
+                    CancellationToken.None);
                 channel.SetCloseReason(new ShutdownEventArgs(ShutdownInitiator.Application,
                     Constants.ReplySuccess, "closing"));
 
                 await session.DeliverBasicCancelAsync(ConsumerTag);
 
                 Assert.Empty(session.TransmittedCommands);
+            }
+            finally
+            {
+                await DisposeChannelAsync(session, channel);
+            }
+        }
+
+        [Fact]
+        public async Task TestServerSentBasicCancelForUnknownTagIsNotAnswered_GH2066()
+        {
+            using var session = new TestSession(new TestSessionOptions
+            {
+                ChannelNumber = 1,
+                ServerAcceptsConsumerCancelOk = true
+            });
+            var channel = CreateChannel(session);
+
+            try
+            {
+                await session.DeliverBasicCancelAsync(ConsumerTag);
+
+                Assert.Empty(session.TransmittedCommands);
+            }
+            finally
+            {
+                await DisposeChannelAsync(session, channel);
+            }
+        }
+
+        [Fact]
+        public async Task TestServerSentBasicCancelToleratesStoppedWriteLoop_GH2066()
+        {
+            // The exception WriteAsync raises once WriteLoopAsync has completed the writer.
+            using var session = new TestSession(new TestSessionOptions
+            {
+                ChannelNumber = 1,
+                ServerAcceptsConsumerCancelOk = true,
+                TransmitException = new ChannelClosedException(new IOException("write loop stopped"))
+            });
+            var channel = CreateChannel(session);
+
+            try
+            {
+                var consumer = new CancelRecordingConsumer(channel);
+                await channel.ConsumerDispatcher.HandleBasicConsumeOkAsync(consumer, ConsumerTag,
+                    CancellationToken.None);
+
+                await session.DeliverBasicCancelAsync(ConsumerTag);
+
+                await consumer.CancelledConsumerTag.WaitAsync(TimingFixture.TestTimeout);
+                Assert.Equal(ConsumerTag, await consumer.CancelledConsumerTag);
             }
             finally
             {

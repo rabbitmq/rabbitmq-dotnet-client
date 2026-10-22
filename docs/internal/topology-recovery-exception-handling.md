@@ -8,7 +8,7 @@ This document covers what happens when recovering a single topology entity fails
 
 `RecoverExchangesAsync`, `RecoverQueuesAsync`, `RecoverBindingsAsync` and `RecoverConsumersAsync` each wrap their per-entity work in a `try`/`catch`, and each catch has two branches:
 
-- **No handler configured** (or its condition rejects this exception): `HandleTopologyRecoveryException` consults `ShouldRetryRecoveryAfter`, which treats every `OperationInterruptedException`, `TimeoutException`, and a non-cancelled `OperationCanceledException` as a connectivity problem and rethrows, failing the whole attempt so it is retried. Anything else is logged and the entity is skipped.
+- **No handler configured** (or its condition rejects this exception): `HandleTopologyRecoveryException` consults `ShouldRetryRecoveryAfter`, which treats every `OperationInterruptedException`, `TimeoutException`, and a non-cancelled `OperationCanceledException` as a connectivity problem and rethrows, failing the whole attempt so it is retried and raising `ConnectionRecoveryErrorAsync` (#2014). Anything else is logged and the entity is skipped.
 - **Handler configured**: the handler is awaited and the exception is then swallowed, so the classification added for #1993 is never consulted for anyone who installed a handler, and recovery reports success even when the entity was never recovered. **This is #1995, and it is still open.**
 
 ## Why the handler path is not just the no-handler path
@@ -72,4 +72,3 @@ Whether to restore them as XML documentation is worth deciding separately: both 
 - **#1995 itself is open**: a configured handler still bypasses the retry classification, so recovery can report success for an entity that was never recovered. Deferred past 7.3.0 because the two blockers above have to be settled first.
 - A retried attempt re-declares server-named queues under fresh names, so each retry can leave the previous attempt's durable queue on the broker, bound and unconsumed.
 - The retry loop in `RecoverConnectionAsync` has no attempt cap and no escalating backoff, so a deterministic failure that no handler can repair holds the connection in a rebuild loop every `NetworkRecoveryInterval`.
-- There is no integration coverage of the retry branch at all. One attempt was abandoned as vacuous on the grounds that `ConnectionRecoveryErrorAsync` is raised only from the reconnection path and cannot observe a failed topology attempt; that is tracked as #2014. Note that the conclusion was too strong: a failed attempt is observable without that event, because `RecoverySucceededAsync` does not fire while the loop spins and a handler's invocation count rises per attempt, which is how the measurements above were taken.

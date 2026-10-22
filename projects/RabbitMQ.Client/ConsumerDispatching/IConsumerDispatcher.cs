@@ -44,6 +44,8 @@ namespace RabbitMQ.Client.ConsumerDispatching
 
         ushort Concurrency { get; }
 
+        bool IsRegisteredConsumer(string tag);
+
         IAsyncBasicConsumer GetAndRemoveConsumer(string tag);
 
         ValueTask HandleBasicConsumeOkAsync(IAsyncBasicConsumer consumer, string consumerTag, CancellationToken cancellationToken);
