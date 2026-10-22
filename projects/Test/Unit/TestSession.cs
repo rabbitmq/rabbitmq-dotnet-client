@@ -51,6 +51,9 @@ namespace Test.Unit
 
         public bool ServerAcceptsConsumerCancelOk { get; set; }
 
+        // When set, every method transmit throws this instead of recording the command.
+        public Exception? TransmitException { get; set; }
+
         // When the channel transmits a key, the session delivers the value back to it.
         public IDictionary<ProtocolCommandId, ProtocolCommandId> Replies { get; } =
             new Dictionary<ProtocolCommandId, ProtocolCommandId>();
@@ -139,6 +142,11 @@ namespace Test.Unit
             where T : struct, IOutgoingAmqpMethod
         {
             cancellationToken.ThrowIfCancellationRequested();
+            if (_options.TransmitException is not null)
+            {
+                throw _options.TransmitException;
+            }
+
             byte[] method = new byte[cmd.GetRequiredBufferSize()];
             int written = cmd.WriteTo(method);
             Array.Resize(ref method, written);
