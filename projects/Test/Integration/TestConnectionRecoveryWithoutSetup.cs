@@ -343,7 +343,7 @@ namespace Test.Integration
 
                     await ch.BasicConsumeAsync(queueWithIgnoredConsumer, true, "filtered.consumer", consumerToIgnore);
 
-                    await Assert.ThrowsAsync<ArgumentException>(() =>
+                    await Assert.ThrowsAsync<InvalidOperationException>(() =>
                         ch.BasicConsumeAsync(queueWithRecoveredConsumer, true, "recovered.consumer", consumerToRecover));
                     Assert.True(ch.IsOpen);
                 }

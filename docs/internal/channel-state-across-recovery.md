@@ -103,7 +103,7 @@ is a trap for whoever adds the next one.
 ## Consumer tags across recovery (#2080)
 
 Consumer recovery re-sends each recorded tag on the new inner channel, and `Channel.BasicConsumeAsync`
-throws `ArgumentException` without sending when the tag is already in that channel's dispatcher map.
+throws `InvalidOperationException` without sending when the tag is already in that channel's dispatcher map.
 The broker treats a reused tag as a connection error, 530 `NOT_ALLOWED`, and
 `ShouldTriggerConnectionRecovery` recovers from it. Without the local check, an application that
 re-subscribes with its stored tag after a connection loss drives a loop that never ends: recovery

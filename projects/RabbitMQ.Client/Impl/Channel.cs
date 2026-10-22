@@ -1173,7 +1173,7 @@ namespace RabbitMQ.Client.Impl
                 // under _rpcSemaphore so an earlier BasicCancelAsync has already removed its tag.
                 if (false == string.IsNullOrEmpty(consumerTag) && ConsumerDispatcher.IsRegisteredConsumer(consumerTag))
                 {
-                    throw new ArgumentException($"consumer tag '{consumerTag}' is already in use on this channel", nameof(consumerTag));
+                    throw new InvalidOperationException($"consumer tag '{consumerTag}' is already in use on this channel");
                 }
 
                 k.StartTimeout();
