@@ -163,9 +163,9 @@ namespace Test.Integration.ConnectionRecovery
             };
             await _channel.BasicConsumeAsync(q, true, tag, consumer);
 
-            ArgumentException ex = await Assert.ThrowsAsync<ArgumentException>(() =>
+            InvalidOperationException ex = await Assert.ThrowsAsync<InvalidOperationException>(() =>
                 _channel.BasicConsumeAsync(q, true, tag, new AsyncEventingBasicConsumer(_channel)));
-            Assert.Equal("consumerTag", ex.ParamName);
+            Assert.Contains(tag, ex.Message);
 
             // Sent to the broker, the duplicate closes the connection with 530 and this delivery never arrives.
             await _channel.BasicPublishAsync(string.Empty, q, _encoding.GetBytes("after duplicate"));
@@ -192,7 +192,7 @@ namespace Test.Integration.ConnectionRecovery
             await CloseAndWaitForRecoveryAsync();
 
             // An application re-subscribing with its stored tag after a connection loss.
-            await Assert.ThrowsAsync<ArgumentException>(() => _channel.BasicConsumeAsync(q, true, tag, consumer));
+            await Assert.ThrowsAsync<InvalidOperationException>(() => _channel.BasicConsumeAsync(q, true, tag, consumer));
 
             await _channel.BasicPublishAsync(string.Empty, q, _encoding.GetBytes("after recovery"));
             await WaitAsync(deliveredTcs, "delivery to the recovered consumer");

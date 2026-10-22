@@ -178,7 +178,7 @@ namespace RabbitMQ.Client
         /// <param name="consumer">The consumer, an instance of <see cref="IAsyncBasicConsumer"/></param>
         /// <param name="cancellationToken">Cancellation token for this operation.</param>
         /// <returns></returns>
-        /// <exception cref="ArgumentException">
+        /// <exception cref="InvalidOperationException">
         /// <paramref name="consumerTag"/> is non-empty and already in use by a consumer on this channel,
         /// including one restored by automatic recovery. Nothing is sent, to avoid the broker closing
         /// the connection with <c>NOT_ALLOWED</c>.
