@@ -718,7 +718,7 @@ namespace RabbitMQ.Client.Impl
 
         // Both parameters are deliberately non-optional: a defaulted token would silently
         // reintroduce #1997 at a future call site.
-        internal async ValueTask RecoverConsumersAsync(AutorecoveringChannel channelToRecover, IChannel channelToUse,
+        internal async ValueTask RecoverConsumersAsync(AutorecoveringChannel channelToRecover, RecoveryAwareChannel channelToUse,
             bool recordedEntitiesSemaphoreHeld, CancellationToken cancellationToken)
         {
             if (_disposed)
@@ -734,6 +734,13 @@ namespace RabbitMQ.Client.Impl
             foreach (RecordedConsumer consumer in _recordedConsumers.Values.Where(x => _config.TopologyRecoveryFilter?.ConsumerFilter(x) ?? true).ToArray())
             {
                 if (consumer.Channel != channelToRecover)
+                {
+                    continue;
+                }
+
+                // Skip a tag the application already has live on the new channel. Checked before RecoveringConsumerAsync,
+                // whose handlers edit arguments that only a recovered consumer sends. #2080, docs/internal/channel-state-across-recovery.md.
+                if (channelToUse.ConsumerDispatcher.IsRegisteredConsumer(consumer.ConsumerTag))
                 {
                     continue;
                 }
@@ -762,6 +769,12 @@ namespace RabbitMQ.Client.Impl
                         await _recordedEntitiesSemaphore.WaitAsync(CancellationToken.None)
                             .ConfigureAwait(false);
                     }
+                }
+
+                // Again: the handler ran with the semaphore released and may have subscribed with this tag.
+                if (channelToUse.ConsumerDispatcher.IsRegisteredConsumer(consumer.ConsumerTag))
+                {
+                    continue;
                 }
 
                 string oldTag = consumer.ConsumerTag;

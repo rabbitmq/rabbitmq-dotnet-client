@@ -33,6 +33,7 @@ using System;
 using System.Buffers;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -46,7 +47,7 @@ namespace RabbitMQ.Client.Impl
     internal sealed class AutorecoveringChannel : IChannel, IRecoverable
     {
         private readonly CreateChannelOptions _createChannelOptions;
-        private readonly List<string> _recordedConsumerTags = new List<string>();
+        private readonly HashSet<string> _recordedConsumerTags = new HashSet<string>();
 
         private AutorecoveringConnection _connection;
         private RecoveryAwareChannel _innerChannel;

@@ -134,7 +134,8 @@ changing that area.
 - `docs/internal/recovery-event-handler-invocation.md` - why user callbacks never run
   while `_recordedEntitiesSemaphore` is held (#2038).
 - `docs/internal/channel-state-across-recovery.md` - what recovery transplants onto the
-  new inner channel and what it silently drops, including `CurrentQueue` (#2031).
+  new inner channel and what it silently drops, including `CurrentQueue` (#2031), and
+  why a consumer tag already in use is rejected before it reaches the broker (#2080).
 
 ## Codebase map
 
