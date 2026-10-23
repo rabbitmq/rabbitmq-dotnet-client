@@ -235,6 +235,38 @@ namespace Test.Unit
             }
         }
 
+        [Fact]
+        public async Task TestServerSentBasicCancelQueuesItsReplyWithoutWaitingForRoom_GH2096()
+        {
+            using var session = new TestSession(new TestSessionOptions
+            {
+                ChannelNumber = 1,
+                ServerAcceptsConsumerCancelOk = true,
+                BlockTransmits = true
+            });
+            var channel = CreateChannel(session);
+
+            try
+            {
+                var consumer = new CancelRecordingConsumer(channel);
+                await channel.ConsumerDispatcher.HandleBasicConsumeOkAsync(consumer, ConsumerTag,
+                    CancellationToken.None);
+
+                // The receive loop awaits this, so it must return while the reply is still pending.
+                await session.DeliverBasicCancelAsync(ConsumerTag).WaitAsync(TimingFixture.TestTimeout);
+
+                Assert.Equal(1, session.BlockedTransmits);
+                Assert.False(session.LastBlockedTransmit!.IsCompleted, "the reply was given up rather than left queued");
+                await consumer.CancelledConsumerTag.WaitAsync(TimingFixture.TestTimeout);
+                Assert.Equal(ConsumerTag, await consumer.CancelledConsumerTag);
+            }
+            finally
+            {
+                session.ReleaseBlockedTransmits();
+                await DisposeChannelAsync(session, channel);
+            }
+        }
+
         private static Dictionary<string, object?> ServerProperties(string capability, object value)
             => new Dictionary<string, object?>
             {

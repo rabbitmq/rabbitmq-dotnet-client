@@ -831,26 +831,39 @@ namespace RabbitMQ.Client.Impl
         {
             string consumerTag = new BasicCancel(cmd.MethodSpan)._consumerTag;
             bool registered = ConsumerDispatcher.IsRegisteredConsumer(consumerTag);
+
+            // Queued before the consumer hears of the cancel, and not awaited: the reply must stay
+            // ahead of a re-consume under the same tag, and the receive loop must not wait for room
+            // in the write queue. #2096.
+            if (IsOpen && Session.ServerAcceptsConsumerCancelOk && registered)
+            {
+                _ = SendBasicCancelOkAsync(consumerTag, cancellationToken);
+            }
+
             await ConsumerDispatcher.HandleBasicCancelAsync(consumerTag, cancellationToken)
                 .ConfigureAwait(false);
 
-            if (IsOpen && Session.ServerAcceptsConsumerCancelOk && registered)
-            {
-                try
-                {
-                    var method = new BasicCancelOk(consumerTag);
-                    await ModelSendAsync(in method, cancellationToken)
-                        .ConfigureAwait(false);
-                }
-                catch (Exception ex) when (ex is IOException or AlreadyClosedException
-                    or System.Threading.Channels.ChannelClosedException)
-                {
-                    // Ignored. The channel or connection may have closed
-                    // between the IsOpen check and the send.
-                }
-            }
-
             return true;
+        }
+
+        private async Task SendBasicCancelOkAsync(string consumerTag, CancellationToken cancellationToken)
+        {
+            try
+            {
+                var method = new BasicCancelOk(consumerTag);
+                await ModelSendAsync(in method, cancellationToken)
+                    .ConfigureAwait(false);
+            }
+            catch (Exception ex) when (ex is IOException or AlreadyClosedException or OperationCanceledException
+                or System.Threading.Channels.ChannelClosedException)
+            {
+                // Ignored. The channel or connection closed after the IsOpen check, or the write
+                // loop stopped (#2066).
+            }
+            catch (Exception ex)
+            {
+                Logging.ESLog.Error("Sending basic.cancel-ok failed unexpectedly.", ex);
+            }
         }
 
         protected async Task<bool> HandleBasicDeliverAsync(IncomingCommand cmd, CancellationToken cancellationToken)
