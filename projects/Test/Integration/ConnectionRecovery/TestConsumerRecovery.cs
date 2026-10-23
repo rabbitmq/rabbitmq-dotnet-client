@@ -30,6 +30,7 @@
 //---------------------------------------------------------------------------
 
 using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using RabbitMQ.Client;
@@ -251,6 +252,78 @@ namespace Test.Integration.ConnectionRecovery
                 Assert.True(conn.IsOpen);
                 Assert.True(ch.IsOpen);
                 await AssertConsumerCountAsync(ch, q, 1);
+            }
+            finally
+            {
+                await ch.CloseAsync();
+                await conn.CloseAsync();
+                await ch.DisposeAsync();
+                await conn.DisposeAsync();
+            }
+        }
+
+        [Fact]
+        public async Task TestRecoveryDoesNotRaiseRecoveringConsumerForATagAlreadyLive_GH2080()
+        {
+            Exception recoveryFailure = null;
+            var exceptionHandler = new TopologyRecoveryExceptionHandler
+            {
+                ConsumerRecoveryExceptionCondition = (c, ex) => true,
+                ConsumerRecoveryExceptionHandlerAsync = (c, ex, connection) =>
+                {
+                    recoveryFailure = ex;
+                    return Task.CompletedTask;
+                }
+            };
+
+            AutorecoveringConnection conn = await CreateAutorecoveringConnectionWithTopologyRecoveryExceptionHandlerAsync(exceptionHandler);
+            IChannel ch = await conn.CreateChannelAsync();
+            try
+            {
+                var queuesByTag = new Dictionary<string, string>();
+                var consumersByTag = new Dictionary<string, AsyncEventingBasicConsumer>();
+                for (int i = 0; i < 2; i++)
+                {
+                    string q = (await ch.QueueDeclareAsync(GenerateQueueName(), false, true, false)).QueueName;
+                    string tag = GenerateShortUuid();
+                    var consumer = new AsyncEventingBasicConsumer(ch);
+                    await ch.BasicConsumeAsync(q, true, tag, consumer);
+                    queuesByTag[tag] = q;
+                    consumersByTag[tag] = consumer;
+                }
+
+                // Recovery order over the recorded consumers is unspecified, so the first handler to run
+                // subscribes the other tag, which is then live before recovery reaches it.
+                var raisedFor = new List<string>();
+                string subscribedTag = null;
+                conn.RecoveringConsumerAsync += async (sender, ea) =>
+                {
+                    raisedFor.Add(ea.ConsumerTag);
+                    if (subscribedTag is null)
+                    {
+                        foreach (string tag in queuesByTag.Keys)
+                        {
+                            if (tag != ea.ConsumerTag)
+                            {
+                                subscribedTag = tag;
+                            }
+                        }
+                        await ch.BasicConsumeAsync(queuesByTag[subscribedTag], true, subscribedTag, consumersByTag[subscribedTag]);
+                    }
+                };
+
+                await CloseAndWaitForRecoveryAsync(conn);
+
+                Assert.Null(recoveryFailure);
+                Assert.NotNull(subscribedTag);
+                Assert.DoesNotContain(subscribedTag, raisedFor);
+                Assert.Single(raisedFor);
+                Assert.True(conn.IsOpen);
+                Assert.True(ch.IsOpen);
+                foreach (string q in queuesByTag.Values)
+                {
+                    await AssertConsumerCountAsync(ch, q, 1);
+                }
             }
             finally
             {

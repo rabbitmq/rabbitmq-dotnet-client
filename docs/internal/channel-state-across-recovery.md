@@ -118,6 +118,13 @@ holds the semaphore or has released it around a user callback. `RecoverConsumers
 skips a tag the new channel already has. That consumer is live, and the application's
 `RecordConsumerAsync` replaces the record once recovery releases the semaphore.
 
+The skip is checked before `RecoveringConsumerAsync` is raised and again after it. A handler may change
+`ConsumerArguments`, which is the dictionary the recovery `basic.consume` sends, so raising the event for a
+consumer recovery then skips would silently drop that change. The second check covers a handler that
+subscribes with the tag itself. For that consumer `RecoveringConsumerAsync` has fired and
+`ConsumerTagChangeAfterRecoveryAsync` does not, and the handler's argument changes are replaced by the
+arguments of the application's own consume.
+
 ## What the tests do and do not pin
 
 `projects/Test/Integration/ConnectionRecovery/TestChannelStateRecovery.cs`, five tests. Each fails
