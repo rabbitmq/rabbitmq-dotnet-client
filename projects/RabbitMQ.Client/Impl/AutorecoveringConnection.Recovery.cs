@@ -718,7 +718,7 @@ namespace RabbitMQ.Client.Impl
 
         // Both parameters are deliberately non-optional: a defaulted token would silently
         // reintroduce #1997 at a future call site.
-        internal async ValueTask RecoverConsumersAsync(AutorecoveringChannel channelToRecover, IChannel channelToUse,
+        internal async ValueTask RecoverConsumersAsync(AutorecoveringChannel channelToRecover, RecoveryAwareChannel channelToUse,
             bool recordedEntitiesSemaphoreHeld, CancellationToken cancellationToken)
         {
             if (_disposed)
@@ -766,8 +766,7 @@ namespace RabbitMQ.Client.Impl
 
                 // Skip if the application has already subscribed with this tag and that consumer is live.
                 // #2080, docs/internal/channel-state-across-recovery.md.
-                if (channelToUse is Channel { ConsumerDispatcher: var dispatcher }
-                    && dispatcher.IsRegisteredConsumer(consumer.ConsumerTag))
+                if (channelToUse.ConsumerDispatcher.IsRegisteredConsumer(consumer.ConsumerTag))
                 {
                     continue;
                 }
