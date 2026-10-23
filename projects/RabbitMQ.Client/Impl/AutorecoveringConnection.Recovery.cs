@@ -738,6 +738,13 @@ namespace RabbitMQ.Client.Impl
                     continue;
                 }
 
+                // Skip a tag the application already has live on the new channel. Checked before RecoveringConsumerAsync,
+                // whose handlers edit arguments that only a recovered consumer sends. #2080, docs/internal/channel-state-across-recovery.md.
+                if (channelToUse.ConsumerDispatcher.IsRegisteredConsumer(consumer.ConsumerTag))
+                {
+                    continue;
+                }
+
                 // Only release when there is a handler to invoke, as the sibling loops do:
                 // releasing unconditionally made the cancelled re-acquire below reachable from any
                 // two recorded consumers. See issue #1997 in the design doc.
@@ -764,8 +771,7 @@ namespace RabbitMQ.Client.Impl
                     }
                 }
 
-                // Skip if the application has already subscribed with this tag and that consumer is live.
-                // #2080, docs/internal/channel-state-across-recovery.md.
+                // Again: the handler ran with the semaphore released and may have subscribed with this tag.
                 if (channelToUse.ConsumerDispatcher.IsRegisteredConsumer(consumer.ConsumerTag))
                 {
                     continue;
