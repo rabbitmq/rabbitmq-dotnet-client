@@ -54,6 +54,10 @@ namespace Test.Unit
         // When set, every method transmit throws this instead of recording the command.
         public Exception? TransmitException { get; set; }
 
+        // When set, every method transmit is counted and stays pending until ReleaseBlockedTransmits or
+        // its token is cancelled, as a write waiting on a full write queue does.
+        public bool BlockTransmits { get; set; }
+
         // When the channel transmits a key, the session delivers the value back to it.
         public IDictionary<ProtocolCommandId, ProtocolCommandId> Replies { get; } =
             new Dictionary<ProtocolCommandId, ProtocolCommandId>();
@@ -138,6 +142,16 @@ namespace Test.Unit
                 : NotifySessionShutdownAsync(CloseReason);
         }
 
+        private int _blockedTransmits;
+        private readonly TaskCompletionSource<bool> _releaseBlockedTransmits =
+            new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+
+        public int BlockedTransmits => Volatile.Read(ref _blockedTransmits);
+
+        public Task? LastBlockedTransmit { get; private set; }
+
+        public void ReleaseBlockedTransmits() => _releaseBlockedTransmits.TrySetResult(true);
+
         public ValueTask TransmitAsync<T>(in T cmd, CancellationToken cancellationToken)
             where T : struct, IOutgoingAmqpMethod
         {
@@ -145,6 +159,16 @@ namespace Test.Unit
             if (_options.TransmitException is not null)
             {
                 throw _options.TransmitException;
+            }
+
+            if (_options.BlockTransmits)
+            {
+                Interlocked.Increment(ref _blockedTransmits);
+                var blocked = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+                cancellationToken.Register(() => blocked.TrySetCanceled(cancellationToken));
+                _releaseBlockedTransmits.Task.ContinueWith(_ => blocked.TrySetResult(true), TaskScheduler.Default);
+                LastBlockedTransmit = blocked.Task;
+                return new ValueTask(blocked.Task);
             }
 
             byte[] method = new byte[cmd.GetRequiredBufferSize()];
