@@ -9,8 +9,8 @@ namespace RabbitMQ.Client.Impl
     {
         private event AsyncEventHandler<TEvent>? _eventHandler;
         private Delegate[]? _handlers;
-        private string? _context;
-        private Func<Exception, string, CancellationToken, Task>? _onException;
+        private readonly string? _context;
+        private readonly Func<Exception, string, CancellationToken, Task>? _onException;
 
         public bool IsEmpty => _eventHandler is null;
 
@@ -80,12 +80,11 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
+        // Handlers only: the exception callback stays the one this wrapper was constructed with. #2092.
         public void Takeover(in AsyncEventingWrapper<TEvent> other)
         {
             _eventHandler = other._eventHandler;
             _handlers = other._handlers;
-            _context = other._context;
-            _onException = other._onException;
         }
 
         /*
