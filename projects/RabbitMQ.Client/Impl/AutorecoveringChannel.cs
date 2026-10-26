@@ -75,6 +75,21 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
+        // A disposed wrapper throws before the inner channel can take bodyOwner, which the caller has
+        // handed over: dispose it, as the inner channel does when publication fails. #2099.
+        private RecoveryAwareChannel InnerChannelTakingOwnership(IDisposable? bodyOwner)
+        {
+            try
+            {
+                return InnerChannel;
+            }
+            catch (ObjectDisposedException)
+            {
+                bodyOwner?.Dispose();
+                throw;
+            }
+        }
+
         public TimeSpan ContinuationTimeout
         {
             get => InnerChannel.ContinuationTimeout;
@@ -487,7 +502,7 @@ namespace RabbitMQ.Client.Impl
             IDisposable? bodyOwner,
             CancellationToken cancellationToken = default)
             where TProperties : IReadOnlyBasicProperties, IAmqpHeader
-            => InnerChannel.BasicPublishAsync(exchange, routingKey, mandatory, basicProperties, body, bodyOwner, cancellationToken);
+            => InnerChannelTakingOwnership(bodyOwner).BasicPublishAsync(exchange, routingKey, mandatory, basicProperties, body, bodyOwner, cancellationToken);
 
         public ValueTask BasicPublishAsync<TProperties>(CachedString exchange, CachedString routingKey,
             bool mandatory,
@@ -504,7 +519,7 @@ namespace RabbitMQ.Client.Impl
             IDisposable? bodyOwner,
             CancellationToken cancellationToken = default)
             where TProperties : IReadOnlyBasicProperties, IAmqpHeader
-            => InnerChannel.BasicPublishAsync(exchange, routingKey, mandatory, basicProperties, body, bodyOwner, cancellationToken);
+            => InnerChannelTakingOwnership(bodyOwner).BasicPublishAsync(exchange, routingKey, mandatory, basicProperties, body, bodyOwner, cancellationToken);
 
         public ValueTask BasicPublishAsync<TProperties>(string exchange, string routingKey,
             bool mandatory,
@@ -513,7 +528,7 @@ namespace RabbitMQ.Client.Impl
             IDisposable? bodyOwner,
             CancellationToken cancellationToken = default)
             where TProperties : IReadOnlyBasicProperties, IAmqpHeader
-            => InnerChannel.BasicPublishAsync(exchange, routingKey, mandatory, basicProperties, body, bodyOwner, cancellationToken);
+            => InnerChannelTakingOwnership(bodyOwner).BasicPublishAsync(exchange, routingKey, mandatory, basicProperties, body, bodyOwner, cancellationToken);
 
         public ValueTask BasicPublishAsync<TProperties>(CachedString exchange, CachedString routingKey,
             bool mandatory,
@@ -522,7 +537,7 @@ namespace RabbitMQ.Client.Impl
             IDisposable? bodyOwner,
             CancellationToken cancellationToken = default)
             where TProperties : IReadOnlyBasicProperties, IAmqpHeader
-            => InnerChannel.BasicPublishAsync(exchange, routingKey, mandatory, basicProperties, body, bodyOwner, cancellationToken);
+            => InnerChannelTakingOwnership(bodyOwner).BasicPublishAsync(exchange, routingKey, mandatory, basicProperties, body, bodyOwner, cancellationToken);
 
         public Task BasicQosAsync(uint prefetchSize, ushort prefetchCount, bool global,
             CancellationToken cancellationToken)
