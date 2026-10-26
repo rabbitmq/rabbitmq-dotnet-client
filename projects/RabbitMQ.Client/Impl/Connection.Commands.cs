@@ -176,9 +176,9 @@ namespace RabbitMQ.Client.Impl
             ushort channelMax = (ushort)NegotiatedMaxValue(_config.MaxChannelCount, connectionTune.m_channelMax);
             _sessionManager = new SessionManager(this, channelMax, _config.MaxInboundMessageBodySize);
 
-            uint frameMax = NegotiatedMaxValue(_config.MaxFrameSize, connectionTune.m_frameMax);
+            uint frameMax = NegotiateFrameMax(_config.MaxFrameSize, connectionTune.m_frameMax);
             FrameMax = frameMax;
-            MaxPayloadSize = frameMax == 0 ? int.MaxValue : (int)frameMax - Client.Impl.Framing.BaseFrameSize;
+            MaxPayloadSize = MaxPayloadSizeFor(frameMax);
 
             uint heartbeatInSeconds = NegotiatedMaxValue((uint)_config.HeartbeatInterval.TotalSeconds, (uint)connectionTune.m_heartbeatInSeconds);
             Heartbeat = TimeSpan.FromSeconds(heartbeatInSeconds);
@@ -209,6 +209,27 @@ namespace RabbitMQ.Client.Impl
             }
 
             throw new IOException($"No compatible authentication mechanism found - server offered [{supportedMechanismNames}]");
+        }
+
+        // Zero means no limit. GHSA-qqh4-4hmj-6ph2.
+        internal static uint NegotiateFrameMax(uint clientValue, uint serverValue)
+        {
+            uint frameMax = NegotiatedMaxValue(clientValue, serverValue);
+            if (frameMax != 0 && frameMax < Constants.FrameMinSize)
+            {
+                throw new ProtocolViolationException(
+                    $"Negotiated frame_max of {frameMax} is below the AMQP minimum of {Constants.FrameMinSize} " +
+                    $"(client requested {clientValue}, server offered {serverValue}).");
+            }
+
+            return frameMax;
+        }
+
+        // A frame_max too large for an int body payload means no limit, rather than wrapping negative.
+        internal static int MaxPayloadSizeFor(uint frameMax)
+        {
+            uint payload = frameMax - (uint)Client.Impl.Framing.BaseFrameSize;
+            return frameMax == 0 || payload > int.MaxValue ? int.MaxValue : (int)payload;
         }
 
         private static uint NegotiatedMaxValue(uint clientValue, uint serverValue)
