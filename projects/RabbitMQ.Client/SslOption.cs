@@ -30,6 +30,7 @@
 //---------------------------------------------------------------------------
 
 
+using System;
 using System.Net.Security;
 using System.Security.Authentication;
 using System.Security.Cryptography.X509Certificates;
@@ -45,6 +46,8 @@ namespace RabbitMQ.Client
     public class SslOption
     {
         private X509CertificateCollection? _certificateCollection;
+        private string _serverName = string.Empty;
+        private bool _serverNameSetByCaller;
 
         /// <summary>
         /// Constructs an <see cref="SslOption"/> specifying both the server canonical name and the client's certificate path.
@@ -142,7 +145,39 @@ namespace RabbitMQ.Client
         /// This MUST match the Subject Alternative Name (SAN) or CN on the peer's (server's) leaf certificate,
         /// otherwise the TLS connection will fail.
         /// </summary>
-        public string ServerName { get; set; }
+        public string ServerName
+        {
+            get => _serverName;
+            set
+            {
+                // Writing back the current value, as configuration binders do, is not a choice. GHSA-7xr9-fg47-hh5x.
+                if (false == string.Equals(value, _serverName, StringComparison.Ordinal))
+                {
+                    _serverName = value;
+                    _serverNameSetByCaller = false == string.IsNullOrEmpty(value);
+                }
+            }
+        }
+
+        // Writes the field, not the property, so a URI-derived name never counts as the caller's.
+        internal void SetServerNameFromUri(string host)
+        {
+            if (false == _serverNameSetByCaller)
+            {
+                _serverName = host;
+            }
+        }
+
+        internal SslOption Clone()
+        {
+            var clone = (SslOption)MemberwiseClone();
+            if (_certificateCollection is not null)
+            {
+                clone._certificateCollection = new X509CertificateCollection(_certificateCollection);
+            }
+
+            return clone;
+        }
 
         /// <summary>
         /// Retrieve or set the TLS protocol version.

@@ -34,7 +34,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using System.Net.Security;
 using System.Reflection;
 using System.Security.Authentication;
 using System.Text;
@@ -377,6 +376,12 @@ namespace RabbitMQ.Client
         /// <summary>
         /// The uri to use for the connection.
         /// </summary>
+        /// <remarks>
+        /// Assigning a URI replaces <see cref="Ssl"/> with a copy of it that carries what the URI states:
+        /// the scheme sets <see cref="SslOption.Enabled"/>, and the host sets <see cref="SslOption.ServerName"/>
+        /// unless one was set before. A reference to the previous <see cref="SslOption"/> no longer affects
+        /// this factory, so configure <see cref="Ssl"/> through this property after assigning the URI.
+        /// </remarks>
         public Uri Uri
         {
             get { return GetUri(); }
@@ -724,37 +729,42 @@ namespace RabbitMQ.Client
 
         private void SetUri(Uri uri)
         {
-            Endpoint = new AmqpTcpEndpoint();
-
+            bool tls;
             if (string.Equals("amqp", uri.Scheme, StringComparison.OrdinalIgnoreCase))
             {
-                // nothing special to do
+                tls = false;
             }
             else if (string.Equals("amqps", uri.Scheme, StringComparison.OrdinalIgnoreCase))
             {
-                Ssl.Enabled = true;
-                Ssl.Version = AmqpUriSslProtocols;
-                Ssl.AcceptablePolicyErrors = SslPolicyErrors.RemoteCertificateNameMismatch;
-                Port = AmqpTcpEndpoint.DefaultAmqpSslPort;
+                tls = true;
             }
             else
             {
                 throw new ArgumentException($"Wrong scheme in AMQP URI: {uri.Scheme}");
             }
 
-            string host = uri.Host;
-            if (!string.IsNullOrEmpty(host))
+            /* C# automatically changes URIs into a canonical form
+               that has at least the path segment "/". */
+            if (uri.Segments.Length > 2)
             {
-                HostName = host;
+                throw new ArgumentException($"Multiple segments in path of AMQP URI: {string.Join(", ", uri.Segments)}");
             }
 
-            Ssl.ServerName = HostName;
-
-            int port = uri.Port;
-            if (port != -1)
+            // The URI decides only what it states, applied to a copy: an endpoint or connection that
+            // already holds the current SslOption must not see its TLS settings change. GHSA-7xr9-fg47-hh5x.
+            SslOption ssl = Ssl?.Clone() ?? new SslOption();
+            ssl.Enabled = tls;
+            if (tls && ssl.Version == SslProtocols.None)
             {
-                Port = port;
+                ssl.Version = AmqpUriSslProtocols;
             }
+
+            string host = string.IsNullOrEmpty(uri.Host) ? "localhost" : uri.Host;
+            ssl.SetServerNameFromUri(host);
+
+            HostName = host;
+            Port = uri.Port != -1 ? uri.Port
+                : tls ? AmqpTcpEndpoint.DefaultAmqpSslPort : Protocols.DefaultProtocol.DefaultPort;
 
             string userInfo = uri.UserInfo;
             if (!string.IsNullOrEmpty(userInfo))
@@ -771,17 +781,12 @@ namespace RabbitMQ.Client
                 }
             }
 
-            /* C# automatically changes URIs into a canonical form
-               that has at least the path segment "/". */
-            if (uri.Segments.Length > 2)
-            {
-                throw new ArgumentException($"Multiple segments in path of AMQP URI: {string.Join(", ", uri.Segments)}");
-            }
-
             if (uri.Segments.Length == 2)
             {
                 VirtualHost = UriDecode(uri.Segments[1]);
             }
+
+            Ssl = ssl;
         }
 
         ///<summary>
