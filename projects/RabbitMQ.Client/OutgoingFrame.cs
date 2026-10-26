@@ -138,9 +138,26 @@ namespace RabbitMQ.Client
             {
                 ArrayPool<byte>.Shared.Return(array);
             }
-            _bodyOwner?.Dispose();
+            IDisposable? bodyOwner = _bodyOwner;
             _bodyOwner = null;
             _body = default;
+            try
+            {
+                bodyOwner?.Dispose();
+            }
+            catch (Exception ex)
+            {
+                // The owner is the application's. A throw here stopped the socket write loop, or made a
+                // caller holding another copy of this struct dispose it a second time. #2100.
+                try
+                {
+                    Logging.ESLog.Error("A message body owner threw from Dispose.", ex);
+                }
+                catch
+                {
+                    // Logging reads the exception, which is the application's too.
+                }
+            }
         }
     }
 }
