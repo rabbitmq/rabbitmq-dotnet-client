@@ -34,6 +34,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using RabbitMQ.Client;
+using RabbitMQ.Client.Events;
 using RabbitMQ.Client.Impl;
 using Xunit;
 using Xunit.Abstractions;
@@ -193,6 +194,31 @@ namespace Test
             TaskCompletionSource<bool> sl = PrepareForShutdown(conn);
             await CloseConnectionAsync(conn);
             await WaitAsync(sl, "connection shutdown");
+        }
+
+        // IsOpen reads through to the current inner object and cannot see a close that recovery has reversed.
+        // The broker answers in order, so a close the action caused arrives before the passive declare's reply.
+        protected static async Task<T> AssertNoConnectionShutdownAsync<T>(IConnection conn, IChannel ch, Func<Task<T>> action)
+        {
+            int shutdowns = 0;
+            Task OnShutdownAsync(object sender, ShutdownEventArgs ea)
+            {
+                Interlocked.Increment(ref shutdowns);
+                return Task.CompletedTask;
+            }
+
+            conn.ConnectionShutdownAsync += OnShutdownAsync;
+            try
+            {
+                T result = await action();
+                await ch.ExchangeDeclarePassiveAsync("amq.direct");
+                Assert.Equal(0, Volatile.Read(ref shutdowns));
+                return result;
+            }
+            finally
+            {
+                conn.ConnectionShutdownAsync -= OnShutdownAsync;
+            }
         }
 
         protected static async Task<string> DeclareNonDurableExchangeAsync(IChannel ch, string exchangeName)

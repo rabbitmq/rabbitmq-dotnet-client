@@ -584,9 +584,9 @@ namespace Test.Integration
 
                 Assert.True(recoveredConsumerReceivedTcs.Wait(TimeSpan.FromSeconds(5)));
 
-                await Assert.ThrowsAsync<InvalidOperationException>(() =>
-                    ch.BasicConsumeAsync(queueWithExceptionConsumer, true, "exception.consumer", consumerToRecover));
-                Assert.True(ch.IsOpen);
+                await AssertNoConnectionShutdownAsync(conn, ch, () =>
+                    Assert.ThrowsAsync<InvalidOperationException>(() =>
+                        ch.BasicConsumeAsync(queueWithExceptionConsumer, true, "exception.consumer", consumerToRecover)));
             }
             finally
             {

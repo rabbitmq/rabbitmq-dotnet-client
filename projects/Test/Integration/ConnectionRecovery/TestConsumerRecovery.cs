@@ -35,6 +35,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
+using RabbitMQ.Client.Exceptions;
 using RabbitMQ.Client.Framing;
 using RabbitMQ.Client.Impl;
 using Xunit;
@@ -164,15 +165,13 @@ namespace Test.Integration.ConnectionRecovery
             };
             await _channel.BasicConsumeAsync(q, true, tag, consumer);
 
-            InvalidOperationException ex = await Assert.ThrowsAsync<InvalidOperationException>(() =>
-                _channel.BasicConsumeAsync(q, true, tag, new AsyncEventingBasicConsumer(_channel)));
+            InvalidOperationException ex = await AssertNoConnectionShutdownAsync(_conn, _channel, () =>
+                Assert.ThrowsAsync<InvalidOperationException>(() =>
+                    _channel.BasicConsumeAsync(q, true, tag, new AsyncEventingBasicConsumer(_channel))));
             Assert.Contains(tag, ex.Message);
 
-            // Sent to the broker, the duplicate closes the connection with 530 and this delivery never arrives.
             await _channel.BasicPublishAsync(string.Empty, q, _encoding.GetBytes("after duplicate"));
             await WaitAsync(deliveredTcs, "delivery to the first consumer");
-            Assert.True(_conn.IsOpen);
-            Assert.True(_channel.IsOpen);
             await AssertConsumerCountAsync(q, 1);
         }
 
@@ -193,12 +192,40 @@ namespace Test.Integration.ConnectionRecovery
             await CloseAndWaitForRecoveryAsync();
 
             // An application re-subscribing with its stored tag after a connection loss.
-            await Assert.ThrowsAsync<InvalidOperationException>(() => _channel.BasicConsumeAsync(q, true, tag, consumer));
+            await AssertNoConnectionShutdownAsync(_conn, _channel, () =>
+                Assert.ThrowsAsync<InvalidOperationException>(() => _channel.BasicConsumeAsync(q, true, tag, consumer)));
 
             await _channel.BasicPublishAsync(string.Empty, q, _encoding.GetBytes("after recovery"));
             await WaitAsync(deliveredTcs, "delivery to the recovered consumer");
-            Assert.True(_conn.IsOpen);
-            Assert.True(_channel.IsOpen);
+            await AssertConsumerCountAsync(q, 1);
+        }
+
+        [Fact]
+        public async Task TestBrokerClosesTheConnectionWith530ForAReusedTagAndRecoveryRestoresTheConsumer_GH2080()
+        {
+            string q = (await _channel.QueueDeclareAsync(GenerateQueueName(), false, true, false)).QueueName;
+            string tag = GenerateShortUuid();
+            var consumer = new AsyncEventingBasicConsumer(_channel);
+            var deliveredTcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+            consumer.ReceivedAsync += (sender, ea) =>
+            {
+                deliveredTcs.TrySetResult(true);
+                return Task.CompletedTask;
+            };
+            await _channel.BasicConsumeAsync(q, true, tag, consumer);
+
+            // Test-only bypass of the local check, through internals no application can reach. The broker
+            // still has the consumer and the channel does not, so the duplicate below reaches the broker.
+            ((AutorecoveringChannel)_channel).ConsumerDispatcher.GetAndRemoveConsumer(tag);
+
+            TaskCompletionSource<bool> recoveredTcs = PrepareForRecovery(_conn);
+            OperationInterruptedException ex = await Assert.ThrowsAnyAsync<OperationInterruptedException>(() =>
+                _channel.BasicConsumeAsync(q, true, tag, new AsyncEventingBasicConsumer(_channel)));
+            AssertShutdownError(ex.ShutdownReason, 530);
+            await WaitAsync(recoveredTcs, "connection recovery");
+
+            await _channel.BasicPublishAsync(string.Empty, q, _encoding.GetBytes("after recovery"));
+            await WaitAsync(deliveredTcs, "delivery to the recovered consumer");
             await AssertConsumerCountAsync(q, 1);
         }
 
