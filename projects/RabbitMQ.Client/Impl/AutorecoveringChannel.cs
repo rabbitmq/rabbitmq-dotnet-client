@@ -47,6 +47,7 @@ namespace RabbitMQ.Client.Impl
     internal sealed class AutorecoveringChannel : IChannel, IRecoverable
     {
         private readonly CreateChannelOptions _createChannelOptions;
+        // Locked: consumes on one channel can complete concurrently, and a HashSet does not survive concurrent adds.
         private readonly HashSet<string> _recordedConsumerTags = new HashSet<string>();
 
         private AutorecoveringConnection _connection;
@@ -158,7 +159,10 @@ namespace RabbitMQ.Client.Impl
             get
             {
                 ThrowIfDisposed();
-                return _recordedConsumerTags.ToArray();
+                lock (_recordedConsumerTags)
+                {
+                    return _recordedConsumerTags.ToArray();
+                }
             }
         }
 
@@ -434,7 +438,10 @@ namespace RabbitMQ.Client.Impl
 
                 try
                 {
-                    _recordedConsumerTags.Clear();
+                    lock (_recordedConsumerTags)
+                    {
+                        _recordedConsumerTags.Clear();
+                    }
                 }
                 catch
                 {
@@ -481,7 +488,10 @@ namespace RabbitMQ.Client.Impl
                 queue: queue, autoAck: autoAck, exclusive: exclusive, arguments: arguments);
             await _connection.RecordConsumerAsync(rc, recordedEntitiesSemaphoreHeld: false)
                 .ConfigureAwait(false);
-            _recordedConsumerTags.Add(resultConsumerTag);
+            lock (_recordedConsumerTags)
+            {
+                _recordedConsumerTags.Add(resultConsumerTag);
+            }
             return resultConsumerTag;
         }
 
