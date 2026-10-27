@@ -113,6 +113,29 @@ namespace Test.Unit
             Assert.True(read.ContainsKey("x-death"));
         }
 
+        [Theory]
+        [InlineData('A')]
+        [InlineData('F')]
+        public void TheWriterAcceptsWhatTheReaderAccepts_GHSA_qhmm(char kind)
+        {
+            IDictionary<string, object> atLimit = new Dictionary<string, object> { ["k"] = NestedObject(kind, Limit) };
+            byte[] bytes = new byte[WireFormatting.GetTableByteCount(atLimit)];
+            WireFormatting.WriteTable(ref bytes.GetStart(), atLimit);
+            Assert.Equal(bytes.Length, WireFormatting.ReadDictionary(bytes, out _));
+
+            IDictionary<string, object> pastLimit = new Dictionary<string, object> { ["k"] = NestedObject(kind, Limit + 1) };
+            Assert.Throws<WireFormattingException>(() => WireFormatting.GetTableByteCount(pastLimit));
+        }
+
+        // Without the limit, this overflows the stack and terminates the test host.
+        [Fact]
+        public void ATableContainingItselfIsRejected_GHSA_qhmm()
+        {
+            IDictionary<string, object> table = new Dictionary<string, object>();
+            table["self"] = table;
+            Assert.Throws<WireFormattingException>(() => WireFormatting.GetTableByteCount(table));
+        }
+
         // Without the limit, these overflow the stack and terminate the test host.
         [Theory]
         [InlineData('A')]
@@ -135,6 +158,18 @@ namespace Test.Unit
             properties[0] = 1 << BasicProperties.HeaderBit;
             headers.CopyTo(properties, 2);
             Assert.Throws<SyntaxErrorException>(() => new ReadOnlyBasicProperties(properties));
+        }
+
+        private static object NestedObject(char kind, int containers)
+        {
+            object value = 42;
+            for (int i = 0; i < containers; i++)
+            {
+                value = kind == 'A'
+                    ? new List<object> { value }
+                    : new Dictionary<string, object> { [""] = value };
+            }
+            return value;
         }
 
         private static string Alternating(int count)

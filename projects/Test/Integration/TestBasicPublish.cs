@@ -57,6 +57,31 @@ namespace Test.Integration
         }
 
         [Fact]
+        public async Task PublishingHeadersNestedTooDeepThrowsAndKeepsTheChannelUsable_GHSA_qhmm()
+        {
+            await using IConnection conn = await _connFactory.CreateConnectionAsync();
+            var channelOptions = new CreateChannelOptions(
+                publisherConfirmationsEnabled: true,
+                publisherConfirmationTrackingEnabled: true);
+            await using IChannel ch = await conn.CreateChannelAsync(channelOptions);
+            QueueDeclareOk q = await ch.QueueDeclareAsync(string.Empty, false, true, true);
+
+            IDictionary<string, object> headers = new Dictionary<string, object>();
+            for (int i = 0; i < 40; i++)
+            {
+                headers = new Dictionary<string, object> { ["a"] = headers };
+            }
+            var deep = new BasicProperties { Headers = headers };
+            await Assert.ThrowsAsync<WireFormattingException>(
+                () => ch.BasicPublishAsync(string.Empty, q.QueueName, true, deep, _encoding.GetBytes("deep")).AsTask());
+
+            // A sequence number left allocated by the failed publish would leave this confirmation pending.
+            await ch.BasicPublishAsync(string.Empty, q.QueueName, true, new BasicProperties(), _encoding.GetBytes("ok"))
+                .AsTask().WaitAsync(WaitSpan);
+            Assert.Equal(1u, (await ch.QueueDeclarePassiveAsync(q.QueueName)).MessageCount);
+        }
+
+        [Fact]
         public async Task TestBasicRoundtripArray()
         {
             _conn = await _connFactory.CreateConnectionAsync();

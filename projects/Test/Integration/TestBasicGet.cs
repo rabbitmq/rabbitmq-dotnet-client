@@ -122,8 +122,18 @@ namespace Test.Integration
             {
                 headers = new Dictionary<string, object> { ["a"] = headers };
             }
-            var props = new BasicProperties { Headers = headers };
-            await ch.BasicPublishAsync(string.Empty, q.QueueName, true, props, _encoding.GetBytes("deep"));
+            using (var util = new Util(_output))
+            {
+                await util.PublishToQueueAsync(q.QueueName, new Dictionary<string, object> { ["headers"] = headers }, "deep");
+            }
+
+            // The management API publishes on another broker channel, so wait for the message to be enqueued.
+            DateTime deadline = DateTime.UtcNow + WaitSpan;
+            while ((await ch.QueueDeclarePassiveAsync(q.QueueName)).MessageCount == 0)
+            {
+                Assert.True(DateTime.UtcNow < deadline, "the published message never reached the queue");
+                await Task.Delay(50);
+            }
 
             // Without completing the continuation on a parse failure, the get never returns.
             await Assert.ThrowsAsync<SyntaxErrorException>(() => ch.BasicGetAsync(q.QueueName, true).WaitAsync(WaitSpan));

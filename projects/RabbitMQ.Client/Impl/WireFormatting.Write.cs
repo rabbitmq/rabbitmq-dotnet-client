@@ -60,7 +60,15 @@ namespace RabbitMQ.Client.Impl
         }
 
         public static int GetArrayByteCount(IList? val)
+            => GetArrayByteCount(val, 0);
+
+        private static int GetArrayByteCount(IList? val, int depth)
         {
+            if (depth > MaxFieldValueNestingDepth)
+            {
+                ThrowFieldValueNestingTooDeepToSend();
+            }
+
             if (val is null || val.Count == 0)
             {
                 return 4;
@@ -71,14 +79,14 @@ namespace RabbitMQ.Client.Impl
             {
                 for (int index = 0; index < valList.Count; index++)
                 {
-                    byteCount += GetFieldValueByteCount(valList[index]);
+                    byteCount += GetFieldValueByteCount(valList[index], depth + 1);
                 }
             }
             else
             {
                 for (int index = 0; index < val.Count; index++)
                 {
-                    byteCount += GetFieldValueByteCount(val[index]);
+                    byteCount += GetFieldValueByteCount(val[index], depth + 1);
                 }
             }
 
@@ -210,6 +218,9 @@ namespace RabbitMQ.Client.Impl
         }
 
         public static int GetFieldValueByteCount(object? value)
+            => GetFieldValueByteCount(value, 0);
+
+        private static int GetFieldValueByteCount(object? value, int depth)
         {
             // Order by likelihood of occurrence
             switch (value)
@@ -226,9 +237,9 @@ namespace RabbitMQ.Client.Impl
                 case byte[] val:
                     return 5 + val.Length;
                 case IDictionary<string, object?> val:
-                    return 1 + GetTableByteCount(val);
+                    return 1 + GetTableByteCount(val, depth);
                 case IList val:
-                    return 1 + GetArrayByteCount(val);
+                    return 1 + GetArrayByteCount(val, depth);
                 case AmqpTimestamp _:
                 case double _:
                 case long _:
@@ -245,7 +256,7 @@ namespace RabbitMQ.Client.Impl
                 case decimal _:
                     return 6;
                 case IDictionary val:
-                    return 1 + GetTableByteCount(val);
+                    return 1 + GetTableByteCount(val, depth);
                 case BinaryTableValue val:
                     return 5 + val.Bytes.Length;
                 default:
@@ -453,7 +464,15 @@ namespace RabbitMQ.Client.Impl
         }
 
         public static int GetTableByteCount(IDictionary? val)
+            => GetTableByteCount(val, 0);
+
+        private static int GetTableByteCount(IDictionary? val, int depth)
         {
+            if (depth > MaxFieldValueNestingDepth)
+            {
+                ThrowFieldValueNestingTooDeepToSend();
+            }
+
             if (val is null || val.Count == 0)
             {
                 return 4;
@@ -463,14 +482,22 @@ namespace RabbitMQ.Client.Impl
             foreach (DictionaryEntry entry in val)
             {
                 byteCount += GetByteCount(entry.Key.ToString()) + 1;
-                byteCount += GetFieldValueByteCount(entry.Value);
+                byteCount += GetFieldValueByteCount(entry.Value, depth + 1);
             }
 
             return byteCount;
         }
 
         public static int GetTableByteCount(IDictionary<string, object?>? val)
+            => GetTableByteCount(val, 0);
+
+        private static int GetTableByteCount(IDictionary<string, object?>? val, int depth)
         {
+            if (depth > MaxFieldValueNestingDepth)
+            {
+                ThrowFieldValueNestingTooDeepToSend();
+            }
+
             if (val is null || val.Count == 0)
             {
                 return 4;
@@ -482,7 +509,7 @@ namespace RabbitMQ.Client.Impl
                 foreach (KeyValuePair<string, object?> entry in dict)
                 {
                     byteCount += GetByteCount(entry.Key) + 1;
-                    byteCount += GetFieldValueByteCount(entry.Value);
+                    byteCount += GetFieldValueByteCount(entry.Value, depth + 1);
                 }
             }
             else
@@ -490,7 +517,7 @@ namespace RabbitMQ.Client.Impl
                 foreach (KeyValuePair<string, object?> entry in val)
                 {
                     byteCount += GetByteCount(entry.Key) + 1;
-                    byteCount += GetFieldValueByteCount(entry.Value);
+                    byteCount += GetFieldValueByteCount(entry.Value, depth + 1);
                 }
             }
 
@@ -516,5 +543,8 @@ namespace RabbitMQ.Client.Impl
 
         private static int ThrowInvalidTableValue(object value)
             => throw new WireFormattingException($"Value of type '{value.GetType().Name}' cannot appear as table value", value);
+
+        private static void ThrowFieldValueNestingTooDeepToSend()
+            => throw new WireFormattingException($"Field tables and arrays nested more than {MaxFieldValueNestingDepth} levels deep cannot be sent");
     }
 }

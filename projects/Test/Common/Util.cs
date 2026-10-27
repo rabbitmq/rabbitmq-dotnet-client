@@ -67,6 +67,14 @@ namespace Test
 
         public static bool IsWindows => s_isWindows;
 
+        // Publishes through the management API, which can send headers this client refuses to.
+        public Task PublishToQueueAsync(string queueName, IReadOnlyDictionary<string, object> properties, string payload)
+        {
+            var publishInfo = new EasyNetQ.Management.Client.Model.PublishInfo(queueName, payload,
+                EasyNetQ.Management.Client.Model.PayloadEncoding.String, properties);
+            return _managementClient.PublishAsync("/", "amq.default", publishInfo);
+        }
+
         public async Task CloseConnectionAsync(string connectionClientProvidedName)
         {
             ushort tries = 1;
