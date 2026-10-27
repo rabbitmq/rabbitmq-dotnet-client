@@ -178,6 +178,13 @@ namespace RabbitMQ.Client.Impl
                     throw;
                 }
             }
+            catch (Exception ex)
+            {
+                // The receive loop closes the connection on this, but the channel has already
+                // dequeued this continuation, so nothing else would complete the caller's task.
+                _tcs.TrySetException(ex);
+                throw;
+            }
         }
 
         public virtual void HandleChannelShutdown(ShutdownEventArgs reason)

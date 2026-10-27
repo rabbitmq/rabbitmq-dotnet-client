@@ -30,8 +30,10 @@
 //---------------------------------------------------------------------------
 
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using RabbitMQ.Client;
+using RabbitMQ.Client.Events;
 using RabbitMQ.Client.Exceptions;
 using Xunit;
 using Xunit.Abstractions;
@@ -98,6 +100,36 @@ namespace Test.Integration
                 Assert.Equal(msg, _encoding.GetString(res.Body.ToArray()));
                 await AssertMessageCountAsync(queue, 0);
             }, msg);
+        }
+
+        [Fact]
+        public async Task BasicGetThrowsWhenTheHeadersAreNestedTooDeep_GHSA_qhmm()
+        {
+            ConnectionFactory cf = CreateConnectionFactory();
+            cf.AutomaticRecoveryEnabled = false;
+            await using IConnection conn = await cf.CreateConnectionAsync();
+            var closed = new TaskCompletionSource<ShutdownEventArgs>(TaskCreationOptions.RunContinuationsAsynchronously);
+            conn.ConnectionShutdownAsync += (_, ea) =>
+            {
+                closed.TrySetResult(ea);
+                return Task.CompletedTask;
+            };
+            await using IChannel ch = await conn.CreateChannelAsync();
+            QueueDeclareOk q = await ch.QueueDeclareAsync(string.Empty, false, true, true);
+
+            IDictionary<string, object> headers = new Dictionary<string, object>();
+            for (int i = 0; i < 40; i++)
+            {
+                headers = new Dictionary<string, object> { ["a"] = headers };
+            }
+            var props = new BasicProperties { Headers = headers };
+            await ch.BasicPublishAsync(string.Empty, q.QueueName, true, props, _encoding.GetBytes("deep"));
+
+            // Without completing the continuation on a parse failure, the get never returns.
+            await Assert.ThrowsAsync<SyntaxErrorException>(() => ch.BasicGetAsync(q.QueueName, true).WaitAsync(WaitSpan));
+
+            await closed.Task.WaitAsync(WaitSpan);
+            Assert.Equal(Constants.SyntaxError, (await closed.Task).ReplyCode);
         }
 
         private Task EnsureNotEmptyAsync(string q, string body)
