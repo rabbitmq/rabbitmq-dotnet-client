@@ -591,6 +591,66 @@ namespace Test.Integration
             _output.WriteLine($"GH1802: the stalled RPC failed with {caught.GetType().Name}");
         }
 
+        [SkippableFact]
+        [Trait("Category", "Toxiproxy")]
+        public async Task TestBasicConsumeReusesATagWhoseCancelTimedOut_GH2080()
+        {
+            Skip.IfNot(AreToxiproxyTestsEnabled, "RABBITMQ_TOXIPROXY_TESTS is not set, skipping test");
+
+            ConnectionFactory cf = CreateConnectionFactory();
+            cf.Endpoint = new AmqpTcpEndpoint(IPAddress.Loopback.ToString(), _proxyPort);
+            cf.AutomaticRecoveryEnabled = false;
+            cf.TopologyRecoveryEnabled = false;
+
+            await using IConnection conn = await cf.CreateConnectionAsync();
+            await using IChannel ch = await conn.CreateChannelAsync();
+
+            string q = (await ch.QueueDeclareAsync(GenerateQueueName(), false, true, false)).QueueName;
+            string tag = GenerateShortUuid();
+            await ch.BasicConsumeAsync(q, true, tag, new AsyncEventingBasicConsumer(ch));
+
+            // Delays the cancel-ok past the timeout without dropping it. A TimeoutToxic would drop it,
+            // and removing one closed the connection.
+            string toxicName = $"rmq-localhost-latency-{Now}-{GenerateShortUuid()}";
+            var latencyToxic = new LatencyToxic
+            {
+                Name = toxicName
+            };
+            latencyToxic.Attributes.Latency = 3000;
+            latencyToxic.Toxicity = 1.0;
+            latencyToxic.Stream = ToxicDirection.DownStream;
+            await _toxiproxyManager.AddToxicAsync(latencyToxic);
+
+            TimeSpan originalContinuationTimeout = ch.ContinuationTimeout;
+            try
+            {
+                ch.ContinuationTimeout = TimeSpan.FromSeconds(1);
+                await Assert.ThrowsAnyAsync<OperationCanceledException>(() => ch.BasicCancelAsync(tag));
+            }
+            finally
+            {
+                ch.ContinuationTimeout = originalContinuationTimeout;
+                await _toxiproxyManager.RemoveToxicAsync(toxicName);
+            }
+
+            // Queued behind the late cancel-ok, so the broker has released the tag by the time this returns.
+            await ch.QueueDeclarePassiveAsync(q);
+
+            var deliveredTcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+            var consumer = new AsyncEventingBasicConsumer(ch);
+            consumer.ReceivedAsync += (sender, ea) =>
+            {
+                deliveredTcs.TrySetResult(true);
+                return Task.CompletedTask;
+            };
+            Assert.Equal(tag, await ch.BasicConsumeAsync(q, true, tag, consumer));
+
+            await ch.BasicPublishAsync(string.Empty, q, _encoding.GetBytes("after the timed-out cancel"));
+            await WaitAsync(deliveredTcs, "delivery to the re-subscribed consumer");
+            Assert.Equal(1u, (await ch.QueueDeclarePassiveAsync(q)).ConsumerCount);
+            Assert.True(conn.IsOpen);
+        }
+
         /*
          * Both GH1930 scenarios need the client's write loop to stall, which they arrange by filling
          * the OS socket send buffer: 512 bodies of 65 KB through a Rate=1 toxic. Whether that

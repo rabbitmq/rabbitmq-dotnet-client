@@ -111,6 +111,14 @@ restores the consumer, the application's consume closes the connection, and the 
 failed call because `AutorecoveringChannel.BasicConsumeAsync` records only after consume-ok. This
 loop was reproduced on 5.2.0 and 6.6.0, which have the same recording design.
 
+The check is only as accurate as the dispatcher map, so `BasicCancelAsync` removes the tag once its
+`basic.cancel` is on the wire, whether the cancel-ok arrives or the wait times out. A timed-out cancel-ok
+is discarded as a late reply, so without that removal the tag would stay in the map and the check would
+reject every later consume with it on a healthy channel. Removing it is safe because the broker handles a
+channel's frames in order, so a later `basic.consume` finds the tag released. A cancel whose send fails
+keeps the tag, because the broker still has the consumer. Deliveries that arrive between the timeout and
+the broker handling the cancel go to the fallback consumer.
+
 The application's consume can also reach the new channel before recovery does. `_innerChannel` is
 installed before `RecoverConsumersAsync` runs, and `AutorecoveringChannel.BasicConsumeAsync` takes
 `_recordedEntitiesSemaphore` only after the broker answers, so it can register the tag while recovery
