@@ -333,5 +333,67 @@ namespace Test.Integration.ConnectionRecovery
                 await conn.DisposeAsync();
             }
         }
+
+        [Fact]
+        public async Task TestRecoveryDoesNotReportATagTheApplicationIsStillSubscribing_GH2080()
+        {
+            Exception recoveryFailure = null;
+            var exceptionHandler = new TopologyRecoveryExceptionHandler
+            {
+                ConsumerRecoveryExceptionCondition = (c, ex) => true,
+                ConsumerRecoveryExceptionHandlerAsync = (c, ex, connection) =>
+                {
+                    recoveryFailure = ex;
+                    return Task.CompletedTask;
+                }
+            };
+
+            AutorecoveringConnection conn = await CreateAutorecoveringConnectionWithTopologyRecoveryExceptionHandlerAsync(exceptionHandler);
+            IChannel ch = await conn.CreateChannelAsync();
+            try
+            {
+                string q = (await ch.QueueDeclareAsync(GenerateQueueName(), false, true, false)).QueueName;
+                string tag = GenerateShortUuid();
+                var consumer = new AsyncEventingBasicConsumer(ch);
+                var deliveredTcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+                consumer.ReceivedAsync += (sender, ea) =>
+                {
+                    deliveredTcs.TrySetResult(true);
+                    return Task.CompletedTask;
+                };
+                await ch.BasicConsumeAsync(q, true, tag, consumer);
+
+                // Not awaited: the consume holds _rpcSemaphore waiting for consume-ok while recovery's post-check
+                // runs, so recovery's own consume queues behind it and then fails the local check.
+                Task<string> applicationConsume = null;
+                conn.RecoveringConsumerAsync += (sender, ea) =>
+                {
+                    if (ea.ConsumerTag == tag && applicationConsume is null)
+                    {
+                        applicationConsume = ch.BasicConsumeAsync(q, true, tag, consumer);
+                    }
+                    return Task.CompletedTask;
+                };
+
+                await CloseAndWaitForRecoveryAsync(conn);
+
+                Assert.NotNull(applicationConsume);
+                Assert.Equal(tag, await applicationConsume);
+                Assert.Null(recoveryFailure);
+
+                await ch.BasicPublishAsync(string.Empty, q, _encoding.GetBytes("after recovery"));
+                await WaitAsync(deliveredTcs, "delivery after recovery");
+                Assert.True(conn.IsOpen);
+                Assert.True(ch.IsOpen);
+                await AssertConsumerCountAsync(ch, q, 1);
+            }
+            finally
+            {
+                await ch.CloseAsync();
+                await conn.CloseAsync();
+                await ch.DisposeAsync();
+                await conn.DisposeAsync();
+            }
+        }
     }
 }

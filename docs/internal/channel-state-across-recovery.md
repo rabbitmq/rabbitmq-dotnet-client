@@ -125,6 +125,12 @@ subscribes with the tag itself. For that consumer `RecoveringConsumerAsync` has 
 `ConsumerTagChangeAfterRecoveryAsync` does not, and the handler's argument changes are replaced by the
 arguments of the application's own consume.
 
+Both checks read the dispatcher without `_rpcSemaphore`, and a tag is registered only on consume-ok, so
+they miss an application consume still waiting for its reply. Recovery's consume then queues on
+`_rpcSemaphore` behind it and fails the local check. Recovery treats that `InvalidOperationException` as
+the same skip when the tag is registered by then. The filter also requires that recovery's consume did not
+return, so an exception from a `ConsumerTagChangeAfterRecoveryAsync` handler is still reported.
+
 Recovery gives way to an application consume that reaches the new channel first, whatever its queue,
 which is why the skip matches on the tag alone. If the application consumes `(T, Q2)` while `(T, Q1)` is
 still recorded, recovery skips `(T, Q1)`, `DoRecordConsumer` replaces the record, and `T` consumes from Q2

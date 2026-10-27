@@ -778,9 +778,10 @@ namespace RabbitMQ.Client.Impl
                 }
 
                 string oldTag = consumer.ConsumerTag;
+                string? newTag = null;
                 try
                 {
-                    string newTag = await consumer.RecoverAsync(channelToUse, cancellationToken)
+                    newTag = await consumer.RecoverAsync(channelToUse, cancellationToken)
                         .ConfigureAwait(false);
                     RecordedConsumer consumerWithNewConsumerTag = RecordedConsumer.WithNewConsumerTag(newTag, consumer);
                     UpdateConsumer(oldTag, newTag, consumerWithNewConsumerTag);
@@ -800,6 +801,11 @@ namespace RabbitMQ.Client.Impl
                                 .ConfigureAwait(false);
                         }
                     }
+                }
+                catch (InvalidOperationException) when (newTag is null && channelToUse.ConsumerDispatcher.IsRegisteredConsumer(oldTag))
+                {
+                    // An application consume of this tag got consume-ok while ours waited on _rpcSemaphore.
+                    // #2080, docs/internal/channel-state-across-recovery.md.
                 }
                 catch (Exception ex)
                 {
