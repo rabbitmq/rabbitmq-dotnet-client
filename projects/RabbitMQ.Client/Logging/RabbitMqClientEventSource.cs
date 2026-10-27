@@ -152,7 +152,11 @@ namespace RabbitMQ.Client.Logging
         [NonEvent]
         public void Error(string message, Exception ex)
         {
-            Error(message, new RabbitMqExceptionDetail(ex));
+            // Building the detail formats the stack trace; skip it when nobody is listening.
+            if (IsEnabled())
+            {
+                Error(message, new RabbitMqExceptionDetail(ex));
+            }
         }
     }
 }
