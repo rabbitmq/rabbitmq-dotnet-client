@@ -291,18 +291,21 @@ namespace Test.Integration.ConnectionRecovery
 
                 // Recovery runs this with _recordedEntitiesSemaphore released and the new inner channel
                 // installed, which is the window in which an application consume reaches it first.
+                // A handler's exception goes to CallbackExceptionAsync, so record the consume's result.
                 int subscribedDuringRecovery = 0;
+                string resubscribedTag = null;
                 conn.RecoveringConsumerAsync += async (sender, ea) =>
                 {
                     if (ea.ConsumerTag == tag && Interlocked.Exchange(ref subscribedDuringRecovery, 1) == 0)
                     {
-                        await ch.BasicConsumeAsync(q, true, tag, consumer);
+                        resubscribedTag = await ch.BasicConsumeAsync(q, true, tag, consumer);
                     }
                 };
 
                 await CloseAndWaitForRecoveryAsync(conn);
 
                 Assert.Equal(1, subscribedDuringRecovery);
+                Assert.Equal(tag, resubscribedTag);
                 Assert.Null(recoveryFailure);
 
                 await ch.BasicPublishAsync(string.Empty, q, _encoding.GetBytes("after recovery"));
