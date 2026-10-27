@@ -220,7 +220,7 @@ namespace RabbitMQ.Client
         /// <param name="mandatory">If set to <c>true</c>, the message must route to a queue.</param>
         /// <param name="basicProperties">The message properties.</param>
         /// <param name="body">The message body.</param>
-        /// <param name="bodyOwner">An optional <see cref="IDisposable"/> instance responsible for releasing or returning the memory used by the message body once publication is complete. Pass <c>null</c> if the body memory does not require disposal.</param>
+        /// <param name="bodyOwner">An optional <see cref="IDisposable"/> instance responsible for releasing or returning the memory used by the message body once publication is complete. Pass <c>null</c> if the body memory does not require disposal. Its <see cref="IDisposable.Dispose"/> may run on the connection's I/O loop, so it must not block or wait on this connection.</param>
         /// <param name="cancellationToken">CancellationToken for this operation.</param>
         /// <remarks>
         /// Routing key must be shorter than 255 bytes.
@@ -257,7 +257,7 @@ namespace RabbitMQ.Client
         /// <param name="mandatory">If set to <c>true</c>, the message must route to a queue.</param>
         /// <param name="basicProperties">The message properties.</param>
         /// <param name="body">The message body.</param>
-        /// <param name="bodyOwner">An optional <see cref="IDisposable"/> instance responsible for releasing or returning the memory used by the message body once publication is complete. Pass <c>null</c> if the body memory does not require disposal.</param>
+        /// <param name="bodyOwner">An optional <see cref="IDisposable"/> instance responsible for releasing or returning the memory used by the message body once publication is complete. Pass <c>null</c> if the body memory does not require disposal. Its <see cref="IDisposable.Dispose"/> may run on the connection's I/O loop, so it must not block or wait on this connection.</param>
         /// <param name="cancellationToken">CancellationToken for this operation.</param>
         /// <remarks>
         /// Routing key must be shorter than 255 bytes.
@@ -281,7 +281,7 @@ namespace RabbitMQ.Client
         /// <param name="mandatory">If set to <c>true</c>, the message must route to a queue.</param>
         /// <param name="basicProperties">The message properties.</param>
         /// <param name="body">The message body, which may be spread over several segments. The segments are written to the wire in order, without being copied into a contiguous buffer first.</param>
-        /// <param name="bodyOwner">An optional <see cref="IDisposable"/> instance responsible for releasing or returning the memory used by the message body once publication is complete. Pass <c>null</c> if the body memory does not require disposal.</param>
+        /// <param name="bodyOwner">An optional <see cref="IDisposable"/> instance responsible for releasing or returning the memory used by the message body once publication is complete. Pass <c>null</c> if the body memory does not require disposal. Its <see cref="IDisposable.Dispose"/> may run on the connection's I/O loop, so it must not block or wait on this connection.</param>
         /// <param name="cancellationToken">CancellationToken for this operation.</param>
         /// <remarks>
         /// Routing key must be shorter than 255 bytes.
@@ -312,7 +312,7 @@ namespace RabbitMQ.Client
         /// <param name="mandatory">If set to <c>true</c>, the message must route to a queue.</param>
         /// <param name="basicProperties">The message properties.</param>
         /// <param name="body">The message body, which may be spread over several segments. The segments are written to the wire in order, without being copied into a contiguous buffer first.</param>
-        /// <param name="bodyOwner">An optional <see cref="IDisposable"/> instance responsible for releasing or returning the memory used by the message body once publication is complete. Pass <c>null</c> if the body memory does not require disposal.</param>
+        /// <param name="bodyOwner">An optional <see cref="IDisposable"/> instance responsible for releasing or returning the memory used by the message body once publication is complete. Pass <c>null</c> if the body memory does not require disposal. Its <see cref="IDisposable.Dispose"/> may run on the connection's I/O loop, so it must not block or wait on this connection.</param>
         /// <param name="cancellationToken">CancellationToken for this operation.</param>
         /// <remarks>
         /// Routing key must be shorter than 255 bytes.
