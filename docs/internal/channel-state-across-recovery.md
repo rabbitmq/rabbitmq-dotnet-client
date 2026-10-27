@@ -118,6 +118,14 @@ reject every later consume with it on a healthy channel. Removing it is safe bec
 channel's frames in order, so a later `basic.consume` finds the tag released. A cancel whose send fails
 keeps the tag, because the broker still has the consumer. Deliveries that arrive between the timeout and
 the broker handling the cancel go to the fallback consumer.
+The check is skipped on a closed channel, because channel shutdown runs the `ChannelShutdownAsync`
+handlers before the dispatcher clears its map: a handler that re-subscribes after the broker closed the
+channel or the connection dropped gets `AlreadyClosedException`, as it did before the check.
+
+Known gaps: the map can lag the broker, so a consume right after a broker-initiated cancel can be rejected
+locally although the broker would accept it (#2120); a consume whose consume-ok arrives after the timeout
+leaves a consumer the map never learns (#2117); and deliveries in flight after a `noWait` or timed-out
+cancel reach the fallback consumer (#2115).
 
 The application's consume can also reach the new channel before recovery does. `_innerChannel` is
 installed before `RecoverConsumersAsync` runs, and `AutorecoveringChannel.BasicConsumeAsync` takes
@@ -137,7 +145,9 @@ Both checks read the dispatcher without `_rpcSemaphore`, and a tag is registered
 they miss an application consume still waiting for its reply. Recovery's consume then queues on
 `_rpcSemaphore` behind it and fails the local check. Recovery treats that `InvalidOperationException` as
 the same skip when the tag is registered by then. The filter also requires that recovery's consume did not
-return, so an exception from a `ConsumerTagChangeAfterRecoveryAsync` handler is still reported.
+return, so an `InvalidOperationException` thrown after recovery's own consume-ok registered the tag is
+still reported. A `ConsumerTagChangeAfterRecoveryAsync` handler's exception never reaches this catch: it
+goes to `CallbackExceptionAsync`.
 
 Recovery gives way to an application consume that reaches the new channel first, whatever its queue,
 which is why the skip matches on the tag alone. If the application consumes `(T, Q2)` while `(T, Q1)` is
