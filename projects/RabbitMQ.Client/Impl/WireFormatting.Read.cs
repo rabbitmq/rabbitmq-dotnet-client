@@ -54,8 +54,19 @@ namespace RabbitMQ.Client.Impl
             return data.Value;
         }
 
+        // Matches the Java client's MAX_FIELD_VALUE_NESTING_DEPTH.
+        internal const int MaxFieldValueNestingDepth = 32;
+
         public static IList? ReadArray(ReadOnlySpan<byte> span, out int bytesRead)
+            => ReadArray(span, 0, out bytesRead);
+
+        private static IList? ReadArray(ReadOnlySpan<byte> span, int depth, out int bytesRead)
         {
+            if (depth > MaxFieldValueNestingDepth)
+            {
+                ThrowFieldValueNestingTooDeep();
+            }
+
             bytesRead = 4;
             long arrayLength = NetworkOrderDeserializer.ReadUInt32(span);
             if (arrayLength == 0)
@@ -65,7 +76,7 @@ namespace RabbitMQ.Client.Impl
             List<object?> array = new List<object?>();
             while (bytesRead - 4 < arrayLength)
             {
-                array.Add(ReadFieldValue(span.Slice(bytesRead), out int fieldValueBytesRead));
+                array.Add(ReadFieldValue(span.Slice(bytesRead), depth + 1, out int fieldValueBytesRead));
                 bytesRead += fieldValueBytesRead;
             }
 
@@ -73,6 +84,9 @@ namespace RabbitMQ.Client.Impl
         }
 
         public static object? ReadFieldValue(ReadOnlySpan<byte> span, out int bytesRead)
+            => ReadFieldValue(span, 0, out bytesRead);
+
+        private static object? ReadFieldValue(ReadOnlySpan<byte> span, int depth, out int bytesRead)
         {
             switch ((char)span[0])
             {
@@ -89,20 +103,20 @@ namespace RabbitMQ.Client.Impl
                     bytesRead = 1;
                     return null;
                 default:
-                    return ReadFieldValueSlow(span, out bytesRead);
+                    return ReadFieldValueSlow(span, depth, out bytesRead);
             }
 
             // Moved out of outer switch to have a shorter main method (improves performance)
-            static object? ReadFieldValueSlow(ReadOnlySpan<byte> span, out int bytesRead)
+            static object? ReadFieldValueSlow(ReadOnlySpan<byte> span, int depth, out int bytesRead)
             {
                 ReadOnlySpan<byte> slice = span.Slice(1);
                 switch ((char)span[0])
                 {
                     case 'F':
-                        bytesRead = 1 + ReadDictionary(slice, out Dictionary<string, object?>? dictionary);
+                        bytesRead = 1 + ReadDictionary(slice, depth, out Dictionary<string, object?>? dictionary);
                         return dictionary;
                     case 'A':
-                        IList? arrayResult = ReadArray(slice, out int arrayBytesRead);
+                        IList? arrayResult = ReadArray(slice, depth, out int arrayBytesRead);
                         bytesRead = 1 + arrayBytesRead;
                         return arrayResult;
                     case 'l':
@@ -269,7 +283,15 @@ namespace RabbitMQ.Client.Impl
         ///</remarks>
         /// <returns>A <seealso cref="System.Collections.Generic.Dictionary{TKey,TValue}"/>.</returns>
         public static int ReadDictionary(ReadOnlySpan<byte> span, out Dictionary<string, object?>? valueDictionary)
+            => ReadDictionary(span, 0, out valueDictionary);
+
+        private static int ReadDictionary(ReadOnlySpan<byte> span, int depth, out Dictionary<string, object?>? valueDictionary)
         {
+            if (depth > MaxFieldValueNestingDepth)
+            {
+                ThrowFieldValueNestingTooDeep();
+            }
+
             long tableLength = NetworkOrderDeserializer.ReadUInt32(span);
             if (tableLength == 0)
             {
@@ -283,7 +305,7 @@ namespace RabbitMQ.Client.Impl
             while (bytesRead < tableLength)
             {
                 bytesRead += ReadShortstr(span.Slice(bytesRead), out string key);
-                valueDictionary[key] = ReadFieldValue(span.Slice(bytesRead), out int valueBytesRead);
+                valueDictionary[key] = ReadFieldValue(span.Slice(bytesRead), depth + 1, out int valueBytesRead);
                 bytesRead += valueBytesRead;
             }
 
@@ -307,5 +329,8 @@ namespace RabbitMQ.Client.Impl
 
         private static void ThrowInvalidDecimalScale(int scale)
             => throw new SyntaxErrorException($"Unrepresentable AMQP decimal table field: scale={scale}");
+
+        private static void ThrowFieldValueNestingTooDeep()
+            => throw new SyntaxErrorException($"Field tables and arrays nested more than {MaxFieldValueNestingDepth} levels deep");
     }
 }
