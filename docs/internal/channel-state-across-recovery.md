@@ -125,6 +125,15 @@ subscribes with the tag itself. For that consumer `RecoveringConsumerAsync` has 
 `ConsumerTagChangeAfterRecoveryAsync` does not, and the handler's argument changes are replaced by the
 arguments of the application's own consume.
 
+Recovery gives way to an application consume that reaches the new channel first, whatever its queue,
+which is why the skip matches on the tag alone. If the application consumes `(T, Q2)` while `(T, Q1)` is
+still recorded, recovery skips `(T, Q1)`, `DoRecordConsumer` replaces the record, and `T` consumes from Q2
+from then on. Recovery does not report this. On the new channel the application's consume is the only
+live consumer with `T`, so the outcome is the application's choice, not a recovery failure. The consume
+can come from a consumer-recovery callback, or from another thread when the application re-subscribes on
+its own with topology recovery enabled. Outside that window the same consume throws, and the supported
+way to move a tag to another queue is to cancel it first.
+
 ## What the tests do and do not pin
 
 `projects/Test/Integration/ConnectionRecovery/TestChannelStateRecovery.cs`, five tests. Each fails
