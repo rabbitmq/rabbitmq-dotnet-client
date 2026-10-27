@@ -1172,9 +1172,9 @@ namespace RabbitMQ.Client.Impl
 
             try
             {
-                // The broker answers a reused tag by closing the whole connection with 530. Checked under
-                // _rpcSemaphore, after any earlier BasicCancelAsync that sent its basic.cancel removed the tag.
-                if (false == string.IsNullOrEmpty(consumerTag) && ConsumerDispatcher.IsRegisteredConsumer(consumerTag))
+                // The broker answers a reused tag by closing the whole connection with 530. Checked under _rpcSemaphore,
+                // after any earlier BasicCancelAsync removed its tag, and only while open: shutdown handlers run first.
+                if (IsOpen && false == string.IsNullOrEmpty(consumerTag) && ConsumerDispatcher.IsRegisteredConsumer(consumerTag))
                 {
                     throw new InvalidOperationException($"consumer tag '{consumerTag}' is already in use on this channel");
                 }

@@ -176,6 +176,37 @@ namespace Test.Integration.ConnectionRecovery
         }
 
         [Fact]
+        public async Task TestBasicConsumeFromAChannelShutdownHandlerThrowsAlreadyClosed_GH2080()
+        {
+            ConnectionFactory cf = CreateConnectionFactory();
+            cf.AutomaticRecoveryEnabled = false;
+            await using IConnection conn = await cf.CreateConnectionAsync();
+            await using IChannel ch = await conn.CreateChannelAsync();
+            string q = (await ch.QueueDeclareAsync(GenerateQueueName(), false, true, false)).QueueName;
+            string tag = GenerateShortUuid();
+            await ch.BasicConsumeAsync(q, true, tag, new AsyncEventingBasicConsumer(ch));
+
+            // Shutdown handlers run before the dispatcher forgets the channel's tags.
+            var resubscribeTcs = new TaskCompletionSource<Exception>(TaskCreationOptions.RunContinuationsAsynchronously);
+            ch.ChannelShutdownAsync += async (sender, ea) =>
+            {
+                try
+                {
+                    await ch.BasicConsumeAsync(q, true, tag, new AsyncEventingBasicConsumer(ch));
+                    resubscribeTcs.TrySetResult(null);
+                }
+                catch (Exception ex)
+                {
+                    resubscribeTcs.TrySetResult(ex);
+                }
+            };
+
+            await Assert.ThrowsAsync<OperationInterruptedException>(() => ch.QueueDeclarePassiveAsync(GenerateQueueName()));
+            await resubscribeTcs.Task.WaitAsync(WaitSpan);
+            Assert.IsType<AlreadyClosedException>(await resubscribeTcs.Task);
+        }
+
+        [Fact]
         public async Task TestBasicConsumeWithARecoveredTagIsRejectedAndTheConsumerSurvives_GH2080()
         {
             string q = (await _channel.QueueDeclareAsync(GenerateQueueName(), false, true, false)).QueueName;
