@@ -371,7 +371,7 @@ namespace RabbitMQ.Client.Impl
             CancellationToken cancellationToken)
         {
             bool enqueued = false;
-            var k = new ConnectionSecureOrTuneAsyncRpcContinuation(ContinuationTimeout, cancellationToken);
+            var k = new ConnectionSecureOrTuneAsyncRpcContinuation(HandshakeContinuationTimeout, cancellationToken);
 
             await _rpcSemaphore.WaitAsync(k.CancellationToken)
                 .ConfigureAwait(false);
@@ -418,7 +418,7 @@ namespace RabbitMQ.Client.Impl
             CancellationToken cancellationToken)
         {
             bool enqueued = false;
-            var k = new ConnectionSecureOrTuneAsyncRpcContinuation(ContinuationTimeout, cancellationToken);
+            var k = new ConnectionSecureOrTuneAsyncRpcContinuation(HandshakeContinuationTimeout, cancellationToken);
 
             await _rpcSemaphore.WaitAsync(k.CancellationToken)
                 .ConfigureAwait(false);
@@ -1050,7 +1050,8 @@ namespace RabbitMQ.Client.Impl
                 var method = new ConnectionStart(cmd.MethodSpan);
                 var details = new ConnectionStartDetails(method._locales, method._mechanisms,
                     method._serverProperties, method._versionMajor, method._versionMinor);
-                m_connectionStartCell.SetResult(details);
+                // TrySetResult: the handshake timeout may already have completed it. #1871.
+                m_connectionStartCell.TrySetResult(details);
                 m_connectionStartCell = null;
             }
 

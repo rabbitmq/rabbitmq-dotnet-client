@@ -93,6 +93,14 @@ namespace RabbitMQ.Client.Impl
             }, state: connectionStartCell, useSynchronizationContext: false);
 #endif
 
+            // Socket read timeouts do not apply to async reads (#1492), so a peer that accepts the
+            // connection and never sends connection.start hung this attempt, and recovery with it. #1871.
+            using var connectionStartTimeout = new CancellationTokenSource(
+                InternalConstants.ClampToCancellationTokenSourceDelay(_config.HandshakeContinuationTimeout));
+            using CancellationTokenRegistration timeoutRegistration = connectionStartTimeout.Token.Register(
+                static state => ((TaskCompletionSource<ConnectionStartDetails?>)state!).TrySetResult(null),
+                connectionStartCell);
+
             _channel0.m_connectionStartCell = connectionStartCell;
             _channel0.HandshakeContinuationTimeout = _config.HandshakeContinuationTimeout;
             _frameHandler.ReadTimeout = _config.HandshakeContinuationTimeout;
@@ -136,7 +144,7 @@ namespace RabbitMQ.Client.Impl
                 byte[]? challenge = null;
                 do
                 {
-                    byte[] response = await mechanism.HandleChallengeAsync(challenge, _config)
+                    byte[] response = await mechanism.HandleChallengeAsync(challenge, _config, cancellationToken)
                         .ConfigureAwait(false);
                     ConnectionSecureOrTune res;
                     if (challenge is null)
