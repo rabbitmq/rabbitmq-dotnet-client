@@ -358,10 +358,18 @@ namespace RabbitMQ.Client.Impl
         /// body and the resulting frame set can be addressed with an <see cref="int"/>.
         /// </summary>
         /// <exception cref="ArgumentOutOfRangeException">
-        /// The body, or the set of frames required to send it, exceeds <see cref="int.MaxValue"/> bytes.
+        /// The body, or the set of frames required to send it, exceeds <see cref="int.MaxValue"/> bytes,
+        /// or <paramref name="maxBodyPayloadBytes"/> is not positive.
         /// </exception>
         private static int GetTotalFrameSetSize(int framingSize, long bodyLength, int maxBodyPayloadBytes)
         {
+            // Every path sizes its buffer here before writing. A payload size from -7 to -1 rented
+            // too small a buffer and wrote past it through unchecked writes. GHSA-qqh4-4hmj-6ph2.
+            if (maxBodyPayloadBytes <= 0)
+            {
+                ThrowNonPositiveMaxPayload(maxBodyPayloadBytes);
+            }
+
             if (bodyLength <= int.MaxValue)
             {
                 int length = (int)bodyLength;
@@ -376,6 +384,11 @@ namespace RabbitMQ.Client.Impl
             ThrowBodyTooLarge(framingSize, bodyLength, maxBodyPayloadBytes);
             return 0; // unreachable
         }
+
+        [DoesNotReturn]
+        private static void ThrowNonPositiveMaxPayload(int maxBodyPayloadBytes)
+            => throw new ArgumentOutOfRangeException(nameof(maxBodyPayloadBytes), maxBodyPayloadBytes,
+                "The maximum body payload per frame must be positive.");
 
         [DoesNotReturn]
 #if NET

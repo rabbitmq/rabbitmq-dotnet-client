@@ -93,6 +93,14 @@ namespace RabbitMQ.Client.Impl
             }, state: connectionStartCell, useSynchronizationContext: false);
 #endif
 
+            // Socket read timeouts do not apply to async reads (#1492), so a peer that accepts the
+            // connection and never sends connection.start hung this attempt, and recovery with it. #1871.
+            using var connectionStartTimeout = new CancellationTokenSource(
+                InternalConstants.ClampToCancellationTokenSourceDelay(_config.HandshakeContinuationTimeout));
+            using CancellationTokenRegistration timeoutRegistration = connectionStartTimeout.Token.Register(
+                static state => ((TaskCompletionSource<ConnectionStartDetails?>)state!).TrySetResult(null),
+                connectionStartCell);
+
             _channel0.m_connectionStartCell = connectionStartCell;
             _channel0.HandshakeContinuationTimeout = _config.HandshakeContinuationTimeout;
             _frameHandler.ReadTimeout = _config.HandshakeContinuationTimeout;
@@ -136,7 +144,7 @@ namespace RabbitMQ.Client.Impl
                 byte[]? challenge = null;
                 do
                 {
-                    byte[] response = await mechanism.HandleChallengeAsync(challenge, _config)
+                    byte[] response = await mechanism.HandleChallengeAsync(challenge, _config, cancellationToken)
                         .ConfigureAwait(false);
                     ConnectionSecureOrTune res;
                     if (challenge is null)
@@ -176,9 +184,9 @@ namespace RabbitMQ.Client.Impl
             ushort channelMax = (ushort)NegotiatedMaxValue(_config.MaxChannelCount, connectionTune.m_channelMax);
             _sessionManager = new SessionManager(this, channelMax, _config.MaxInboundMessageBodySize);
 
-            uint frameMax = NegotiatedMaxValue(_config.MaxFrameSize, connectionTune.m_frameMax);
+            uint frameMax = NegotiateFrameMax(_config.MaxFrameSize, connectionTune.m_frameMax);
             FrameMax = frameMax;
-            MaxPayloadSize = frameMax == 0 ? int.MaxValue : (int)frameMax - Client.Impl.Framing.BaseFrameSize;
+            MaxPayloadSize = MaxPayloadSizeFor(frameMax);
 
             uint heartbeatInSeconds = NegotiatedMaxValue((uint)_config.HeartbeatInterval.TotalSeconds, (uint)connectionTune.m_heartbeatInSeconds);
             Heartbeat = TimeSpan.FromSeconds(heartbeatInSeconds);
@@ -209,6 +217,27 @@ namespace RabbitMQ.Client.Impl
             }
 
             throw new IOException($"No compatible authentication mechanism found - server offered [{supportedMechanismNames}]");
+        }
+
+        // Zero means no limit. GHSA-qqh4-4hmj-6ph2.
+        internal static uint NegotiateFrameMax(uint clientValue, uint serverValue)
+        {
+            uint frameMax = NegotiatedMaxValue(clientValue, serverValue);
+            if (frameMax != 0 && frameMax < Constants.FrameMinSize)
+            {
+                throw new ProtocolViolationException(
+                    $"Negotiated frame_max of {frameMax} is below the AMQP minimum of {Constants.FrameMinSize} " +
+                    $"(client requested {clientValue}, server offered {serverValue}).");
+            }
+
+            return frameMax;
+        }
+
+        // A frame_max too large for an int body payload means no limit, rather than wrapping negative.
+        internal static int MaxPayloadSizeFor(uint frameMax)
+        {
+            uint payload = frameMax - (uint)Client.Impl.Framing.BaseFrameSize;
+            return frameMax == 0 || payload > int.MaxValue ? int.MaxValue : (int)payload;
         }
 
         private static uint NegotiatedMaxValue(uint clientValue, uint serverValue)

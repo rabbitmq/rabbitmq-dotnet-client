@@ -37,6 +37,7 @@ using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
+using RabbitMQ.Client.Exceptions;
 using RabbitMQ.Client.Logging;
 
 namespace RabbitMQ.Client.Impl
@@ -162,10 +163,25 @@ namespace RabbitMQ.Client.Impl
 
             if (amqpTcpEndpoint.Ssl.Enabled)
             {
+                // The TLS handshake shares the connect timeout, or a host that accepts TCP and never
+                // answers hangs the attempt and recovery with it. Closing the socket is what ends it on
+                // netstandard2.0, whose handshake takes no token. #1871.
+                using var timeoutTokenSource = new CancellationTokenSource(
+                    InternalConstants.ClampToCancellationTokenSourceDelay(connectionTimeout));
+                using var linkedTokenSource = CancellationTokenSource.CreateLinkedTokenSource(
+                    timeoutTokenSource.Token, cancellationToken);
+                using CancellationTokenRegistration closeOnCancel = linkedTokenSource.Token.Register(
+                    static state => ((ITcpClient)state!).Close(), socket);
                 try
                 {
-                    stream = await SslHelper.TcpUpgradeAsync(stream, amqpTcpEndpoint.Ssl, cancellationToken)
+                    stream = await SslHelper.TcpUpgradeAsync(stream, amqpTcpEndpoint.Ssl, linkedTokenSource.Token)
                         .ConfigureAwait(false);
+                }
+                catch (Exception e) when (timeoutTokenSource.IsCancellationRequested && false == cancellationToken.IsCancellationRequested)
+                {
+                    socket.Close();
+                    string msg = $"TLS handshake with {amqpTcpEndpoint} timed out";
+                    throw new ConnectFailureException(msg, new TimeoutException(msg, e));
                 }
                 catch
                 {
