@@ -659,8 +659,8 @@ namespace Test.Integration
          * Both GH1930 scenarios need the client's write loop to stall, which they arrange by filling
          * the OS socket send buffer: 1024 bodies of 65 KB through a Rate=1 toxic. Whether that
          * actually blocks depends on how much the environment buffers, and some do not block at all.
-         * Measured on WSL2 with Docker, both scenarios reported 0 of 512 publishes blocked on most
-         * runs, so the state under test was never reached; the same tests pass on the CI runners.
+         * Measured on WSL2 with Docker at 512 bodies, both scenarios reported 0 of 512 publishes blocked
+         * on most runs, so the state under test was never reached; the same tests pass on the CI runners.
          *
          * A test that cannot reach its pre-condition has not found a defect, so say so rather than
          * failing, and only outside CI. In CI a missing stall stays a loud failure, because there it
@@ -996,13 +996,6 @@ namespace Test.Integration
             cts.CancelAfter(TimeSpan.FromSeconds(30));
             try
             {
-                // With the fix: TryComplete(ex) is called on write-loop crash, the
-                // blocked WriteAsync throws ChannelClosedException immediately, the
-                // semaphore is released, and all remaining publishers complete within
-                // milliseconds.
-                //
-                // Without the fix: the semaphore is never released, the shutdown handler
-                // deadlocks, and Task.WhenAll never completes → TimeoutException.
                 await Task.WhenAll(publishTasks).WaitAsync(publishCompletionTimeout);
                 await shutdown.Task.WaitAsync(publishCompletionTimeout);
                 Assert.False(conn.IsOpen);
