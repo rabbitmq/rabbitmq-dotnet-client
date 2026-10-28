@@ -990,9 +990,8 @@ namespace Test.Integration
             // < 8 s in practice.
             var publishCompletionTimeout = TimeSpan.FromSeconds(15);
 
-            // The cleanup CTS fires strictly after WaitAsync times out, ensuring the
-            // deadlock (without fix) is observable as TimeoutException, not silently
-            // broken by cancellation.
+            // The cleanup CTS fires strictly after WaitAsync times out, so a hang surfaces as
+            // TimeoutException rather than being broken by cancellation.
             cts.CancelAfter(TimeSpan.FromSeconds(30));
             try
             {
