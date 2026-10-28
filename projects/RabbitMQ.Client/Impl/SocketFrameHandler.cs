@@ -395,8 +395,8 @@ namespace RabbitMQ.Client.Impl
             {
                 // Release blocked publishers before receive-side shutdown needs their locks. Not Complete():
                 // CloseAsync may have completed the writer first. #1930.
-                _channelWriter.TryComplete(ex);
                 _writeLoopException = ex;
+                _channelWriter.TryComplete(ex);
                 // A failed serialization can leave a partial frame in the pipe. #2108.
                 CloseSocket();
                 ESLog.Error("Background socket write loop has crashed", ex);

@@ -138,7 +138,20 @@ namespace RabbitMQ.Client.Events
         internal string GetLogMessage()
         {
             return GetMessageCore()
-                + (_exception != null ? $", exception={_exception.Message}" : string.Empty);
+                + (_exception != null ? $", exception={SafeMessage(_exception)}" : string.Empty);
+        }
+
+        // The exception can come from application code, such as a body owner's memory. #2108
+        internal static string SafeMessage(Exception exception)
+        {
+            try
+            {
+                return exception.Message;
+            }
+            catch
+            {
+                return exception.GetType().FullName ?? nameof(Exception);
+            }
         }
 
         private string GetMessageCore()

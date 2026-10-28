@@ -120,6 +120,40 @@ namespace Test.Integration
             }
         }
 
+        // The failure comes from application code, so reporting it must not depend on its Message.
+        [Fact]
+        public async Task AWriteFailureWhoseMessageThrowsStillShutsDown_GH2108()
+        {
+            ConnectionFactory factory = CreateConnectionFactory();
+            factory.AutomaticRecoveryEnabled = false;
+            await using IConnection connection = await factory.CreateConnectionAsync();
+            await using IChannel channel = await connection.CreateChannelAsync(new CreateChannelOptions(false, false));
+            var shutdown = new TaskCompletionSource<Exception>(TaskCreationOptions.RunContinuationsAsynchronously);
+            connection.ConnectionShutdownAsync += (_, reason) =>
+            {
+                shutdown.TrySetResult(reason.Exception);
+                return Task.CompletedTask;
+            };
+
+            using var manager = new InvalidBodyMemory(new TaskCompletionSource<bool>(), () => new MessageThrowsException());
+            manager.Invalidate();
+            try
+            {
+                await channel.BasicPublishAsync("", "q", false, new BasicProperties(), manager.Memory, manager).AsTask()
+                    .WaitAsync(TimeSpan.FromSeconds(10));
+            }
+            catch (AlreadyClosedException) { }
+
+            await shutdown.Task.WaitAsync(TimeSpan.FromSeconds(10));
+            Assert.IsType<MessageThrowsException>(await shutdown.Task);
+            Assert.False(connection.IsOpen);
+        }
+
+        private sealed class MessageThrowsException : Exception
+        {
+            public override string Message => throw new InvalidOperationException("message getter bug");
+        }
+
         [Fact]
         public async Task SerializationFailurePreservesValidationExceptionWhenOwnerThrows_GH2108()
         {
@@ -188,12 +222,16 @@ namespace Test.Integration
         {
             private bool _invalid;
             private readonly TaskCompletionSource<bool> _disposed;
-            public InvalidBodyMemory(TaskCompletionSource<bool> disposed) => _disposed = disposed;
+            private readonly Func<Exception> _failure;
+            public InvalidBodyMemory(TaskCompletionSource<bool> disposed, Func<Exception> failure = null)
+            {
+                _disposed = disposed;
+                _failure = failure ?? (() => new ObjectDisposedException(nameof(InvalidBodyMemory)));
+            }
             public int DisposeCount { get; private set; }
             public void Invalidate() => _invalid = true;
             public override Memory<byte> Memory => CreateMemory(8);
-            public override Span<byte> GetSpan() => _invalid
-                ? throw new ObjectDisposedException(nameof(InvalidBodyMemory)) : new byte[8];
+            public override Span<byte> GetSpan() => _invalid ? throw _failure() : new byte[8];
             public override MemoryHandle Pin(int elementIndex = 0) => throw new NotSupportedException();
             public override void Unpin() { }
             protected override void Dispose(bool disposing)

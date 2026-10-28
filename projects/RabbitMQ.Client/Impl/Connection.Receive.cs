@@ -31,6 +31,7 @@
 
 using System;
 using System.IO;
+using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
 using RabbitMQ.Client.Events;
@@ -215,11 +216,16 @@ namespace RabbitMQ.Client.Impl
 
         private async Task HandleMainLoopExceptionAsync(ShutdownEventArgs reason)
         {
-            // The read that a failed write loop aborted reports only the abort. #2108
-            if (_frameHandler.WriteLoopException is Exception writeLoopException)
+            // A read the write loop's socket close aborted reports only the abort, so report the write
+            // failure instead and keep the read's exception in the shutdown report. #2108
+            if (_frameHandler.WriteLoopException is Exception writeLoopException
+                && reason.Exception is Exception readException
+                && readException is IOException or SocketException or ObjectDisposedException)
             {
+                LogCloseError("Receive loop stopped after the write loop failed", readException);
                 reason = new ShutdownEventArgs(ShutdownInitiator.Library, Constants.InternalError,
-                    writeLoopException.Message, exception: writeLoopException, cancellationToken: reason.CancellationToken);
+                    ShutdownEventArgs.SafeMessage(writeLoopException), exception: writeLoopException,
+                    cancellationToken: reason.CancellationToken);
             }
 
             string message = reason.GetLogMessage();
