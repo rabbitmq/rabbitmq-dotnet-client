@@ -64,12 +64,12 @@ namespace Test.Integration
             factory.NetworkRecoveryInterval = TimeSpan.FromMilliseconds(100);
             await using IConnection connection = await factory.CreateConnectionAsync();
             await using IChannel channel = await connection.CreateChannelAsync(new CreateChannelOptions(confirms, confirms));
-            var shutdown = new TaskCompletionSource<(ShutdownInitiator Initiator, bool ChannelOpen)>(TaskCreationOptions.RunContinuationsAsynchronously);
+            var shutdown = new TaskCompletionSource<(ShutdownInitiator Initiator, Exception Cause, bool ChannelOpen)>(TaskCreationOptions.RunContinuationsAsynchronously);
             var ownerDisposed = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
             var recovered = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
             connection.ConnectionShutdownAsync += (_, reason) =>
             {
-                shutdown.TrySetResult((reason.Initiator, channel.IsOpen));
+                shutdown.TrySetResult((reason.Initiator, reason.Exception, channel.IsOpen));
                 return Task.CompletedTask;
             };
             connection.RecoverySucceededAsync += (_, _) =>
@@ -97,6 +97,7 @@ namespace Test.Integration
             await shutdown.Task.WaitAsync(TimeSpan.FromSeconds(10));
             var atShutdown = await shutdown.Task;
             Assert.Equal(ShutdownInitiator.Library, atShutdown.Initiator);
+            Assert.Equal(nameof(InvalidBodyMemory), Assert.IsType<ObjectDisposedException>(atShutdown.Cause).ObjectName);
             Assert.False(atShutdown.ChannelOpen);
             await ownerDisposed.Task.WaitAsync(TimeSpan.FromSeconds(10));
             Assert.Equal(1, manager.DisposeCount);

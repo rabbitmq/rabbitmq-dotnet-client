@@ -63,6 +63,9 @@ namespace RabbitMQ.Client.Impl
         // docs/internal/connection-shutdown-and-cancellation.md.
         void CloseSocket();
 
+        // Set before the write loop closes the socket, so the receive loop can report it. #2108
+        Exception? WriteLoopException { get; }
+
         ///<summary>Read a frame from the underlying
         ///transport. Returns null if the read operation timed out
         ///(see Timeout property).</summary>

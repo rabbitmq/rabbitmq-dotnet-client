@@ -215,6 +215,13 @@ namespace RabbitMQ.Client.Impl
 
         private async Task HandleMainLoopExceptionAsync(ShutdownEventArgs reason)
         {
+            // The read that a failed write loop aborted reports only the abort. #2108
+            if (_frameHandler.WriteLoopException is Exception writeLoopException)
+            {
+                reason = new ShutdownEventArgs(ShutdownInitiator.Library, Constants.InternalError,
+                    writeLoopException.Message, exception: writeLoopException, cancellationToken: reason.CancellationToken);
+            }
+
             string message = reason.GetLogMessage();
             if (false == SetCloseReason(reason))
             {

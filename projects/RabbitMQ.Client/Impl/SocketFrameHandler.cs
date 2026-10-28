@@ -55,6 +55,7 @@ namespace RabbitMQ.Client.Impl
         private readonly PipeWriter _pipeWriter;
         private readonly PipeReader _pipeReader;
         private Task? _writerTask;
+        private volatile Exception? _writeLoopException;
 
         // volatile for the unsynchronized fast-path reads at the top of
         // CloseAsync and WriteAsync. The read inside CloseAsync's critical
@@ -283,6 +284,8 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
+        public Exception? WriteLoopException => _writeLoopException;
+
         public void CloseSocket()
         {
             // Must not set _closed: CloseAsync fast-paths on it, so the authoritative
@@ -386,6 +389,7 @@ namespace RabbitMQ.Client.Impl
             {
                 // Release blocked publishers before receive-side shutdown needs their locks. #1930.
                 _channelWriter.TryComplete(ex);
+                _writeLoopException = ex;
                 // A failed serialization can leave a partial frame in the pipe. #2108.
                 CloseSocket();
                 ESLog.Error("Background socket write loop has crashed", ex);
