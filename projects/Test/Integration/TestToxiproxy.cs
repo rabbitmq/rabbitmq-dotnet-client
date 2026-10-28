@@ -377,16 +377,20 @@ namespace Test.Integration
                     conn.CloseAsync(Constants.ReplySuccess, "GH-2022", closeBudget,
                         abort: false, CancellationToken.None));
 
-                Assert.Throws<ObjectDisposedException>(() => _ = conn.LocalPort);
-
-                // Closing the socket must not suppress the cleanup after it: setting _closed
-                // here once left the write loop parked forever. No public surface exposes it.
+                // No public surface shows the socket's state: the endpoints are captured when it opens.
                 Connection innerConnection = (Connection)typeof(Connection)
                     .GetField("_innerConnection", BindingFlags.Instance | BindingFlags.NonPublic)
                     ?.GetValue(conn) ?? (Connection)conn;
                 object frameHandler = typeof(Connection)
                     .GetField("_frameHandler", BindingFlags.Instance | BindingFlags.NonPublic)
                     !.GetValue(innerConnection)!;
+                var socket = (ITcpClient)typeof(SocketFrameHandler)
+                    .GetField("_socket", BindingFlags.Instance | BindingFlags.NonPublic)
+                    !.GetValue(frameHandler)!;
+                Assert.Throws<ObjectDisposedException>(() => _ = socket.Client.Available);
+
+                // Closing the socket must not suppress the cleanup after it: setting _closed
+                // here once left the write loop parked forever.
                 var writerTask = (Task)typeof(SocketFrameHandler)
                     .GetField("_writerTask", BindingFlags.Instance | BindingFlags.NonPublic)
                     !.GetValue(frameHandler)!;

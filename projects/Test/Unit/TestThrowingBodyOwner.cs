@@ -202,6 +202,35 @@ namespace Test.Unit
             }
         }
 
+        // Tracing reads the remote endpoint for every publish, and the write loop can close the socket first.
+        [Fact]
+        public async Task EndpointsRemainReadableAfterTheSocketIsClosed_GH2108()
+        {
+            var listener = new TcpListener(IPAddress.Loopback, 0);
+            listener.Start();
+            try
+            {
+                var endpoint = new AmqpTcpEndpoint(IPAddress.Loopback.ToString(), ((IPEndPoint)listener.LocalEndpoint).Port);
+                Task<TcpClient> accept = listener.AcceptTcpClientAsync();
+                SocketFrameHandler handler = await SocketFrameHandler.CreateAsync(endpoint,
+                    ConnectionFactoryBase.DefaultSocketFactory, TimeSpan.FromSeconds(5), CancellationToken.None);
+                using TcpClient peer = await accept;
+                int localPort = handler.LocalPort;
+                int remotePort = handler.RemotePort;
+
+                handler.CloseSocket();
+
+                Assert.Equal(localPort, handler.LocalPort);
+                Assert.Equal(remotePort, handler.RemotePort);
+                Assert.Equal(AddressFamily.InterNetwork, handler.RemoteEndPoint.AddressFamily);
+                await handler.CloseAsync(CancellationToken.None);
+            }
+            finally
+            {
+                listener.Stop();
+            }
+        }
+
         [Fact]
         public void OwnerDisposalReturnsWhenLoggingItsExceptionThrows_GH2108()
         {

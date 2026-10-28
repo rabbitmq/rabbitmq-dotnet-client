@@ -46,6 +46,9 @@ namespace RabbitMQ.Client.Impl
     {
         private readonly AmqpTcpEndpoint _amqpTcpEndpoint;
         private readonly ITcpClient _socket;
+        // Captured once: the write loop can close the socket while tracing and shutdown handlers read them. #2108
+        private readonly EndPoint? _localEndPoint;
+        private readonly EndPoint? _remoteEndPoint;
         private readonly Stream _stream;
 
         private readonly ChannelWriter<OutgoingFrame> _channelWriter;
@@ -68,6 +71,8 @@ namespace RabbitMQ.Client.Impl
         {
             _amqpTcpEndpoint = amqpTcpEndpoint;
             _socket = socket;
+            _localEndPoint = socket.Client?.LocalEndPoint;
+            _remoteEndPoint = socket.Client?.RemoteEndPoint;
             _stream = stream;
 
             var channel = System.Threading.Channels.Channel.CreateBounded<OutgoingFrame>(
@@ -92,7 +97,7 @@ namespace RabbitMQ.Client.Impl
 
         public EndPoint LocalEndPoint
         {
-            get { return _socket.Client.LocalEndPoint!; }
+            get { return _localEndPoint!; }
         }
 
         public int LocalPort
@@ -102,7 +107,7 @@ namespace RabbitMQ.Client.Impl
 
         public EndPoint RemoteEndPoint
         {
-            get { return _socket.Client.RemoteEndPoint!; }
+            get { return _remoteEndPoint!; }
         }
 
         public int RemotePort
