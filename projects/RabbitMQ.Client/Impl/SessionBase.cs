@@ -144,7 +144,7 @@ namespace RabbitMQ.Client.Impl
         {
             if (!IsOpen && cmd.ProtocolCommandId != ProtocolCommandId.ChannelCloseOk)
             {
-                bodyOwner?.Dispose();
+                BodyOwner.Dispose(bodyOwner);
                 ThrowAlreadyClosedException();
             }
 
@@ -169,7 +169,7 @@ namespace RabbitMQ.Client.Impl
             {
                 if (bytes.Size == 0)
                 {
-                    bodyOwner?.Dispose();
+                    BodyOwner.Dispose(bodyOwner);
                 }
                 else
                 {
@@ -185,7 +185,7 @@ namespace RabbitMQ.Client.Impl
         {
             if (!IsOpen && cmd.ProtocolCommandId != ProtocolCommandId.ChannelCloseOk)
             {
-                bodyOwner?.Dispose();
+                BodyOwner.Dispose(bodyOwner);
                 ThrowAlreadyClosedException();
             }
 
@@ -200,7 +200,7 @@ namespace RabbitMQ.Client.Impl
             {
                 if (bytes.Size == 0)
                 {
-                    bodyOwner?.Dispose();
+                    BodyOwner.Dispose(bodyOwner);
                 }
                 else
                 {

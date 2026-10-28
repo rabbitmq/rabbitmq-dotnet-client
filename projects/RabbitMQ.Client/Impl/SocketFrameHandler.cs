@@ -222,37 +222,38 @@ namespace RabbitMQ.Client.Impl
                     return;
                 }
 
+                _channelWriter.TryComplete();
                 try
                 {
-                    // TryComplete rather than Complete: WriteLoopAsync may have
-                    // already completed the writer with an exception (see
-                    // issue #1930). Complete() would throw InvalidOperationException
-                    // in that race, the outer catch would swallow it, and
-                    // `await _writerTask` below would be skipped, leaving the
-                    // write-loop exception unobserved.
-                    _channelWriter.TryComplete();
                     if (_writerTask != null)
                     {
                         await _writerTask.ConfigureAwait(false);
                     }
-                    await _pipeWriter.CompleteAsync()
-                        .ConfigureAwait(false);
-                    await _pipeReader.CompleteAsync()
-                        .ConfigureAwait(false);
                 }
                 catch
                 {
-                    // ignore, we are closing anyway
+                    // A failed writer still leaves both pipes to complete. #2108.
                 }
 
                 try
                 {
-                    _socket.Close();
+                    await _pipeWriter.CompleteAsync().ConfigureAwait(false);
                 }
                 catch
                 {
-                    // ignore, we are closing anyway
+                    // The socket may already be closed, so a final flush can fail.
                 }
+
+                try
+                {
+                    await _pipeReader.CompleteAsync().ConfigureAwait(false);
+                }
+                catch
+                {
+                    // Reader disposal must not skip closing the socket.
+                }
+
+                CloseSocket();
 
 #if NET
                 _flushTimeoutCts?.Dispose();
@@ -383,18 +384,11 @@ namespace RabbitMQ.Client.Impl
             }
             catch (Exception ex)
             {
-                ESLog.Error("Background socket write loop has crashed", ex);
-
-                // Fail both already-blocked and subsequent WriteAsync callers
-                // with ChannelClosedException(innerException: ex). Without
-                // this, producers block indefinitely on a full channel whose
-                // reader has died, and any holder of a publisher-confirm
-                // semaphore (Channel.BasicPublish.cs) blocks the shutdown
-                // handler in turn. See issue #1930.
-                //
-                // TryComplete rather than Complete: CloseAsync may have raced
-                // us and already completed the channel.
+                // Release blocked publishers before receive-side shutdown needs their locks. #1930.
                 _channelWriter.TryComplete(ex);
+                // A failed serialization can leave a partial frame in the pipe. #2108.
+                CloseSocket();
+                ESLog.Error("Background socket write loop has crashed", ex);
                 throw;
             }
             finally
