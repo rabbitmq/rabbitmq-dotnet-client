@@ -60,7 +60,6 @@ namespace Test.Integration
         {
             ConnectionFactory factory = CreateConnectionFactory();
             factory.AutomaticRecoveryEnabled = recovery;
-            factory.RequestedHeartbeat = TimeSpan.Zero;
             factory.NetworkRecoveryInterval = TimeSpan.FromMilliseconds(100);
             await using IConnection connection = await factory.CreateConnectionAsync();
             await using IChannel channel = await connection.CreateChannelAsync(new CreateChannelOptions(confirms, confirms));
