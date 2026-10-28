@@ -71,8 +71,15 @@ namespace RabbitMQ.Client.Impl
         {
             _amqpTcpEndpoint = amqpTcpEndpoint;
             _socket = socket;
-            _localEndPoint = socket.Client?.LocalEndPoint;
-            _remoteEndPoint = socket.Client?.RemoteEndPoint;
+            try
+            {
+                _localEndPoint = socket.Client?.LocalEndPoint;
+                _remoteEndPoint = socket.Client?.RemoteEndPoint;
+            }
+            catch (Exception e) when (e is SocketException or ObjectDisposedException)
+            {
+                // Reset since it connected; the properties read the socket instead, as they always did.
+            }
             _stream = stream;
 
             var channel = System.Threading.Channels.Channel.CreateBounded<OutgoingFrame>(
@@ -97,7 +104,7 @@ namespace RabbitMQ.Client.Impl
 
         public EndPoint LocalEndPoint
         {
-            get { return _localEndPoint!; }
+            get { return _localEndPoint ?? _socket.Client.LocalEndPoint!; }
         }
 
         public int LocalPort
@@ -107,7 +114,7 @@ namespace RabbitMQ.Client.Impl
 
         public EndPoint RemoteEndPoint
         {
-            get { return _remoteEndPoint!; }
+            get { return _remoteEndPoint ?? _socket.Client.RemoteEndPoint!; }
         }
 
         public int RemotePort
