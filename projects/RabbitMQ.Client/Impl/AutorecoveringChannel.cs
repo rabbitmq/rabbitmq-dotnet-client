@@ -33,6 +33,7 @@ using System;
 using System.Buffers;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -46,7 +47,8 @@ namespace RabbitMQ.Client.Impl
     internal sealed class AutorecoveringChannel : IChannel, IRecoverable
     {
         private readonly CreateChannelOptions _createChannelOptions;
-        private readonly List<string> _recordedConsumerTags = new List<string>();
+        // Locked: consumes on one channel can complete concurrently, and a HashSet does not survive concurrent adds.
+        private readonly HashSet<string> _recordedConsumerTags = new HashSet<string>();
 
         private AutorecoveringConnection _connection;
         private RecoveryAwareChannel _innerChannel;
@@ -157,7 +159,10 @@ namespace RabbitMQ.Client.Impl
             get
             {
                 ThrowIfDisposed();
-                return _recordedConsumerTags.ToArray();
+                lock (_recordedConsumerTags)
+                {
+                    return _recordedConsumerTags.ToArray();
+                }
             }
         }
 
@@ -433,7 +438,10 @@ namespace RabbitMQ.Client.Impl
 
                 try
                 {
-                    _recordedConsumerTags.Clear();
+                    lock (_recordedConsumerTags)
+                    {
+                        _recordedConsumerTags.Clear();
+                    }
                 }
                 catch
                 {
@@ -480,7 +488,10 @@ namespace RabbitMQ.Client.Impl
                 queue: queue, autoAck: autoAck, exclusive: exclusive, arguments: arguments);
             await _connection.RecordConsumerAsync(rc, recordedEntitiesSemaphoreHeld: false)
                 .ConfigureAwait(false);
-            _recordedConsumerTags.Add(resultConsumerTag);
+            lock (_recordedConsumerTags)
+            {
+                _recordedConsumerTags.Add(resultConsumerTag);
+            }
             return resultConsumerTag;
         }
 

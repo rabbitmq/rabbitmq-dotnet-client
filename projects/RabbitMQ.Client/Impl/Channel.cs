@@ -1141,6 +1141,9 @@ namespace RabbitMQ.Client.Impl
                     catch (OperationCanceledException)
                     {
                         _continuationQueue.RpcCanceled(k.ResponseReceived, k.HandledProtocolCommandIds);
+                        // The late cancel-ok is discarded, and basic.cancel is already on the wire, so the broker
+                        // handles it before any later basic.consume on this channel. #2080, docs/internal/channel-state-across-recovery.md.
+                        ConsumerDispatcher.GetAndRemoveConsumer(consumerTag);
                         throw;
                     }
                 }
@@ -1169,6 +1172,13 @@ namespace RabbitMQ.Client.Impl
 
             try
             {
+                // The broker answers a reused tag by closing the whole connection with 530. Checked under _rpcSemaphore,
+                // after any earlier BasicCancelAsync removed its tag, and only while open: shutdown handlers run first.
+                if (IsOpen && false == string.IsNullOrEmpty(consumerTag) && ConsumerDispatcher.IsRegisteredConsumer(consumerTag))
+                {
+                    throw new InvalidOperationException($"consumer tag '{consumerTag}' is already in use on this channel");
+                }
+
                 k.StartTimeout();
 
                 enqueued = Enqueue(k);

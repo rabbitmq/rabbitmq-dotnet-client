@@ -100,6 +100,64 @@ keeps `TakeOver` and `DropTakenOverHandlers` symmetrical: the latter exists to u
 channel abandoned before installation (#1988), and state carried by `TakeOver` but not dropped there
 is a trap for whoever adds the next one.
 
+## Consumer tags across recovery (#2080)
+
+Consumer recovery re-sends each recorded tag on the new inner channel, and `Channel.BasicConsumeAsync`
+throws `InvalidOperationException` without sending when the tag is already in that channel's dispatcher map.
+The broker treats a reused tag as a connection error, 530 `NOT_ALLOWED`, and
+`ShouldTriggerConnectionRecovery` recovers from it. Without the local check, an application that
+re-subscribes with its stored tag after a connection loss drives a loop that never ends: recovery
+restores the consumer, the application's consume closes the connection, and the record survives the
+failed call because `AutorecoveringChannel.BasicConsumeAsync` records only after consume-ok. This
+loop was reproduced on 5.2.0 and 6.6.0, which have the same recording design.
+
+The check is only as accurate as the dispatcher map, so `BasicCancelAsync` removes the tag once its
+`basic.cancel` is on the wire, whether the cancel-ok arrives or the wait times out. A timed-out cancel-ok
+is discarded as a late reply, so without that removal the tag would stay in the map and the check would
+reject every later consume with it on a healthy channel. Removing it is safe because the broker handles a
+channel's frames in order, so a later `basic.consume` finds the tag released. A cancel whose send fails
+keeps the tag, because the broker still has the consumer. Deliveries that arrive between the timeout and
+the broker handling the cancel go to the fallback consumer.
+The check is skipped on a closed channel, because channel shutdown runs the `ChannelShutdownAsync`
+handlers before the dispatcher clears its map: a handler that re-subscribes after the broker closed the
+channel or the connection dropped gets `AlreadyClosedException`, as it did before the check.
+
+Known gaps: the map can lag the broker, so a consume right after a broker-initiated cancel can be rejected
+locally although the broker would accept it (#2120); a consume whose consume-ok arrives after the timeout
+leaves a consumer the map never learns (#2117); and deliveries in flight after a `noWait` or timed-out
+cancel reach the fallback consumer (#2115).
+
+The application's consume can also reach the new channel before recovery does. `_innerChannel` is
+installed before `RecoverConsumersAsync` runs, and `AutorecoveringChannel.BasicConsumeAsync` takes
+`_recordedEntitiesSemaphore` only after the broker answers, so it can register the tag while recovery
+holds the semaphore or has released it around a user callback. `RecoverConsumersAsync` therefore
+skips a tag the new channel already has. That consumer is live, and the application's
+`RecordConsumerAsync` replaces the record once recovery releases the semaphore.
+
+The skip is checked before `RecoveringConsumerAsync` is raised and again after it. A handler may change
+`ConsumerArguments`, which is the dictionary the recovery `basic.consume` sends, so raising the event for a
+consumer recovery then skips would silently drop that change. The second check covers a handler that
+subscribes with the tag itself. For that consumer `RecoveringConsumerAsync` has fired and
+`ConsumerTagChangeAfterRecoveryAsync` does not, and the handler's argument changes are replaced by the
+arguments of the application's own consume.
+
+Both checks read the dispatcher without `_rpcSemaphore`, and a tag is registered only on consume-ok, so
+they miss an application consume still waiting for its reply. Recovery's consume then queues on
+`_rpcSemaphore` behind it and fails the local check. Recovery treats that `InvalidOperationException` as
+the same skip when the tag is registered by then. The filter also requires that recovery's consume did not
+return, so an `InvalidOperationException` thrown after recovery's own consume-ok registered the tag is
+still reported. A `ConsumerTagChangeAfterRecoveryAsync` handler's exception never reaches this catch: it
+goes to `CallbackExceptionAsync`.
+
+Recovery gives way to an application consume that reaches the new channel first, whatever its queue,
+which is why the skip matches on the tag alone. If the application consumes `(T, Q2)` while `(T, Q1)` is
+still recorded, recovery skips `(T, Q1)`, `DoRecordConsumer` replaces the record, and `T` consumes from Q2
+from then on. Recovery does not report this. On the new channel the application's consume is the only
+live consumer with `T`, so the outcome is the application's choice, not a recovery failure. The consume
+can come from a consumer-recovery callback, or from another thread when the application re-subscribes on
+its own with topology recovery enabled. Outside that window the same consume throws, and the supported
+way to move a tag to another queue is to cancel it first.
+
 ## What the tests do and do not pin
 
 `projects/Test/Integration/ConnectionRecovery/TestChannelStateRecovery.cs`, five tests. Each fails
