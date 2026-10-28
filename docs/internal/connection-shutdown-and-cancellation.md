@@ -429,35 +429,13 @@ Known limits, not fixed here. The value is per consumer instance rather than per
 
 ## Write-loop failure and body ownership (#2108)
 
-A write-loop failure completes the outgoing channel with the exception, then calls
-`CloseSocket()`. Completing the channel first releases blocked publishers, including
-one that may hold the publisher-confirmation semaphore needed by shutdown. Closing
-only the socket interrupts the receive loop on both target frameworks. The receive
-loop records the connection shutdown, closes application sessions, starts automatic
-recovery when enabled, and reaches `FinishCloseAsync` for transport cleanup. This
-also works with heartbeats disabled; a failed writer must not depend on the peer
-noticing missed heartbeats.
+A write-loop failure completes the outgoing channel with the exception, then calls `CloseSocket()`. Completing the channel first releases blocked publishers, including one that may hold the publisher-confirmation semaphore needed by shutdown. Closing only the socket interrupts the receive loop on both target frameworks. The receive loop records the connection shutdown, closes application sessions, starts automatic recovery when enabled, and reaches `FinishCloseAsync` for transport cleanup. This also works with heartbeats disabled; a failed writer must not depend on the peer noticing missed heartbeats.
 
-Calling `CloseAsync` from the writer would await the writer's own task. Setting
-`_closed` in this path would skip the authoritative cleanup, as described under
-#2022. `CloseSocket` does neither and tolerates a concurrent socket close. `CloseAsync`
-observes a failed writer task and completes each pipe independently, so neither the
-writer failure nor a failed final flush skips releasing the reader's buffers.
+Calling `CloseAsync` from the writer would await the writer's own task. Setting `_closed` in this path would skip the authoritative cleanup, as described under #2022. `CloseSocket` does neither and tolerates a concurrent socket close. `CloseAsync` observes a failed writer task and completes each pipe independently, so neither the writer failure nor a failed final flush skips releasing the reader's buffers.
 
-An owner-backed publish retains application memory until the write loop serializes
-it. Reading that memory can throw after method and header bytes have entered the
-pipe. Skipping the failed frame and continuing would risk sending an incomplete
-AMQP content sequence, so a serialization failure terminates the connection. A
-publish without an owner copies the body before enqueueing and can instead fail on
-the caller's thread.
+An owner-backed publish retains application memory until the write loop serializes it. Reading that memory can throw after method and header bytes have entered the pipe. Skipping the failed frame and continuing would risk sending an incomplete AMQP content sequence, so a serialization failure terminates the connection. A publish without an owner copies the body before enqueueing and can instead fail on the caller's thread.
 
-`BodyOwner.Dispose` contains exceptions from application cleanup and its logging.
-Every publish rejection and ownership-transfer path uses that policy, including the
-disposed recovery wrapper. The original validation, cancellation, or closed-channel
-exception remains the caller's result. A frame clears its owner before invoking
-cleanup; ownership still transfers once, and queue rejection disposes the frame
-that never reached the reader. An owner that blocks remains prohibited by the
-public API contract: catching exceptions cannot make blocking cleanup safe.
+`BodyOwner.Dispose` contains exceptions from application cleanup and its logging. Every publish rejection and ownership-transfer path uses that policy, including the disposed recovery wrapper. The original validation, cancellation, or closed-channel exception remains the caller's result. A frame clears its owner before invoking cleanup; ownership still transfers once, and queue rejection disposes the frame that never reached the reader. An owner that blocks remains prohibited by the public API contract: catching exceptions cannot make blocking cleanup safe.
 
 ## Issue #2066: a reply sent after the write loop has stopped
 
