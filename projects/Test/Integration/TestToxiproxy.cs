@@ -653,7 +653,7 @@ namespace Test.Integration
 
         /*
          * Both GH1930 scenarios need the client's write loop to stall, which they arrange by filling
-         * the OS socket send buffer: 512 bodies of 65 KB through a Rate=1 toxic. Whether that
+         * the OS socket send buffer: 1024 bodies of 65 KB through a Rate=1 toxic. Whether that
          * actually blocks depends on how much the environment buffers, and some do not block at all.
          * Measured on WSL2 with Docker, both scenarios reported 0 of 512 publishes blocked on most
          * runs, so the state under test was never reached; the same tests pass on the CI runners.
@@ -778,25 +778,6 @@ namespace Test.Integration
             }
         }
 
-        // Regression test for https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1930
-        // Scenario A: publisher confirms disabled.
-        //
-        // The bug: when WriteLoopAsync crashes (socket error) without calling
-        // _channelWriter.TryComplete(ex), publishers blocked on a full
-        // Channel<OutgoingFrame>(128) block on WriteAsync indefinitely because
-        // nobody completes the channel and unblocks them.
-        //
-        // The fix: _channelWriter.TryComplete(ex) in the write-loop catch →
-        // blocked WriteAsync callers receive ChannelClosedException → all
-        // publishers complete immediately.
-        //
-        // Test strategy (Toxiproxy):
-        //   1. BandwidthToxic(Rate=1, UpStream) throttles the write path to
-        //      1 KB/s. The OS TCP send buffer fills, FlushAsync stalls, and the
-        //      128-slot outgoing channel fills. Publishers beyond those 128 slots
-        //      block directly on WriteAsync — the pre-condition for the hang.
-        //   2. cf.SocketFlushTimeout = 5 s crashes the stalled write loop after 5 s.
-        //   3. Task.WhenAll(publishTasks).WaitAsync(15 s) must complete.
         [SkippableFact]
         [Trait("Category", "Toxiproxy")]
         public async Task TestPublishDoesNotHangAfterConnectionLoss_NoConfirms_GH1930()
@@ -817,6 +798,12 @@ namespace Test.Integration
             cf.SocketFlushTimeout = TimeSpan.FromSeconds(5);
 
             await using IConnection conn = await cf.CreateConnectionAsync();
+            var shutdown = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+            conn.ConnectionShutdownAsync += (_, _) =>
+            {
+                shutdown.TrySetResult(true);
+                return Task.CompletedTask;
+            };
             await using IChannel ch = await conn.CreateChannelAsync();
             QueueDeclareOk q = await ch.QueueDeclareAsync();
 
@@ -832,7 +819,7 @@ namespace Test.Integration
             bandwidthToxic.Attributes.Rate = 1;
             await _toxiproxyManager.AddToxicAsync(bandwidthToxic);
 
-            const int PublishCount = 512;
+            const int PublishCount = 1024;
             byte[] body = GetRandomBody(ushort.MaxValue);
             var publishTasks = new List<Task>(PublishCount);
             for (int i = 0; i < PublishCount; i++)
@@ -873,6 +860,8 @@ namespace Test.Integration
             try
             {
                 await Task.WhenAll(publishTasks).WaitAsync(publishCompletionTimeout);
+                await shutdown.Task.WaitAsync(publishCompletionTimeout);
+                Assert.False(conn.IsOpen);
             }
             finally
             {
@@ -880,41 +869,6 @@ namespace Test.Integration
             }
         }
 
-        // Regression test for https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1930
-        // Scenario B: publisher confirms enabled.
-        //
-        // The bug: when WriteLoopAsync crashes (socket error) without calling
-        // _channelWriter.TryComplete(ex), publishers blocked on a full
-        // Channel<OutgoingFrame>(128) hold _confirmSemaphore(1,1)
-        // indefinitely.  The connection-shutdown handler
-        // (MaybeHandlePublisherConfirmationTcsOnChannelShutdownAsync) needs
-        // the same semaphore and deadlocks, so BasicPublishAsync never throws
-        // or returns — the publisher hangs forever.
-        //
-        // The fix: _channelWriter.TryComplete(ex) in the write-loop catch →
-        // blocked WriteAsync callers receive ChannelClosedException →
-        // semaphore released → shutdown handler proceeds → all publishers complete.
-        //
-        // Test strategy (Toxiproxy):
-        //   1. BandwidthToxic(Rate=1, UpStream) throttles the write path to
-        //      1 KB/s.  The OS TCP send buffer fills, FlushAsync stalls, the
-        //      128-slot outgoing channel fills, and one publisher blocks on
-        //      WriteAsync while holding _confirmSemaphore — the exact
-        //      pre-condition for the deadlock.
-        //   2. cf.SocketFlushTimeout = 5 s causes the stalled
-        //      PipeWriter.FlushAsync to throw OperationCanceledException
-        //      after 5 s, crashing the write loop while the read loop remains alive.
-        //      Because _closeReason is not set at crash time, publishers 130+
-        //      can re-fill the channel — the exact condition that triggers the deadlock
-        //      without the fix.
-        //   3. Task.WhenAll(publishTasks).WaitAsync(15 s) must complete within
-        //      the timeout.
-        //
-        // Why this approach is reliable on all platforms:
-        //   A CancellationToken passed to PipeWriter.FlushAsync fires
-        //   deterministically after 5 s on Windows and Linux alike, regardless of how
-        //   the OS handles RST/FIN signals.  This makes the test a true regression guard
-        //   on every CI platform.
         [SkippableFact]
         [Trait("Category", "Toxiproxy")]
         public async Task TestPublishDoesNotHangAfterConnectionLoss_WithConfirms_GH1930()
@@ -939,8 +893,6 @@ namespace Test.Integration
             // quickly once we close the proxy (the server will never send close-ok).
             cf.ContinuationTimeout = TimeSpan.FromSeconds(5);
             // Crash the write loop after 5 s of stall instead of sending a TCP RST.
-            // PipeWriter.FlushAsync(CancellationToken) cancels on all platforms
-            // (Windows and Linux), making this a deterministic regression guard.
             cf.SocketFlushTimeout = TimeSpan.FromSeconds(5);
 
             // publisherConfirmationTrackingEnabled: false matches the exact scenario
@@ -950,6 +902,12 @@ namespace Test.Integration
                 publisherConfirmationTrackingEnabled: false);
 
             await using IConnection conn = await cf.CreateConnectionAsync();
+            var shutdown = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+            conn.ConnectionShutdownAsync += (_, _) =>
+            {
+                shutdown.TrySetResult(true);
+                return Task.CompletedTask;
+            };
             await using IChannel ch = await conn.CreateChannelAsync(channelOpts);
             QueueDeclareOk q = await ch.QueueDeclareAsync();
 
@@ -980,7 +938,7 @@ namespace Test.Integration
             // stalled write loop cannot drain it. The publisher that encounters a full
             // channel blocks on WriteAsync while holding the semaphore; every subsequent
             // publisher queues behind that semaphore.
-            const int PublishCount = 512;
+            const int PublishCount = 1024;
             byte[] body = GetRandomBody(ushort.MaxValue); // 65 KB – fills OS socket buffer in a few frames
             var publishTasks = new List<Task>(PublishCount);
             for (int i = 0; i < PublishCount; i++)
@@ -1042,6 +1000,8 @@ namespace Test.Integration
                 // Without the fix: the semaphore is never released, the shutdown handler
                 // deadlocks, and Task.WhenAll never completes → TimeoutException.
                 await Task.WhenAll(publishTasks).WaitAsync(publishCompletionTimeout);
+                await shutdown.Task.WaitAsync(publishCompletionTimeout);
+                Assert.False(conn.IsOpen);
             }
             finally
             {
