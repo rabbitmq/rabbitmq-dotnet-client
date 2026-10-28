@@ -471,13 +471,12 @@ namespace Test.Integration
                     return Task.CompletedTask;
                 };
 
-                // What WriteLoopAsync does when a socket write fails: the close-ok then
-                // fails with ChannelClosedException.
+                // Stop writes without a socket failure so the peer close still reaches the receive loop.
                 var frameHandler = (SocketFrameHandler)conn.FrameHandler;
                 var writer = (ChannelWriter<OutgoingFrame>)typeof(SocketFrameHandler)
                     .GetField("_channelWriter", BindingFlags.Instance | BindingFlags.NonPublic)!
                     .GetValue(frameHandler)!;
-                Assert.True(writer.TryComplete(new System.IO.IOException("write loop stopped")));
+                Assert.True(writer.TryComplete());
 
                 await util.CloseConnectionAsync(cf.ClientProvidedName);
 

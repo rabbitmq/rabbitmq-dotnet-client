@@ -47,7 +47,15 @@ namespace Test.Unit
 
         [Theory]
         [MemberData(nameof(Overloads))]
-        public async Task PublishingOnADisposedChannelDisposesTheBodyOwner_GH2099(int overload)
+        public Task PublishingOnADisposedChannelDisposesTheBodyOwner_GH2099(int overload)
+            => PublishOnADisposedChannelAsync(overload, throwing: false);
+
+        [Theory]
+        [MemberData(nameof(Overloads))]
+        public Task PublishingOnADisposedChannelKeepsItsExceptionWhenTheOwnerThrows_GH2108(int overload)
+            => PublishOnADisposedChannelAsync(overload, throwing: true);
+
+        private static async Task PublishOnADisposedChannelAsync(int overload, bool throwing)
         {
             using var session = new TestSession(new TestSessionOptions { ChannelNumber = 1 });
             var options = new CreateChannelOptions(publisherConfirmationsEnabled: false, publisherConfirmationTrackingEnabled: false);
@@ -60,7 +68,7 @@ namespace Test.Unit
                 typeof(AutorecoveringChannel).GetField("_disposed", BindingFlags.Instance | BindingFlags.NonPublic)!
                     .SetValue(channel, true);
 
-                var owner = new CountingOwner();
+                var owner = new CountingOwner(throwing);
                 var memory = new ReadOnlyMemory<byte>(new byte[8]);
                 var sequence = new ReadOnlySequence<byte>(new byte[8]);
                 var exchange = new CachedString("");
@@ -87,7 +95,18 @@ namespace Test.Unit
         {
             public int DisposeCount { get; private set; }
 
-            public void Dispose() => DisposeCount++;
+            private readonly bool _throwing;
+
+            public CountingOwner(bool throwing) => _throwing = throwing;
+
+            public void Dispose()
+            {
+                DisposeCount++;
+                if (_throwing)
+                {
+                    throw new InvalidOperationException("owner bug");
+                }
+            }
         }
     }
 }

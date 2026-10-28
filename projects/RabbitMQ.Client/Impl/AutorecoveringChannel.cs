@@ -87,7 +87,7 @@ namespace RabbitMQ.Client.Impl
             }
             catch (ObjectDisposedException)
             {
-                bodyOwner?.Dispose();
+                BodyOwner.Dispose(bodyOwner);
                 throw;
             }
         }

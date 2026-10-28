@@ -46,6 +46,9 @@ namespace RabbitMQ.Client.Impl
     {
         private readonly AmqpTcpEndpoint _amqpTcpEndpoint;
         private readonly ITcpClient _socket;
+        // Captured once: the write loop can close the socket while tracing and shutdown handlers read them. #2108
+        private readonly EndPoint? _localEndPoint;
+        private readonly EndPoint? _remoteEndPoint;
         private readonly Stream _stream;
 
         private readonly ChannelWriter<OutgoingFrame> _channelWriter;
@@ -55,6 +58,7 @@ namespace RabbitMQ.Client.Impl
         private readonly PipeWriter _pipeWriter;
         private readonly PipeReader _pipeReader;
         private Task? _writerTask;
+        private volatile Exception? _writeLoopException;
 
         // volatile for the unsynchronized fast-path reads at the top of
         // CloseAsync and WriteAsync. The read inside CloseAsync's critical
@@ -67,6 +71,15 @@ namespace RabbitMQ.Client.Impl
         {
             _amqpTcpEndpoint = amqpTcpEndpoint;
             _socket = socket;
+            try
+            {
+                _localEndPoint = socket.Client?.LocalEndPoint;
+                _remoteEndPoint = socket.Client?.RemoteEndPoint;
+            }
+            catch (Exception e) when (e is SocketException or ObjectDisposedException)
+            {
+                // Reset since it connected; the properties read the socket instead, as they always did.
+            }
             _stream = stream;
 
             var channel = System.Threading.Channels.Channel.CreateBounded<OutgoingFrame>(
@@ -91,7 +104,7 @@ namespace RabbitMQ.Client.Impl
 
         public EndPoint LocalEndPoint
         {
-            get { return _socket.Client.LocalEndPoint!; }
+            get { return _localEndPoint ?? _socket.Client.LocalEndPoint!; }
         }
 
         public int LocalPort
@@ -101,7 +114,7 @@ namespace RabbitMQ.Client.Impl
 
         public EndPoint RemoteEndPoint
         {
-            get { return _socket.Client.RemoteEndPoint!; }
+            get { return _remoteEndPoint ?? _socket.Client.RemoteEndPoint!; }
         }
 
         public int RemotePort
@@ -222,37 +235,39 @@ namespace RabbitMQ.Client.Impl
                     return;
                 }
 
+                // Not Complete(): the write loop may already have completed the writer with its exception. #1930
+                _channelWriter.TryComplete();
                 try
                 {
-                    // TryComplete rather than Complete: WriteLoopAsync may have
-                    // already completed the writer with an exception (see
-                    // issue #1930). Complete() would throw InvalidOperationException
-                    // in that race, the outer catch would swallow it, and
-                    // `await _writerTask` below would be skipped, leaving the
-                    // write-loop exception unobserved.
-                    _channelWriter.TryComplete();
                     if (_writerTask != null)
                     {
                         await _writerTask.ConfigureAwait(false);
                     }
-                    await _pipeWriter.CompleteAsync()
-                        .ConfigureAwait(false);
-                    await _pipeReader.CompleteAsync()
-                        .ConfigureAwait(false);
                 }
                 catch
                 {
-                    // ignore, we are closing anyway
+                    // A failed writer still leaves both pipes to complete. #2108.
                 }
 
                 try
                 {
-                    _socket.Close();
+                    await _pipeWriter.CompleteAsync().ConfigureAwait(false);
                 }
                 catch
                 {
-                    // ignore, we are closing anyway
+                    // The socket may already be closed, so a final flush can fail.
                 }
+
+                try
+                {
+                    await _pipeReader.CompleteAsync().ConfigureAwait(false);
+                }
+                catch
+                {
+                    // Reader disposal must not skip closing the socket.
+                }
+
+                CloseSocket();
 
 #if NET
                 _flushTimeoutCts?.Dispose();
@@ -281,6 +296,8 @@ namespace RabbitMQ.Client.Impl
                 _closingSemaphore.Release();
             }
         }
+
+        public Exception? WriteLoopException => _writeLoopException;
 
         public void CloseSocket()
         {
@@ -383,18 +400,13 @@ namespace RabbitMQ.Client.Impl
             }
             catch (Exception ex)
             {
-                ESLog.Error("Background socket write loop has crashed", ex);
-
-                // Fail both already-blocked and subsequent WriteAsync callers
-                // with ChannelClosedException(innerException: ex). Without
-                // this, producers block indefinitely on a full channel whose
-                // reader has died, and any holder of a publisher-confirm
-                // semaphore (Channel.BasicPublish.cs) blocks the shutdown
-                // handler in turn. See issue #1930.
-                //
-                // TryComplete rather than Complete: CloseAsync may have raced
-                // us and already completed the channel.
+                // Release blocked publishers before receive-side shutdown needs their locks. Not Complete():
+                // CloseAsync may have completed the writer first. #1930.
+                _writeLoopException = ex;
                 _channelWriter.TryComplete(ex);
+                // A failed serialization can leave a partial frame in the pipe. #2108.
+                CloseSocket();
+                ESLog.Error("Background socket write loop has crashed", ex);
                 throw;
             }
             finally

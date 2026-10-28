@@ -113,7 +113,7 @@ namespace RabbitMQ.Client.Impl
         {
             if (body.Length > int.MaxValue)
             {
-                bodyOwner?.Dispose();
+                BodyOwner.Dispose(bodyOwner);
                 throw new ArgumentOutOfRangeException(nameof(body), body.Length,
                     $"Message body of {body.Length} bytes exceeds the maximum of {int.MaxValue} bytes.");
             }
@@ -269,7 +269,7 @@ namespace RabbitMQ.Client.Impl
             {
                 if (!bodyOwnerTransferred)
                 {
-                    bodyOwner?.Dispose();
+                    BodyOwner.Dispose(bodyOwner);
                 }
             }
         }
@@ -426,7 +426,7 @@ namespace RabbitMQ.Client.Impl
             {
                 if (!bodyOwnerTransferred)
                 {
-                    bodyOwner?.Dispose();
+                    BodyOwner.Dispose(bodyOwner);
                 }
             }
         }
