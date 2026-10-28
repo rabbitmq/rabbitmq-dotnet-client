@@ -228,6 +228,7 @@ namespace RabbitMQ.Client.Impl
                     return;
                 }
 
+                // Not Complete(): the write loop may already have completed the writer with its exception. #1930
                 _channelWriter.TryComplete();
                 try
                 {
@@ -392,7 +393,8 @@ namespace RabbitMQ.Client.Impl
             }
             catch (Exception ex)
             {
-                // Release blocked publishers before receive-side shutdown needs their locks. #1930.
+                // Release blocked publishers before receive-side shutdown needs their locks. Not Complete():
+                // CloseAsync may have completed the writer first. #1930.
                 _channelWriter.TryComplete(ex);
                 _writeLoopException = ex;
                 // A failed serialization can leave a partial frame in the pipe. #2108.
