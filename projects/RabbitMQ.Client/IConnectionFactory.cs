@@ -82,6 +82,9 @@ namespace RabbitMQ.Client
         /// <summary>
         /// Sets or gets the AMQP Uri to be used for connections.
         /// </summary>
+        /// <exception cref="InvalidOperationException">
+        /// The URI uses the <c>amqp</c> scheme and the factory's TLS options enable TLS.
+        /// </exception>
         Uri Uri { get; set; }
 
         /// <summary>
@@ -143,7 +146,7 @@ namespace RabbitMQ.Client
         /// </summary>
         /// <param name="endpoints">
         /// List of endpoints to use for the initial
-        /// connection and recovery.
+        /// connection and recovery. See <see cref="ConnectionFactory.Ssl"/> for the TLS options each endpoint uses.
         /// </param>
         /// <param name="cancellationToken">Cancellation token for this connection</param>
         /// <returns>Open connection</returns>
@@ -158,7 +161,7 @@ namespace RabbitMQ.Client
         /// </summary>
         /// <param name="endpoints">
         /// List of endpoints to use for the initial
-        /// connection and recovery.
+        /// connection and recovery. See <see cref="ConnectionFactory.Ssl"/> for the TLS options each endpoint uses.
         /// </param>
         /// <param name="clientProvidedName">
         /// Application-specific connection name, will be displayed in the management UI

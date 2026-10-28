@@ -32,6 +32,8 @@
 using System;
 using System.Net.Security;
 using System.Security.Authentication;
+using System.Security.Cryptography;
+using System.Security.Cryptography.X509Certificates;
 using RabbitMQ.Client;
 using Xunit;
 
@@ -261,6 +263,51 @@ namespace Test.Unit
         }
 
         [Fact]
+        public void ACertificateCollectionKeepsItsTypeAcrossTheUri_GHSA_7xr9()
+        {
+            var cf = new ConnectionFactory();
+            cf.Ssl.Certs = new X509Certificate2Collection();
+
+            cf.Uri = new Uri("amqps://broker.example.com");
+
+            Assert.IsType<X509Certificate2Collection>(cf.Ssl.Certs);
+        }
+
+        [Fact]
+        public void ACertificateCollectionHoldingAPlainCertificateSurvivesTheUri_GHSA_7xr9()
+        {
+            var cf = new ConnectionFactory();
+            using var key = RSA.Create(2048);
+            var request = new CertificateRequest("CN=client", key, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
+            using X509Certificate2 selfSigned = request.CreateSelfSigned(DateTimeOffset.UtcNow, DateTimeOffset.UtcNow.AddDays(1));
+            var certificates = new X509Certificate2Collection();
+            var plain = new X509Certificate(selfSigned.Export(X509ContentType.Cert));
+            certificates.Add(plain);
+            cf.Ssl.Certs = certificates;
+
+            cf.Uri = new Uri("amqps://broker.example.com");
+
+            X509CertificateCollection copied = Assert.IsType<X509Certificate2Collection>(cf.Ssl.Certs);
+            Assert.Same(plain, copied[0]);
+        }
+
+        [Fact]
+        public void ACertificateCollectionSubclassIsSharedAcrossTheUri_GHSA_7xr9()
+        {
+            var cf = new ConnectionFactory();
+            var certificates = new OwnCertificates();
+            cf.Ssl.Certs = certificates;
+
+            cf.Uri = new Uri("amqps://broker.example.com");
+
+            Assert.Same(certificates, cf.Ssl.Certs);
+        }
+
+        private sealed class OwnCertificates : X509Certificate2Collection
+        {
+        }
+
+        [Fact]
         public void AServerNameTheCallerSetSurvivesTheUri_GHSA_7xr9()
         {
             var cf = new ConnectionFactory();
@@ -288,25 +335,24 @@ namespace Test.Unit
             var cf = new ConnectionFactory { Uri = new Uri("amqps://first.example.com") };
             AmqpTcpEndpoint endpoint = cf.Endpoint;
 
-            cf.Uri = new Uri("amqp://second.example.com");
+            cf.Uri = new Uri("amqps://second.example.com");
 
-            Assert.True(endpoint.Ssl.Enabled);
             Assert.Equal("first.example.com", endpoint.Ssl.ServerName);
         }
 
         [Fact]
         public void AUriDoesNotChangeAnSslOptionAnotherFactoryShares_GHSA_7xr9()
         {
-            var shared = new SslOption("prod.example.com", enabled: true);
+            var shared = new SslOption("prod.example.com");
             var first = new ConnectionFactory { Ssl = shared };
-            var second = new ConnectionFactory { Ssl = shared };
+            var second = new ConnectionFactory { Ssl = shared, AmqpUriSslProtocols = SslProtocols.Tls12 };
 
-            second.Uri = new Uri("amqp://dev.example.com");
+            second.Uri = new Uri("amqps://dev.example.com");
 
             Assert.Same(shared, first.Ssl);
-            Assert.True(shared.Enabled);
-            Assert.Equal("prod.example.com", shared.ServerName);
-            Assert.False(second.Ssl.Enabled);
+            Assert.False(shared.Enabled);
+            Assert.Equal(SslProtocols.None, shared.Version);
+            Assert.True(second.Ssl.Enabled);
         }
 
         [Fact]
@@ -345,14 +391,31 @@ namespace Test.Unit
         }
 
         [Fact]
-        public void AnAmqpUriTurnsTlsOff_GHSA_7xr9()
+        public void AnAmqpUriDoesNotTurnTlsOff_GHSA_5wrf()
         {
-            var cf = new ConnectionFactory();
+            var cf = new ConnectionFactory { HostName = "keep.example.com" };
+            cf.Ssl.Enabled = true;
+            SslOption ssl = cf.Ssl;
+
+            Assert.Throws<InvalidOperationException>(() => cf.Uri = new Uri("amqp://broker.example.com"));
+
+            Assert.Same(ssl, cf.Ssl);
+            Assert.True(cf.Ssl.Enabled);
+            Assert.Equal("keep.example.com", cf.HostName);
+
+            cf.Ssl.Enabled = false;
+            cf.Uri = new Uri("amqp://broker.example.com");
+            Assert.Equal("broker.example.com", cf.HostName);
+        }
+
+        [Fact]
+        public void TheUriOfATlsFactoryWithoutAPortNamesTheTlsPort_GHSA_5wrf()
+        {
+            var cf = new ConnectionFactory { HostName = "broker.example.com" };
             cf.Ssl.Enabled = true;
 
-            cf.Uri = new Uri("amqp://broker.example.com");
-
-            Assert.False(cf.Ssl.Enabled);
+            Assert.Equal(5671, cf.Uri.Port);
+            Assert.Equal(5671, new ConnectionFactory { Uri = cf.Uri }.Endpoint.Port);
         }
 
         private static void AssertUriPartEquivalence(ConnectionFactory cf, string user, string password, int port, string vhost, bool tlsEnabled = false)

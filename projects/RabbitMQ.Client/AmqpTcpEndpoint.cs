@@ -148,6 +148,16 @@ namespace RabbitMQ.Client
             return new AmqpTcpEndpoint(hostname, _port, Ssl, _maxInboundMessageBodySize);
         }
 
+        // Keeps an unset port unset, so the default follows the new TLS setting.
+        internal AmqpTcpEndpoint CloneWithSsl(SslOption? ssl)
+        {
+            var clone = (AmqpTcpEndpoint)MemberwiseClone();
+            clone.Ssl = ssl!;
+            return clone;
+        }
+
+        internal int PortOrMinusOne => _port;
+
         /// <summary>
         /// Retrieve or set the hostname of this <see cref="AmqpTcpEndpoint"/>.
         /// </summary>
@@ -192,6 +202,10 @@ namespace RabbitMQ.Client
         /// <summary>
         /// Retrieve the TLS options for this AmqpTcpEndpoint. If not set, null is returned.
         /// </summary>
+        /// <remarks>
+        /// A <see cref="ConnectionFactory"/> whose <see cref="ConnectionFactory.Ssl"/> enables TLS uses its own
+        /// options for an endpoint whose options do not enable TLS.
+        /// </remarks>
         public SslOption Ssl { get; set; }
 
         /// <summary>

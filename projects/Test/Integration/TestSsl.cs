@@ -104,6 +104,23 @@ namespace Test.Integration
         }
 
         [SkippableFact]
+        public async Task AnEndpointWithoutTlsOrPortConnectsWithTheFactoryTls_GHSA_5wrf()
+        {
+            Skip.IfNot(_sslEnv.IsSslConfigured, "SSL_CERTS_DIR and/or PASSWORD are not configured, skipping test");
+
+            ConnectionFactory cf = CreateConnectionFactory();
+            cf.Ssl.ServerName = _sslEnv.Hostname;
+            cf.Ssl.CertPath = _sslEnv.CertDirectPath;
+            cf.Ssl.CertPassphrase = _sslEnv.CertPassphrase;
+            cf.Ssl.Enabled = true;
+
+            await using IConnection conn = await cf.CreateConnectionAsync(new[] { new AmqpTcpEndpoint(_sslEnv.Hostname) });
+
+            Assert.Equal(5671, conn.RemotePort);
+            Assert.True(conn.Endpoint.Ssl.Enabled);
+        }
+
+        [SkippableFact]
         public async Task TestWithClientCertificate()
         {
             Skip.IfNot(_sslEnv.IsSslConfigured, "SSL_CERTS_DIR and/or PASSWORD are not configured, skipping test");
