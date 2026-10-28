@@ -31,6 +31,7 @@
 
 using System;
 using System.Buffers;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Exceptions;
@@ -135,6 +136,24 @@ namespace Test.Integration
             Assert.Equal(1, owner.DisposeCount);
             Assert.True(connection.IsOpen);
             await channel.QueueDeclareAsync(exclusive: true);
+        }
+
+        [Fact]
+        public async Task SerializationFailureOfAMemoryBodyPreservesTheExceptionWhenOwnerThrows_GH2108()
+        {
+            ConnectionFactory factory = CreateConnectionFactory();
+            factory.AutomaticRecoveryEnabled = false;
+            await using IConnection connection = await factory.CreateConnectionAsync();
+            await using IChannel channel = await connection.CreateChannelAsync(new CreateChannelOptions(false, false));
+            var owner = new ThrowingOwner();
+            var properties = new BasicProperties { Headers = new Dictionary<string, object> { ["unsupported"] = DateTime.UtcNow } };
+            ReadOnlyMemory<byte> body = new byte[8];
+
+            await Assert.ThrowsAsync<WireFormattingException>(() =>
+                channel.BasicPublishAsync("", "q", false, properties, body, owner).AsTask());
+
+            Assert.Equal(1, owner.DisposeCount);
+            Assert.True(connection.IsOpen);
         }
 
         private sealed class ThrowingOwner : IDisposable
