@@ -43,15 +43,19 @@ namespace Test.Unit
 {
     public class TestAutorecoveringChannelBodyOwner
     {
-        public static TheoryData<int, bool> Overloads => new TheoryData<int, bool>
-        {
-            { 0, false }, { 1, false }, { 2, false }, { 3, false },
-            { 0, true }, { 1, true }, { 2, true }, { 3, true }
-        };
+        public static TheoryData<int> Overloads => new TheoryData<int> { 0, 1, 2, 3 };
 
         [Theory]
         [MemberData(nameof(Overloads))]
-        public async Task PublishingOnADisposedChannelPreservesTheExceptionAndDisposesTheBodyOwner_GH2108(int overload, bool throwing)
+        public Task PublishingOnADisposedChannelDisposesTheBodyOwner_GH2099(int overload)
+            => PublishOnADisposedChannelAsync(overload, throwing: false);
+
+        [Theory]
+        [MemberData(nameof(Overloads))]
+        public Task PublishingOnADisposedChannelKeepsItsExceptionWhenTheOwnerThrows_GH2108(int overload)
+            => PublishOnADisposedChannelAsync(overload, throwing: true);
+
+        private static async Task PublishOnADisposedChannelAsync(int overload, bool throwing)
         {
             using var session = new TestSession(new TestSessionOptions { ChannelNumber = 1 });
             var options = new CreateChannelOptions(publisherConfirmationsEnabled: false, publisherConfirmationTrackingEnabled: false);
