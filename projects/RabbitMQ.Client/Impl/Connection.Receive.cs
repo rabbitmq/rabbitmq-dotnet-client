@@ -116,6 +116,20 @@ namespace RabbitMQ.Client.Impl
                         .ConfigureAwait(false);
                 }
             }
+            catch (Exception ex) when (_frameHandler.WriteLoopException is Exception writeLoopException
+                && ex is IOException or SocketException or ObjectDisposedException)
+            {
+                // The write loop's own socket close leaves the read reporting only the abort, so the
+                // write failure is the cause. The clauses above keep an end of stream and the rest. #2108
+                LogCloseError("Receive loop stopped after the write loop failed", ex);
+                var ea = new ShutdownEventArgs(ShutdownInitiator.Library,
+                    Constants.InternalError,
+                    ShutdownEventArgs.SafeMessage(writeLoopException),
+                    exception: writeLoopException,
+                    cancellationToken: mainLoopToken);
+                await HandleMainLoopExceptionAsync(ea)
+                    .ConfigureAwait(false);
+            }
             catch (Exception ex)
             {
                 var ea = new ShutdownEventArgs(ShutdownInitiator.Library,
@@ -216,16 +230,10 @@ namespace RabbitMQ.Client.Impl
 
         private async Task HandleMainLoopExceptionAsync(ShutdownEventArgs reason)
         {
-            // A read the write loop's socket close aborted reports only the abort, so report the write
-            // failure instead and keep the read's exception in the shutdown report. #2108
             if (_frameHandler.WriteLoopException is Exception writeLoopException
-                && reason.Exception is Exception readException
-                && readException is IOException or SocketException or ObjectDisposedException)
+                && false == ReferenceEquals(writeLoopException, reason.Exception))
             {
-                LogCloseError("Receive loop stopped after the write loop failed", readException);
-                reason = new ShutdownEventArgs(ShutdownInitiator.Library, Constants.InternalError,
-                    ShutdownEventArgs.SafeMessage(writeLoopException), exception: writeLoopException,
-                    cancellationToken: reason.CancellationToken);
+                LogCloseError("The write loop failed before the connection closed", writeLoopException);
             }
 
             string message = reason.GetLogMessage();
