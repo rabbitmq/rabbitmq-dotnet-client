@@ -138,6 +138,11 @@ namespace RabbitMQ.Client
         /// Controls if TLS should indeed be used. Set to false to disable TLS
         /// on the connection.
         /// </summary>
+        /// <remarks>
+        /// On an endpoint with its own instance, false does not turn TLS off when the factory's
+        /// <see cref="ConnectionFactory.Ssl"/> enables it. See <see cref="ConnectionFactory.Ssl"/> for when a
+        /// connection reads it.
+        /// </remarks>
         public bool Enabled { get; set; }
 
         /// <summary>
@@ -171,7 +176,15 @@ namespace RabbitMQ.Client
         internal SslOption Clone()
         {
             var clone = (SslOption)MemberwiseClone();
-            if (_certificateCollection is not null)
+            // Copies only the two BCL types, through the base AddRange, which accepts any element; a
+            // subclass is shared, because a CertificateSelectionCallback may depend on its type or identity.
+            if (_certificateCollection?.GetType() == typeof(X509Certificate2Collection))
+            {
+                var certificates = new X509Certificate2Collection();
+                ((X509CertificateCollection)certificates).AddRange(_certificateCollection);
+                clone._certificateCollection = certificates;
+            }
+            else if (_certificateCollection?.GetType() == typeof(X509CertificateCollection))
             {
                 clone._certificateCollection = new X509CertificateCollection(_certificateCollection);
             }

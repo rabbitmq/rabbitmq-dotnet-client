@@ -276,6 +276,16 @@ namespace RabbitMQ.Client
         /// <summary>
         /// TLS options setting.
         /// </summary>
+        /// <remarks>
+        /// When <see cref="SslOption.Enabled"/> is true, every connection this factory creates uses TLS.
+        /// An <see cref="AmqpTcpEndpoint"/> whose own <see cref="AmqpTcpEndpoint.Ssl"/> enables TLS uses its
+        /// own options; any other endpoint uses these, and an endpoint without a port then uses 5671.
+        /// A connection keeps the options it was created with, including when it recovers; create a new
+        /// connection to use different ones. An <see cref="IEndpointResolver"/> passed to
+        /// <see cref="CreateConnectionAsync(IEndpointResolver, string?, CancellationToken)"/>, or returned by
+        /// <see cref="EndpointResolverFactory"/>, is asked for its endpoints on every recovery, and their
+        /// options are read then.
+        /// </remarks>
         public SslOption Ssl { get; set; } = new SslOption();
 
         /// <summary>
@@ -306,14 +316,28 @@ namespace RabbitMQ.Client
         /// <summary>
         /// Connection endpoint.
         /// </summary>
+        /// <remarks>
+        /// The endpoint this returns shares this factory's <see cref="Ssl"/>. Assigning an endpoint whose
+        /// <see cref="AmqpTcpEndpoint.Ssl"/> does not enable TLS keeps this factory's <see cref="Ssl"/> when
+        /// that enables TLS. To turn TLS off, assign <see cref="Ssl"/> a new <see cref="SslOption"/>.
+        /// </remarks>
         public AmqpTcpEndpoint Endpoint
         {
             get { return new AmqpTcpEndpoint(HostName, Port, Ssl, MaxInboundMessageBodySize); }
             set
             {
-                Port = value.Port;
+                // An assigned endpoint never turns the factory's TLS off. GHSA-5wrf-cc49-8x6j.
+                if (Ssl is { Enabled: true } && value.Ssl is not { Enabled: true })
+                {
+                    Port = value.PortOrMinusOne;
+                }
+                else
+                {
+                    Port = value.Port;
+                    Ssl = value.Ssl;
+                }
+
                 HostName = value.HostName;
-                Ssl = value.Ssl;
                 MaxInboundMessageBodySize = value.MaxInboundMessageBodySize;
             }
         }
@@ -382,6 +406,10 @@ namespace RabbitMQ.Client
         /// unless one was set before. A reference to the previous <see cref="SslOption"/> no longer affects
         /// this factory, so configure <see cref="Ssl"/> through this property after assigning the URI.
         /// </remarks>
+        /// <exception cref="InvalidOperationException">
+        /// The URI uses the <c>amqp</c> scheme and <see cref="Ssl"/> enables TLS. To connect without TLS,
+        /// assign <see cref="Ssl"/> a new <see cref="SslOption"/> first.
+        /// </exception>
         public Uri Uri
         {
             get { return GetUri(); }
@@ -461,7 +489,7 @@ namespace RabbitMQ.Client
         public Task<IConnection> CreateConnectionAsync(string? clientProvidedName,
             CancellationToken cancellationToken = default)
         {
-            return CreateConnectionAsync(EndpointResolverFactory(LocalEndpoints()), clientProvidedName, cancellationToken);
+            return CreateConnectionAsync(new[] { Endpoint }, clientProvidedName, cancellationToken);
         }
 
         /// <summary>
@@ -509,8 +537,8 @@ namespace RabbitMQ.Client
         public Task<IConnection> CreateConnectionAsync(IEnumerable<string> hostnames, string? clientProvidedName,
             CancellationToken cancellationToken = default)
         {
-            IEnumerable<AmqpTcpEndpoint> endpoints = hostnames.Select(h => new AmqpTcpEndpoint(h, Port, Ssl, MaxInboundMessageBodySize));
-            return CreateConnectionAsync(EndpointResolverFactory(endpoints), clientProvidedName, cancellationToken);
+            List<AmqpTcpEndpoint> endpoints = hostnames.Select(h => new AmqpTcpEndpoint(h, Port, Ssl, MaxInboundMessageBodySize)).ToList();
+            return CreateConnectionAsync(endpoints, clientProvidedName, cancellationToken);
         }
 
         /// <summary>
@@ -520,7 +548,7 @@ namespace RabbitMQ.Client
         /// </summary>
         /// <param name="endpoints">
         /// List of endpoints to use for the initial
-        /// connection and recovery.
+        /// connection and recovery. See <see cref="Ssl"/> for the TLS options each endpoint uses.
         /// </param>
         /// <param name="cancellationToken">Cancellation token for this connection</param>
         /// <returns>Open connection</returns>
@@ -540,7 +568,7 @@ namespace RabbitMQ.Client
         /// </summary>
         /// <param name="endpoints">
         /// List of endpoints to use for the initial
-        /// connection and recovery.
+        /// connection and recovery. See <see cref="Ssl"/> for the TLS options each endpoint uses.
         /// </param>
         /// <param name="clientProvidedName">
         /// Application-specific connection name, will be displayed in the management UI
@@ -556,6 +584,8 @@ namespace RabbitMQ.Client
         public Task<IConnection> CreateConnectionAsync(IEnumerable<AmqpTcpEndpoint> endpoints, string? clientProvidedName,
             CancellationToken cancellationToken = default)
         {
+            // The copies fix each endpoint's host, port and TLS options when the connection is created.
+            endpoints = endpoints.Select(e => e is { } endpoint ? endpoint.CloneWithSsl(endpoint.Ssl?.Clone()) : e).ToList();
             return CreateConnectionAsync(EndpointResolverFactory(endpoints), clientProvidedName, cancellationToken);
         }
 
@@ -564,6 +594,7 @@ namespace RabbitMQ.Client
         /// </summary>
         /// <param name="endpointResolver">
         /// The endpointResolver that returns the endpoints to use for the connection attempt.
+        /// See <see cref="Ssl"/> for the TLS options each endpoint uses.
         /// </param>
         /// <param name="clientProvidedName">
         /// Application-specific connection name, will be displayed in the management UI
@@ -580,6 +611,9 @@ namespace RabbitMQ.Client
             CancellationToken cancellationToken = default)
         {
             ConnectionConfig config = CreateConfig(clientProvidedName);
+            SslOption? factorySsl = Ssl?.Clone();
+            endpointResolver = new TlsEndpointResolver(endpointResolver, factorySsl is { Enabled: true } ? factorySsl : null);
+
             using Activity? connectionActivity = RabbitMQActivitySource.OpenConnection(false);
             try
             {
@@ -700,14 +734,7 @@ namespace RabbitMQ.Client
 
             builder.Host = HostName;
 
-            if (Port == AmqpTcpEndpoint.UseDefaultPort)
-            {
-                builder.Port = 5672;
-            }
-            else
-            {
-                builder.Port = Port;
-            }
+            builder.Port = Endpoint.Port;
 
             if (false == string.IsNullOrEmpty(UserName))
             {
@@ -748,6 +775,12 @@ namespace RabbitMQ.Client
             if (uri.Segments.Length > 2)
             {
                 throw new ArgumentException($"Multiple segments in path of AMQP URI: {string.Join(", ", uri.Segments)}");
+            }
+
+            if (false == tls && Ssl is { Enabled: true })
+            {
+                throw new InvalidOperationException(
+                    "An amqp:// URI cannot turn off TLS that Ssl enables; assign Ssl a new SslOption first, or use amqps://.");
             }
 
             // The URI decides only what it states, applied to a copy: an endpoint or connection that
@@ -797,11 +830,6 @@ namespace RabbitMQ.Client
             return Uri.UnescapeDataString(uri.Replace("+", "%2B"));
         }
 
-        private List<AmqpTcpEndpoint> LocalEndpoints()
-        {
-            return new List<AmqpTcpEndpoint> { Endpoint };
-        }
-
         [return: NotNullIfNotNull(nameof(clientProvidedName))]
         private static string? EnsureClientProvidedNameLength(string? clientProvidedName)
         {
@@ -814,6 +842,32 @@ namespace RabbitMQ.Client
             }
 
             return clientProvidedName;
+        }
+
+        // Recovery reuses the resolver. Each endpoint it yields gets its own copy of the options, so no
+        // SslOption the caller can reach, including IConnection.Endpoint's, changes an attempt in progress. GHSA-5wrf-cc49-8x6j.
+        internal sealed class TlsEndpointResolver : IEndpointResolver
+        {
+            private readonly IEndpointResolver _inner;
+            private readonly SslOption? _factorySsl;
+
+            internal TlsEndpointResolver(IEndpointResolver inner, SslOption? factorySsl)
+            {
+                _inner = inner;
+                _factorySsl = factorySsl;
+            }
+
+            public IEnumerable<AmqpTcpEndpoint> All()
+            {
+                return _inner.All().Select(e => e is { } endpoint ? WithOwnCopyOfSsl(endpoint) : e);
+            }
+
+            private AmqpTcpEndpoint WithOwnCopyOfSsl(AmqpTcpEndpoint endpoint)
+            {
+                // Copies before deciding, so a concurrent change to the caller's instance cannot slip between.
+                SslOption? own = endpoint.Ssl?.Clone();
+                return endpoint.CloneWithSsl(own is { Enabled: true } ? own : _factorySsl?.Clone() ?? own);
+            }
         }
     }
 }
