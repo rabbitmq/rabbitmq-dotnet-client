@@ -32,6 +32,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.Tracing;
+using RabbitMQ.Client.Events;
 
 namespace RabbitMQ.Client.Logging
 {
@@ -40,12 +41,21 @@ namespace RabbitMQ.Client.Logging
     {
         public RabbitMqExceptionDetail(Exception ex)
         {
+            // The exception can be the application's, whose members may throw. #2131
             Type = ex.GetType().FullName;
-            Message = ex.Message;
-            StackTrace = ex.StackTrace;
+            Message = ShutdownEventArgs.SafeMessage(ex);
+            try
+            {
+                StackTrace = ex.StackTrace;
+            }
+            catch
+            {
+                StackTrace = null;
+            }
+
             if (ex.InnerException != null)
             {
-                InnerException = ex.InnerException.ToString();
+                InnerException = ShutdownEventArgs.SafeToString(ex.InnerException);
             }
         }
 
