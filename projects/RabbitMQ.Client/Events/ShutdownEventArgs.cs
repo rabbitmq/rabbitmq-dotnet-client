@@ -126,7 +126,7 @@ namespace RabbitMQ.Client.Events
         public override string ToString()
         {
             return GetMessageCore()
-                + (_exception != null ? $", exception={_exception}" : string.Empty);
+                + (_exception != null ? $", exception={SafeToString(_exception)}" : string.Empty);
         }
 
         /// <summary>
@@ -151,6 +151,18 @@ namespace RabbitMQ.Client.Events
             catch
             {
                 return exception.GetType().FullName ?? nameof(Exception);
+            }
+        }
+
+        internal static string SafeToString(Exception exception)
+        {
+            try
+            {
+                return exception.ToString();
+            }
+            catch
+            {
+                return SafeMessage(exception);
             }
         }
 
