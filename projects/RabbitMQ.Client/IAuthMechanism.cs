@@ -42,6 +42,18 @@ namespace RabbitMQ.Client
         /// <summary>
         /// Handle one round of challenge-response.
         /// </summary>
+        /// <param name="challenge">
+        /// <c>null</c> on the first call, whose result is the response sent in <c>connection.start-ok</c>;
+        /// after that, the challenge the broker sent in <c>connection.secure</c>.
+        /// </param>
+        /// <param name="config">The configuration of the connection being opened.</param>
+        /// <param name="cancellationToken">Cancels the connection attempt.</param>
+        /// <returns>The response to send to the broker.</returns>
+        /// <remarks>
+        /// To refuse a challenge, throw; the exception fails the connection attempt. A connection attempt
+        /// accepts at most 10 challenges, and fails with <see cref="Exceptions.ProtocolViolationException"/>
+        /// on the next one.
+        /// </remarks>
         Task<byte[]> HandleChallengeAsync(byte[]? challenge, ConnectionConfig config,
             CancellationToken cancellationToken = default);
     }

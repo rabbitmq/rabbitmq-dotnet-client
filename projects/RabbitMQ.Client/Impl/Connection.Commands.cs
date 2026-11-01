@@ -142,6 +142,7 @@ namespace RabbitMQ.Client.Impl
                 IAuthMechanismFactory mechanismFactory = GetAuthMechanismFactory(mechanismsString);
                 IAuthMechanism mechanism = mechanismFactory.GetInstance();
                 byte[]? challenge = null;
+                int challenges = 0;
                 do
                 {
                     byte[] response = await mechanism.HandleChallengeAsync(challenge, _config, cancellationToken)
@@ -166,6 +167,14 @@ namespace RabbitMQ.Client.Impl
                     }
                     else
                     {
+                        // A peer that never stops challenging would otherwise keep the handshake
+                        // going, and the mechanism answering, indefinitely. #2077.
+                        if (++challenges > MaxSaslChallenges)
+                        {
+                            throw new ProtocolViolationException(
+                                $"The broker sent more than {MaxSaslChallenges} connection.secure challenges.");
+                        }
+
                         challenge = res.m_challenge;
                     }
                 }
@@ -200,6 +209,9 @@ namespace RabbitMQ.Client.Impl
             cancellationToken.ThrowIfCancellationRequested();
             MaybeStartHeartbeatTimers();
         }
+
+        // SCRAM needs two challenges; this leaves room for longer mechanisms.
+        internal const int MaxSaslChallenges = 10;
 
         private IAuthMechanismFactory GetAuthMechanismFactory(string supportedMechanismNames)
         {
