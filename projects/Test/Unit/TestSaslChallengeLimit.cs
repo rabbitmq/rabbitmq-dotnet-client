@@ -73,8 +73,6 @@ namespace Test.Unit
             Assert.Equal(0, responses);
         }
 
-        // RFC 4422 lets a server that reads EXTERNAL's empty initial response as absent send an
-        // empty challenge for it.
         [Fact]
         public async Task AnExternalHandshakeAnswersAnEmptyChallenge_GH2077()
         {
