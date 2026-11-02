@@ -245,6 +245,11 @@ namespace RabbitMQ.Client
         /// <summary>
         /// Message header field table. Is of type <see cref="IDictionary{TKey,TValue}" />.
         /// </summary>
+        /// <remarks>
+        /// A <c>ReadOnlyMemory&lt;byte&gt;</c>, <c>Memory&lt;byte&gt;</c> or <c>ArraySegment&lt;byte&gt;</c> value
+        /// is sent as a long string, like a <c>byte[]</c>, and is received as a <c>byte[]</c>.
+        /// Its contents must not change until the publish completes.
+        /// </remarks>
         new IDictionary<string, object?>? Headers { get; set; }
 
         /// <summary>

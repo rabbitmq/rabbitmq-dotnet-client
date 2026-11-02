@@ -30,6 +30,7 @@
 //---------------------------------------------------------------------------
 
 
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Text;
@@ -97,6 +98,86 @@ namespace Test.Unit
                     (byte)'S', // type
                     0,0,0,2,(byte)'b',(byte)'c' // value
                 });
+        }
+
+        public static TheoryData<object> ByteSliceValues_GH2144()
+        {
+            byte[] buffer = { (byte)'x', (byte)'b', (byte)'c', (byte)'x' };
+            return new TheoryData<object>
+            {
+                new ReadOnlyMemory<byte>(buffer, 1, 2),
+                new Memory<byte>(buffer, 1, 2),
+                new ArraySegment<byte>(buffer, 1, 2),
+            };
+        }
+
+        [Theory]
+        [MemberData(nameof(ByteSliceValues_GH2144))]
+        public void TestTableEncoding_S_WritesOnlyTheSlice_GH2144(object value)
+        {
+            IDictionary<string, object> t = new Dictionary<string, object>
+            {
+                ["a"] = value
+            };
+            int bytesNeeded = WireFormatting.GetTableByteCount(t);
+            byte[] bytes = new byte[bytesNeeded];
+            WireFormatting.WriteTable(ref bytes.GetStart(), t);
+            int bytesRead = WireFormatting.ReadDictionary(bytes, out var nt);
+            Assert.Equal(bytesNeeded, bytesRead);
+            Check(bytes, new byte[] {
+                    0,0,0,9, // table length
+                    1,(byte)'a', // key
+                    (byte)'S', // type
+                    0,0,0,2,(byte)'b',(byte)'c' // value
+                });
+            Assert.Equal(Encoding.UTF8.GetBytes("bc"), nt["a"]);
+        }
+
+        [Theory]
+        [MemberData(nameof(ByteSliceValues_GH2144))]
+        public void TestArrayEncoding_S_WritesOnlyTheSlice_GH2144(object value)
+        {
+            IDictionary<string, object> t = new Dictionary<string, object>
+            {
+                ["a"] = new List<object> { value }
+            };
+            int bytesNeeded = WireFormatting.GetTableByteCount(t);
+            byte[] bytes = new byte[bytesNeeded];
+            WireFormatting.WriteTable(ref bytes.GetStart(), t);
+            int bytesRead = WireFormatting.ReadDictionary(bytes, out var nt);
+            Assert.Equal(bytesNeeded, bytesRead);
+            IList narray = (IList)nt["a"];
+            Assert.Single(narray);
+            Assert.Equal(Encoding.UTF8.GetBytes("bc"), narray[0]);
+        }
+
+        public static TheoryData<object> EmptyByteSliceValues_GH2144() => new TheoryData<object>
+        {
+            default(ReadOnlyMemory<byte>),
+            default(Memory<byte>),
+            default(ArraySegment<byte>),
+        };
+
+        [Theory]
+        [MemberData(nameof(EmptyByteSliceValues_GH2144))]
+        public void TestTableEncoding_S_EmptySlice_GH2144(object value)
+        {
+            IDictionary<string, object> t = new Dictionary<string, object>
+            {
+                ["a"] = value
+            };
+            int bytesNeeded = WireFormatting.GetTableByteCount(t);
+            byte[] bytes = new byte[bytesNeeded];
+            WireFormatting.WriteTable(ref bytes.GetStart(), t);
+            int bytesRead = WireFormatting.ReadDictionary(bytes, out var nt);
+            Assert.Equal(bytesNeeded, bytesRead);
+            Check(bytes, new byte[] {
+                    0,0,0,7, // table length
+                    1,(byte)'a', // key
+                    (byte)'S', // type
+                    0,0,0,0 // value
+                });
+            Assert.Equal(Array.Empty<byte>(), nt["a"]);
         }
 
         [Fact]
