@@ -110,12 +110,7 @@
       Raising this therefore requires moving to a newer SDK first.
     -->
     <GlobalPackageReference Include="Microsoft.CodeAnalysis.PublicApiAnalyzers" Version="3.3.4" />
-    <!--
-      Note: do NOT upgrade SourceLink past 10.0.110. 10.0.200 added a transitive
-      dependency on System.IO.Hashing, which requires System.Memory >= 4.6.3 and so
-      trips NU1605 against the deliberate System.Memory 4.5.5 pin above.
-    -->
-    <GlobalPackageReference Include="Microsoft.SourceLink.GitHub" Version="10.0.110" />
     <GlobalPackageReference Include="MinVer" Version="7.0.0" />
+    <!-- No Microsoft.SourceLink.* reference: the SDK provides SourceLink; 10.x here disables it and 8.0.0 brings an affected Tasks.Git (#2141). -->
   </ItemGroup>
 </Project>
