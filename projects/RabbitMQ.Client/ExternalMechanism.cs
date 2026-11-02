@@ -32,6 +32,7 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using RabbitMQ.Client.Exceptions;
 
 namespace RabbitMQ.Client
 {
@@ -40,9 +41,18 @@ namespace RabbitMQ.Client
         /// <summary>
         /// Handle one round of challenge-response.
         /// </summary>
+        /// <exception cref="ProtocolViolationException">The broker sent a challenge that is not empty, which EXTERNAL cannot answer.</exception>
         public Task<byte[]> HandleChallengeAsync(byte[]? challenge, ConnectionConfig config,
             CancellationToken cancellationToken = default)
         {
+            // RFC 4422 lets a server that reads the empty initial response as absent ask for it
+            // with an empty challenge.
+            if (challenge is { Length: > 0 })
+            {
+                return Task.FromException<byte[]>(new ProtocolViolationException(
+                    "The broker sent a connection.secure challenge, but EXTERNAL can answer only an empty one."));
+            }
+
             return Task.FromResult(Array.Empty<byte>());
         }
     }

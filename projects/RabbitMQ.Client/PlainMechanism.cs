@@ -32,14 +32,25 @@
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using RabbitMQ.Client.Exceptions;
 
 namespace RabbitMQ.Client
 {
     public class PlainMechanism : IAuthMechanism
     {
+        /// <summary>
+        /// Handle one round of challenge-response.
+        /// </summary>
+        /// <exception cref="ProtocolViolationException">The broker sent a challenge, which PLAIN cannot answer.</exception>
         public async Task<byte[]> HandleChallengeAsync(byte[]? challenge, ConnectionConfig config,
             CancellationToken cancellationToken = default)
         {
+            if (challenge is not null)
+            {
+                throw new ProtocolViolationException(
+                    "The broker sent connection.secure, but PLAIN is a single-message mechanism and cannot answer a challenge.");
+            }
+
             ICredentialsProvider credentialsProvider = config.CredentialsProvider;
             Credentials credentials = await credentialsProvider.GetCredentialsAsync(cancellationToken)
                 .ConfigureAwait(false);
