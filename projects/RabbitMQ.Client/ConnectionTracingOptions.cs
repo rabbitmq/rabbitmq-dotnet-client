@@ -89,6 +89,16 @@ namespace RabbitMQ.Client
         // per connection, the resolve runs on every publish and delivery.
         private PropagatorAdapter? _adapter;
 
+        // The copy a connection keeps, so later changes to the factory's instance cannot reach it, or tear a
+        // bool? mid-read. Copy every public member; TestConnectionTracingOptionsCopy checks that. #2152.
+        internal ConnectionTracingOptions Copy() => new ConnectionTracingOptions
+        {
+            UseRoutingKeyAsOperationName = UseRoutingKeyAsOperationName,
+            UsePublisherAsParent = UsePublisherAsParent,
+            IncludeMessageSizes = IncludeMessageSizes,
+            Propagator = Propagator
+        };
+
         // Takes the propagator its caller read: a second read of Propagator can see it cleared. #2152.
         internal PropagatorAdapter GetOrCreateAdapter(DistributedContextPropagator propagator)
         {
