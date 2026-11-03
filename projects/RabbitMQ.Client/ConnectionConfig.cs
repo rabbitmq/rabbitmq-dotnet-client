@@ -152,12 +152,8 @@ namespace RabbitMQ.Client
 
         internal readonly Func<AmqpTcpEndpoint, CancellationToken, Task<IFrameHandler>> FrameHandlerFactoryAsync;
 
-        /// <summary>
-        /// A snapshot of the factory's <see cref="ConnectionFactory.TracingOptions"/> taken when this
-        /// connection was created, or <see langword="null"/> when the factory set none. Null means the
-        /// connection falls back to the deprecated process-wide statics on
-        /// <see cref="RabbitMQActivitySource"/>, read live at each operation.
-        /// </summary>
+        // A copy of the factory's TracingOptions, made when this connection was created; members it leaves
+        // null fall back to the process-wide default, read at each operation.
         internal readonly ConnectionTracingOptions? TracingOptions;
 
         internal ConnectionConfig(string virtualHost, string userName, string password,

@@ -5,15 +5,15 @@ using System.Diagnostics;
 namespace RabbitMQ.Client
 {
     /// <summary>
-    /// Tracing configuration: the options that shape the spans this client produces, and the
-    /// delegates that propagate trace context in and out of message headers.
+    /// Process-wide tracing configuration: the options that shape the spans this client produces,
+    /// and the propagation used where a connection sets none.
     /// </summary>
     /// <remarks>
-    /// Set this on <see cref="ConnectionFactory.TracingOptions"/> to own the configuration on the
-    /// connection that performs the traced operations. A connection captures the options in force
-    /// when it is created, so later changes to the factory do not affect connections already open.
-    /// Assigned to <see cref="RabbitMQActivitySource.TracingOptions"/> instead, the same type serves
-    /// as the process-wide default used by every connection whose factory set none.
+    /// Configured through the <c>AddRabbitMQInstrumentation</c> overload that takes no factory, in the
+    /// <c>RabbitMQ.Client.OpenTelemetry</c> package, or the deprecated <see cref="RabbitMQActivitySource.TracingOptions"/>. A connection
+    /// reads each member its factory's <see cref="ConnectionTracingOptions"/> leaves
+    /// <see langword="null"/> from here, at each operation. A new instance carries the client's
+    /// default propagation, so assigning one also replaces any propagation set before.
     /// </remarks>
     public class RabbitMQTracingOptions
     {
@@ -36,11 +36,11 @@ namespace RabbitMQ.Client
         /// <summary>
         /// When <see langword="true"/> (the default), a delivery span is parented to the trace
         /// context the publisher propagated in the message, so a publish and the deliveries it
-        /// causes form a single trace.
+        /// causes form a single trace. Fetch spans from <c>BasicGetAsync</c> are parented the same way.
         /// </summary>
         /// <remarks>
         /// Only parenting is affected. Whenever a context is successfully extracted from a message it
-        /// is attached to the delivery span as an <see cref="System.Diagnostics.ActivityLink"/> as
+        /// is attached to the delivery or fetch span as an <see cref="System.Diagnostics.ActivityLink"/> as
         /// well, in both modes, so setting this to <see langword="false"/> does not replace a parent
         /// with a link - it drops the parent and leaves the link. Turn it off where the publisher and
         /// the consumer are better treated as separate traces, for example when one message fans out
@@ -83,23 +83,6 @@ namespace RabbitMQ.Client
         {
             get => _contextExtractor;
             set => _contextExtractor = value ?? throw new ArgumentNullException(nameof(value));
-        }
-
-        /// <summary>
-        /// Returns an independent copy, so a connection can capture the options in force at its
-        /// creation without being affected by later changes to the source.
-        /// </summary>
-        internal RabbitMQTracingOptions Clone()
-        {
-            return new RabbitMQTracingOptions
-            {
-                UseRoutingKeyAsOperationName = UseRoutingKeyAsOperationName,
-                UsePublisherAsParent = UsePublisherAsParent,
-                // Assign through the properties, not the fields, so the copy keeps the non-null
-                // guarantee even if a future path could make the source fields null.
-                ContextInjector = _contextInjector,
-                ContextExtractor = _contextExtractor
-            };
         }
     }
 }
