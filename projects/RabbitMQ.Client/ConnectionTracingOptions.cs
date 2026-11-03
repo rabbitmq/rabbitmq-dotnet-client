@@ -89,11 +89,9 @@ namespace RabbitMQ.Client
         // per connection, the resolve runs on every publish and delivery.
         private PropagatorAdapter? _adapter;
 
-        internal PropagatorAdapter GetOrCreateAdapter()
+        // Takes the propagator its caller read: a second read of Propagator can see it cleared. #2152.
+        internal PropagatorAdapter GetOrCreateAdapter(DistributedContextPropagator propagator)
         {
-            DistributedContextPropagator propagator = Propagator
-                ?? throw new System.InvalidOperationException("Propagator is null.");
-
             PropagatorAdapter? adapter = _adapter;
             if (adapter is null || false == ReferenceEquals(adapter.Propagator, propagator))
             {

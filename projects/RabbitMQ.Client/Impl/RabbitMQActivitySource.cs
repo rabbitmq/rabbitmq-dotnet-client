@@ -182,9 +182,9 @@ namespace RabbitMQ.Client
             bool usePublisherAsParent = tracing?.UsePublisherAsParent ?? process.UsePublisherAsParent;
             bool includeMessageSizes = tracing?.IncludeMessageSizes ?? process.IncludeMessageSizes;
 
-            if (tracing?.Propagator is not null)
+            if (tracing?.Propagator is { } propagator)
             {
-                PropagatorAdapter adapter = tracing.GetOrCreateAdapter();
+                PropagatorAdapter adapter = tracing.GetOrCreateAdapter(propagator);
                 return new ResolvedTracingOptions(useRoutingKey, usePublisherAsParent, includeMessageSizes,
                     adapter.Injector, adapter.Extractor);
             }
