@@ -687,7 +687,7 @@ namespace RabbitMQ.Client
                 HandshakeContinuationTimeout,
                 RequestedConnectionTimeout,
                 ConsumerDispatchConcurrency,
-                TracingOptions,
+                TracingOptions?.Copy(),
                 CreateFrameHandlerAsync);
         }
 
