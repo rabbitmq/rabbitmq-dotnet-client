@@ -44,6 +44,7 @@ namespace RabbitMQ.Client
     {
         public string? ContentType { get; set; }
         public string? ContentEncoding { get; set; }
+        /// <inheritdoc cref="IBasicProperties.Headers"/>
         public IDictionary<string, object?>? Headers { get; set; }
         public DeliveryModes DeliveryMode { get; set; }
         public byte Priority { get; set; }

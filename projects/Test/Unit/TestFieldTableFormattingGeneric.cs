@@ -100,24 +100,42 @@ namespace Test.Unit
                 });
         }
 
-        public static TheoryData<object> ByteSliceValues_GH2144()
+        // Type names rather than the boxed structs, which xUnit cannot serialize, so that each type is
+        // discovered and reported as its own test.
+        public static TheoryData<string> ByteSliceTypes_GH2144() => new TheoryData<string>
+        {
+            "ReadOnlyMemory", "Memory", "ArraySegment"
+        };
+
+        // The (object) casts keep each arm's type: otherwise the switch converts all three to ReadOnlyMemory.
+        private static object ByteSlice(string type)
         {
             byte[] buffer = { (byte)'x', (byte)'b', (byte)'c', (byte)'x' };
-            return new TheoryData<object>
+            return type switch
             {
-                new ReadOnlyMemory<byte>(buffer, 1, 2),
-                new Memory<byte>(buffer, 1, 2),
-                new ArraySegment<byte>(buffer, 1, 2),
+                "ReadOnlyMemory" => (object)new ReadOnlyMemory<byte>(buffer, 1, 2),
+                "Memory" => (object)new Memory<byte>(buffer, 1, 2),
+                "ArraySegment" => (object)new ArraySegment<byte>(buffer, 1, 2),
+                _ => throw new ArgumentOutOfRangeException(nameof(type), type, null)
             };
         }
 
+        // Cast as in ByteSlice.
+        private static object EmptyByteSlice(string type) => type switch
+        {
+            "ReadOnlyMemory" => (object)default(ReadOnlyMemory<byte>),
+            "Memory" => (object)default(Memory<byte>),
+            "ArraySegment" => (object)default(ArraySegment<byte>),
+            _ => throw new ArgumentOutOfRangeException(nameof(type), type, null)
+        };
+
         [Theory]
-        [MemberData(nameof(ByteSliceValues_GH2144))]
-        public void TestTableEncoding_S_WritesOnlyTheSlice_GH2144(object value)
+        [MemberData(nameof(ByteSliceTypes_GH2144))]
+        public void TestTableEncoding_S_WritesOnlyTheSlice_GH2144(string type)
         {
             IDictionary<string, object> t = new Dictionary<string, object>
             {
-                ["a"] = value
+                ["a"] = ByteSlice(type)
             };
             int bytesNeeded = WireFormatting.GetTableByteCount(t);
             byte[] bytes = new byte[bytesNeeded];
@@ -134,12 +152,12 @@ namespace Test.Unit
         }
 
         [Theory]
-        [MemberData(nameof(ByteSliceValues_GH2144))]
-        public void TestArrayEncoding_S_WritesOnlyTheSlice_GH2144(object value)
+        [MemberData(nameof(ByteSliceTypes_GH2144))]
+        public void TestArrayEncoding_S_WritesOnlyTheSlice_GH2144(string type)
         {
             IDictionary<string, object> t = new Dictionary<string, object>
             {
-                ["a"] = new List<object> { value }
+                ["a"] = new List<object> { ByteSlice(type) }
             };
             int bytesNeeded = WireFormatting.GetTableByteCount(t);
             byte[] bytes = new byte[bytesNeeded];
@@ -151,20 +169,13 @@ namespace Test.Unit
             Assert.Equal(Encoding.UTF8.GetBytes("bc"), narray[0]);
         }
 
-        public static TheoryData<object> EmptyByteSliceValues_GH2144() => new TheoryData<object>
-        {
-            default(ReadOnlyMemory<byte>),
-            default(Memory<byte>),
-            default(ArraySegment<byte>),
-        };
-
         [Theory]
-        [MemberData(nameof(EmptyByteSliceValues_GH2144))]
-        public void TestTableEncoding_S_EmptySlice_GH2144(object value)
+        [MemberData(nameof(ByteSliceTypes_GH2144))]
+        public void TestTableEncoding_S_EmptySliceWritesAnEmptyLongstr_GH2144(string type)
         {
             IDictionary<string, object> t = new Dictionary<string, object>
             {
-                ["a"] = value
+                ["a"] = EmptyByteSlice(type)
             };
             int bytesNeeded = WireFormatting.GetTableByteCount(t);
             byte[] bytes = new byte[bytesNeeded];
