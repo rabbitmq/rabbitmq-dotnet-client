@@ -109,8 +109,8 @@ namespace Test.Integration.ConnectionRecovery
             /*
              * A channel disposed while the connection is down stays recorded: IsOpen is false, so
              * DisposeAsync skips AbortAsync and with it the DeleteRecordedChannelAsync in
-             * CloseAsync's finally. Recovery is what drops it, and this is the only path on which
-             * AutomaticallyRecoverAsync returns false. The interval is long enough that disposal
+             * CloseAsync's finally. Recovery is what drops it, because AutomaticallyRecoverAsync returns
+             * false for a disposed channel. The interval is long enough that disposal
              * lands before recovery takes its snapshot, so nothing here races.
              */
             AutorecoveringConnection conn = await CreateAutorecoveringConnectionAsync(TimeSpan.FromSeconds(8));

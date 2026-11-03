@@ -33,7 +33,6 @@ using System;
 using System.Buffers;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -47,8 +46,6 @@ namespace RabbitMQ.Client.Impl
     internal sealed class AutorecoveringChannel : IChannel, IRecoverable
     {
         private readonly CreateChannelOptions _createChannelOptions;
-        // Locked: consumes on one channel can complete concurrently, and a HashSet does not survive concurrent adds.
-        private readonly HashSet<string> _recordedConsumerTags = new HashSet<string>();
 
         private AutorecoveringConnection _connection;
         private RecoveryAwareChannel _innerChannel;
@@ -152,18 +149,6 @@ namespace RabbitMQ.Client.Impl
         {
             add { InnerChannel.RecoveryAsync += value; }
             remove { InnerChannel.RecoveryAsync -= value; }
-        }
-
-        public IEnumerable<string> ConsumerTags
-        {
-            get
-            {
-                ThrowIfDisposed();
-                lock (_recordedConsumerTags)
-                {
-                    return _recordedConsumerTags.ToArray();
-                }
-            }
         }
 
         public int ChannelNumber => InnerChannel.ChannelNumber;
@@ -403,7 +388,7 @@ namespace RabbitMQ.Client.Impl
             }
 
             /*
-             * Snapshot the inner channel once and latch _disposed first. AbortAsync can park for a
+             * Snapshot the inner channel once. AbortAsync can park for a
              * long time, and a recovery completing in that window installs a different channel, so
              * re-reading the field afterwards would dispose the one the application is now using.
              * This narrows the race rather than closing it; the rest is #2020.
@@ -419,41 +404,32 @@ namespace RabbitMQ.Client.Impl
                 }
                 else if (_connection.IsOpen)
                 {
-                    /*
-                     * A channel the broker closed on a healthy connection is deregistered here,
-                     * because the abort that normally does it runs only while the channel is open.
-                     * Gated on the connection: a channel disposed while the connection is down must
-                     * stay recorded, since recovery is what drops it and that is the only path on
-                     * which AutomaticallyRecoverAsync returns false. It also cannot move into the
-                     * finally below, where ConsumerTags already throws. #2024.
-                     */
-                    await _connection.DeleteRecordedChannelAsync(this,
-                        channelsSemaphoreHeld: false, recordedEntitiesSemaphoreHeld: false)
-                            .ConfigureAwait(false);
+                    // Deregisters a broker-closed channel (#2024). Awaited only if it completes at once: a
+                    // wait for recovery's semaphore stalls a handler's receive loop, and recovery skips the
+                    // channel because the finally sets _disposed without yielding (#2149).
+                    Task deregistration = DeregisterAsync();
+                    if (deregistration.IsCompleted)
+                    {
+                        await deregistration.ConfigureAwait(false);
+                    }
                 }
             }
             finally
             {
                 _disposed = true;
 
-                try
-                {
-                    lock (_recordedConsumerTags)
-                    {
-                        _recordedConsumerTags.Clear();
-                    }
-                }
-                catch
-                {
-                }
-
                 /*
                  * Nothing else reaches the inner channel when automatic recovery is enabled, so
                  * without this its consumer dispatcher was abandoned. Safe now that a channel no
                  * longer disposes the shared publisher-confirmation rate limiter. Issue #1988.
                  */
-                await SafeDisposeAsync(channelToDispose, "inner")
-                    .ConfigureAwait(false);
+                // Not awaited while the inner channel still runs a broker close's shutdown handlers, which
+                // its dispose waits for: from one of those handlers that is a wait on itself. #2149.
+                Task innerDisposal = SafeDisposeAsync(channelToDispose, "inner");
+                if (false == channelToDispose.IsNotifyingServerClose || innerDisposal.IsCompleted)
+                {
+                    await innerDisposal.ConfigureAwait(false);
+                }
             }
         }
 
@@ -488,10 +464,6 @@ namespace RabbitMQ.Client.Impl
                 queue: queue, autoAck: autoAck, exclusive: exclusive, arguments: arguments);
             await _connection.RecordConsumerAsync(rc, recordedEntitiesSemaphoreHeld: false)
                 .ConfigureAwait(false);
-            lock (_recordedConsumerTags)
-            {
-                _recordedConsumerTags.Add(resultConsumerTag);
-            }
             return resultConsumerTag;
         }
 
@@ -697,6 +669,20 @@ namespace RabbitMQ.Client.Impl
         {
             _usesTransactions = true;
             return InnerChannel.TxSelectAsync(cancellationToken);
+        }
+
+        private async Task DeregisterAsync()
+        {
+            try
+            {
+                await _connection.DeleteRecordedChannelAsync(this,
+                    channelsSemaphoreHeld: false, recordedEntitiesSemaphoreHeld: false)
+                        .ConfigureAwait(false);
+            }
+            catch (Exception e)
+            {
+                ESLog.Warn($"Caught an exception while deregistering a disposed channel: {e}");
+            }
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
