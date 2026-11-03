@@ -488,8 +488,7 @@ namespace RabbitMQ.Client.Impl
 
             if (recordedEntitiesSemaphoreHeld)
             {
-                await DoDeleteRecordedConsumersAsync(channel)
-                    .ConfigureAwait(false);
+                DoDeleteRecordedConsumers(channel);
             }
             else
             {
@@ -497,8 +496,7 @@ namespace RabbitMQ.Client.Impl
                     .ConfigureAwait(false);
                 try
                 {
-                    await DoDeleteRecordedConsumersAsync(channel)
-                        .ConfigureAwait(false);
+                    DoDeleteRecordedConsumers(channel);
                 }
                 finally
                 {
@@ -525,12 +523,13 @@ namespace RabbitMQ.Client.Impl
             }
         }
 
-        private async Task DoDeleteRecordedConsumersAsync(AutorecoveringChannel channel)
+        // By owner, not by tag: another channel may have consumed with a tag this one used. #2149.
+        private void DoDeleteRecordedConsumers(AutorecoveringChannel channel)
         {
-            foreach (string ct in channel.ConsumerTags)
+            foreach (RecordedConsumer recordedConsumer in _recordedConsumers.Values
+                .Where(c => ReferenceEquals(c.Channel, channel)).ToArray())
             {
-                await DeleteRecordedConsumerAsync(ct, recordedEntitiesSemaphoreHeld: true)
-                    .ConfigureAwait(false);
+                DoDeleteRecordedConsumer(recordedConsumer.ConsumerTag);
             }
         }
 

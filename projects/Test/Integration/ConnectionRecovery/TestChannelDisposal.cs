@@ -97,6 +97,141 @@ namespace Test.Integration.ConnectionRecovery
         }
 
         [Fact]
+        public async Task TestDisposingAClosedChannelDuringRecoveryNeitherWaitsForItNorIsRecovered_GH2149()
+        {
+            IChannel closed = null;
+            string closedQueue = null;
+            bool disposedWhileRecoveryHeldTheSemaphore = false;
+            // The filter runs while recovery holds the recorded-entities semaphore, after the new
+            // connection is open and before channels recover.
+            var filter = new TopologyRecoveryFilter
+            {
+                QueueFilter = q =>
+                {
+                    if (q.Name == closedQueue && closed is not null)
+                    {
+                        disposedWhileRecoveryHeldTheSemaphore = closed.DisposeAsync().AsTask().Wait(TimeSpan.FromSeconds(5));
+                        closed = null;
+                    }
+                    return true;
+                }
+            };
+            await using AutorecoveringConnection conn = await CreateAutorecoveringConnectionWithTopologyRecoveryFilterAsync(filter);
+            bool recoveryFailed = false;
+            conn.ConnectionRecoveryErrorAsync += (_, _) =>
+            {
+                recoveryFailed = true;
+                return Task.CompletedTask;
+            };
+            (IChannel channel, string queue) = await CreateChannelClosedByBrokerAsync(conn, string.Empty);
+            closedQueue = queue;
+            closed = channel;
+
+            await CloseAndWaitForRecoveryAsync(conn);
+
+            Assert.False(recoveryFailed, "a recovery attempt failed, so a later one may have hidden the bug");
+            Assert.True(disposedWhileRecoveryHeldTheSemaphore, "disposing the closed channel waited for recovery");
+            await using IChannel probe = await conn.CreateChannelAsync();
+            await AssertConsumerCountAsync(probe, closedQueue, 0);
+
+            // The deregistration the dispose did not wait for still has to run once recovery releases.
+            var deadline = Stopwatch.StartNew();
+            while (conn.RecordedConsumersCount != 0 && deadline.Elapsed < WaitSpan)
+            {
+                await Task.Delay(50);
+            }
+            Assert.Equal(0, conn.RecordedConsumersCount);
+        }
+
+        [Fact]
+        public async Task TestDisposingAClosedChannelKeepsAnotherChannelsConsumerWithTheSameTag_GH2149()
+        {
+            string consumerTag = $"gh2149-{Guid.NewGuid():N}";
+            await using AutorecoveringConnection conn = await CreateAutorecoveringConnectionAsync();
+            (IChannel closed, _) = await CreateChannelClosedByBrokerAsync(conn, consumerTag);
+
+            await using IChannel replacement = await conn.CreateChannelAsync();
+            string queue = (await replacement.QueueDeclareAsync(GenerateQueueName(), false, true, false)).QueueName;
+            var delivered = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+            var consumer = new AsyncEventingBasicConsumer(replacement);
+            consumer.ReceivedAsync += (_, _) =>
+            {
+                delivered.TrySetResult(true);
+                return Task.CompletedTask;
+            };
+            await replacement.BasicConsumeAsync(queue, true, consumerTag, consumer);
+
+            await closed.DisposeAsync();
+            await CloseAndWaitForRecoveryAsync(conn);
+
+            await replacement.BasicPublishAsync(string.Empty, queue, new byte[] { 1 });
+            await WaitAsync(delivered, "delivery to the replacement channel's consumer after recovery");
+        }
+
+        [Fact]
+        public async Task TestDisposingAChannelFromItsShutdownHandlerDoesNotWaitForTheHandler_GH2149()
+        {
+            await using AutorecoveringConnection conn = await CreateAutorecoveringConnectionAsync();
+            IChannel ch = await conn.CreateChannelAsync();
+            TimeSpan disposeTook = TimeSpan.Zero;
+            var handlerDone = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+            ch.ChannelShutdownAsync += async (_, _) =>
+            {
+                var sw = Stopwatch.StartNew();
+                await ch.DisposeAsync();
+                disposeTook = sw.Elapsed;
+                handlerDone.TrySetResult(true);
+            };
+
+            await Assert.ThrowsAnyAsync<OperationInterruptedException>(() =>
+                ch.QueueDeclarePassiveAsync(GenerateQueueName()));
+            await WaitAsync(handlerDone, "the channel's shutdown handler");
+
+            // A dispose that waited for its own handler to return would take the 5 s dispose timeout.
+            Assert.True(disposeTook < TimeSpan.FromSeconds(2), $"disposing from the shutdown handler took {disposeTook}");
+        }
+
+        [Fact]
+        public async Task TestDisposingAChannelFromItsConsumersShutdownHandlerDoesNotWaitForTheHandler_GH2149()
+        {
+            await using AutorecoveringConnection conn = await CreateAutorecoveringConnectionAsync();
+            IChannel ch = await conn.CreateChannelAsync();
+            string q = (await ch.QueueDeclareAsync(GenerateQueueName(), false, true, false)).QueueName;
+            var consumer = new AsyncEventingBasicConsumer(ch);
+            TimeSpan disposeTook = TimeSpan.Zero;
+            var handlerDone = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+            consumer.ShutdownAsync += async (_, _) =>
+            {
+                var sw = Stopwatch.StartNew();
+                await ch.DisposeAsync();
+                disposeTook = sw.Elapsed;
+                handlerDone.TrySetResult(true);
+            };
+            await ch.BasicConsumeAsync(q, true, consumer);
+
+            await Assert.ThrowsAnyAsync<OperationInterruptedException>(() =>
+                ch.QueueDeclarePassiveAsync(GenerateQueueName()));
+            await WaitAsync(handlerDone, "the consumer's shutdown handler");
+
+            // Runs on the consumer dispatcher's flow, not the channel's notification: the same wait.
+            Assert.True(disposeTook < TimeSpan.FromSeconds(2), $"disposing from the consumer's shutdown handler took {disposeTook}");
+        }
+
+        // A passive declare of a missing queue is a channel-level NOT_FOUND: the broker closes the
+        // channel and the connection stays up, which is the state these tests need.
+        private async Task<(IChannel Channel, string Queue)> CreateChannelClosedByBrokerAsync(
+            AutorecoveringConnection conn, string consumerTag)
+        {
+            IChannel ch = await conn.CreateChannelAsync();
+            string q = (await ch.QueueDeclareAsync(GenerateQueueName(), false, true, false)).QueueName;
+            await ch.BasicConsumeAsync(q, true, consumerTag, new AsyncEventingBasicConsumer(ch));
+            await Assert.ThrowsAnyAsync<OperationInterruptedException>(() =>
+                ch.QueueDeclarePassiveAsync(GenerateQueueName()));
+            Assert.False(ch.IsOpen, "the broker did not close the channel, so this test proves nothing");
+            return (ch, q);
+        }
+
+        [Fact]
         public async Task TestDisposingChannelDisposesInnerConsumerDispatcher_GH1988()
         {
             IChannel channel = await _conn.CreateChannelAsync(_createChannelOptions);

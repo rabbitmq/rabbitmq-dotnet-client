@@ -62,6 +62,10 @@ namespace RabbitMQ.Client.Impl
 
         private TaskCompletionSource<bool>? _serverOriginatedChannelCloseTcs;
 
+        // True while a broker-initiated close is still running its shutdown notification, which a
+        // dispose of this channel waits for.
+        internal bool IsNotifyingServerClose => _serverOriginatedChannelCloseTcs is { Task.IsCompleted: false };
+
         internal readonly IConsumerDispatcher ConsumerDispatcher;
 
         // The connection's copy of the factory's tracing options, from the channel options; null falls

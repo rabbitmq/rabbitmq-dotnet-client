@@ -22,7 +22,7 @@ Anything the application set on the channel and that is *not* in that transplant
 | `basic.qos` `prefetchSize` | no | `AutorecoveringChannel` records only `prefetchCount` and replays `0` |
 | `basic.consume` `noLocal` | no | not stored on `RecordedConsumer`; re-issued as `false` |
 
-The last two are unreachable rather than fixed, and both were checked against a RabbitMQ 4.3 broker: a non-zero `prefetchSize` is rejected outright (`540 NOT_IMPLEMENTED - prefetch_size!=0`), so no value can exist to lose, and the broker ignores `noLocal`, so re-issuing `false` changes nothing. `AutorecoveringChannel._recordedConsumerTags` can look stale after a consumer-tag change; it is not, because `RecordedConsumer.RecoverAsync` re-sends the explicit tag and the broker returns the same one.
+The last two are unreachable rather than fixed, and both were checked against a RabbitMQ 4.3 broker: a non-zero `prefetchSize` is rejected outright (`540 NOT_IMPLEMENTED - prefetch_size!=0`), so no value can exist to lose, and the broker ignores `noLocal`, so re-issuing `false` changes nothing. Closing or disposing a channel finds its recorded consumers by their `Channel`, not by tag, so a consumer-tag change cannot strand one and a tag another channel reused is not removed (#2149). Records are still keyed by tag across the connection (#2119), and `BasicCancelAsync` still removes by tag (#2153).
 
 ## `CurrentQueue` is lost, and is not fixed here
 
