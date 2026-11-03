@@ -204,6 +204,15 @@ namespace RabbitMQ.Client.Impl
                     case IDictionary val:
                         destination = (byte)'F';
                         return 1 + WriteTable(ref fieldValue, val);
+                    case ReadOnlyMemory<byte> val:
+                        destination = (byte)'S';
+                        return 1 + WriteLongstr(ref fieldValue, val.Span);
+                    case Memory<byte> val:
+                        destination = (byte)'S';
+                        return 1 + WriteLongstr(ref fieldValue, val.Span);
+                    case ArraySegment<byte> val:
+                        destination = (byte)'S';
+                        return 1 + WriteLongstr(ref fieldValue, val.AsSpan());
                     case BinaryTableValue val:
                         destination = (byte)'x';
                         return 1 + WriteLongstr(ref fieldValue, val.Bytes);
@@ -257,6 +266,12 @@ namespace RabbitMQ.Client.Impl
                     return 6;
                 case IDictionary val:
                     return 1 + GetTableByteCount(val, depth);
+                case ReadOnlyMemory<byte> val:
+                    return 5 + val.Length;
+                case Memory<byte> val:
+                    return 5 + val.Length;
+                case ArraySegment<byte> val:
+                    return 5 + val.Count;
                 case BinaryTableValue val:
                     return 5 + val.Bytes.Length;
                 default:

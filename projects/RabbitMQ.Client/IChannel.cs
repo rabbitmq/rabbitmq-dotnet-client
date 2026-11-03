@@ -174,7 +174,7 @@ namespace RabbitMQ.Client
         /// <param name="consumerTag">The consumer tag.</param>
         /// <param name="noLocal">If set to <c>true</c>, this consumer will not receive messages published by the same connection.</param>
         /// <param name="exclusive">If set to <c>true</c>, the consumer is exclusive.</param>
-        /// <param name="arguments">Consumer arguments.</param>
+        /// <param name="arguments">Consumer arguments. With topology recovery, a <c>ReadOnlyMemory&lt;byte&gt;</c>, <c>Memory&lt;byte&gt;</c> or <c>ArraySegment&lt;byte&gt;</c> value is sent again on each recovery, so it must stay valid and unchanged until the connection is closed.</param>
         /// <param name="consumer">The consumer, an instance of <see cref="IAsyncBasicConsumer"/></param>
         /// <param name="cancellationToken">Cancellation token for this operation.</param>
         /// <returns></returns>
@@ -391,7 +391,7 @@ namespace RabbitMQ.Client
         /// <param name="type">The type of the exchange.</param>
         /// <param name="durable">Should this exchange survive a broker restart?</param>
         /// <param name="autoDelete">Should this exchange be auto-deleted?</param>
-        /// <param name="arguments">The arguments.</param>
+        /// <param name="arguments">The arguments. With topology recovery, a <c>ReadOnlyMemory&lt;byte&gt;</c>, <c>Memory&lt;byte&gt;</c> or <c>ArraySegment&lt;byte&gt;</c> value is sent again on each recovery, so it must stay valid and unchanged until the connection is closed.</param>
         /// <param name="passive">Optional; Set to <code>true</code> to passively declare the exchange (i.e. check for its existence)</param>
         /// <param name="noWait">If set to <c>true</c>, do not require a response from the server.</param>
         /// <param name="cancellationToken">CancellationToken for this operation.</param>
@@ -431,7 +431,7 @@ namespace RabbitMQ.Client
         /// <param name="destination">The name of the destination exchange.</param>
         /// <param name="source">The name of the source exchange.</param>
         /// <param name="routingKey">The routing key.</param>
-        /// <param name="arguments">The binding arguments.</param>
+        /// <param name="arguments">The binding arguments. With topology recovery, a <c>ReadOnlyMemory&lt;byte&gt;</c>, <c>Memory&lt;byte&gt;</c> or <c>ArraySegment&lt;byte&gt;</c> value is sent again on each recovery, so it must stay valid and unchanged until the connection is closed.</param>
         /// <param name="noWait">If set to <c>true</c>, do not require a response from the server.</param>
         /// <param name="cancellationToken">CancellationToken for this operation.</param>
         /// <remarks>
@@ -464,7 +464,7 @@ namespace RabbitMQ.Client
         /// <param name="durable">Should this queue survive a broker restart?</param>
         /// <param name="exclusive">Should this queue use be limited to its declaring connection? Such a queue will be deleted when its declaring connection closes.</param>
         /// <param name="autoDelete">Should this queue be auto-deleted when its last consumer (if any) unsubscribes?</param>
-        /// <param name="arguments">Optional; additional queue arguments, e.g. "x-queue-type"</param>
+        /// <param name="arguments">Optional; additional queue arguments, e.g. "x-queue-type". With topology recovery, a <c>ReadOnlyMemory&lt;byte&gt;</c>, <c>Memory&lt;byte&gt;</c> or <c>ArraySegment&lt;byte&gt;</c> value is sent again on each recovery, so it must stay valid and unchanged until the connection is closed.</param>
         /// <param name="passive">Optional; Set to <code>true</code> to passively declare the queue (i.e. check for its existence)</param>
         /// <param name="noWait">Optional; Set to <c>true</c> to not require a response from the server.</param>
         /// <param name="cancellationToken">CancellationToken for this operation.</param>
@@ -509,7 +509,7 @@ namespace RabbitMQ.Client
         /// <param name="queue">The queue.</param>
         /// <param name="exchange">The exchange.</param>
         /// <param name="routingKey">The routing key.</param>
-        /// <param name="arguments">The arguments.</param>
+        /// <param name="arguments">The arguments. With topology recovery, a <c>ReadOnlyMemory&lt;byte&gt;</c>, <c>Memory&lt;byte&gt;</c> or <c>ArraySegment&lt;byte&gt;</c> value is sent again on each recovery, so it must stay valid and unchanged until the connection is closed.</param>
         /// <param name="noWait">If set to <c>true</c>, do not require a response from the server.</param>
         /// <param name="cancellationToken">CancellationToken for this operation.</param>
         /// <remarks>

@@ -245,6 +245,12 @@ namespace RabbitMQ.Client
         /// <summary>
         /// Message header field table. Is of type <see cref="IDictionary{TKey,TValue}" />.
         /// </summary>
+        /// <remarks>
+        /// The headers are serialized when the message is sent, which can be after <c>BasicPublishAsync</c>
+        /// returns, so the dictionary and its values must stay valid and unchanged until the task it returns
+        /// completes. A <c>ReadOnlyMemory&lt;byte&gt;</c>, <c>Memory&lt;byte&gt;</c> or <c>ArraySegment&lt;byte&gt;</c>
+        /// value is sent as a long string, like a <c>byte[]</c>, and is received as a <c>byte[]</c>.
+        /// </remarks>
         new IDictionary<string, object?>? Headers { get; set; }
 
         /// <summary>

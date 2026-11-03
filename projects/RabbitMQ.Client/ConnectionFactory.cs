@@ -345,6 +345,11 @@ namespace RabbitMQ.Client
         /// <summary>
         /// Dictionary of client properties to be sent to the server.
         /// </summary>
+        /// <remarks>
+        /// Every connection this factory opens sends these, including on each automatic recovery, so a
+        /// <c>ReadOnlyMemory&lt;byte&gt;</c>, <c>Memory&lt;byte&gt;</c> or <c>ArraySegment&lt;byte&gt;</c> value must stay
+        /// valid and unchanged until those connections are closed.
+        /// </remarks>
         public IDictionary<string, object?> ClientProperties { get; set; }
 
         private static readonly Dictionary<string, object?> DefaultClientProperties = new Dictionary<string, object?>(5)
