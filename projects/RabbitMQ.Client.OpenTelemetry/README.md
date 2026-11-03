@@ -88,7 +88,7 @@ This is a property of the model rather than an implementation shortcut: one `Act
 produces a single `Activity` shared by every listener, and one publish injects a single set of
 headers, so neither span shape nor propagated context can differ per provider.
 
-**A connection can own its configuration, though, and that is the recommended way.** Set
+**A factory can carry its own configuration, though, and that is the recommended way.** Set
 `ConnectionFactory.TracingOptions`, or call `UseOpenTelemetryTracing` on the factory, and the
 connections it creates use that instead of the process-wide default:
 

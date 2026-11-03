@@ -64,7 +64,7 @@ namespace RabbitMQ.Client
         public const string SubscriberSourceName = "RabbitMQ.Client.Subscriber";
         public const string ConnectionSourceName = "RabbitMQ.Client.Connection";
 
-        // The process-wide default a connection captures when its factory set no TracingOptions.
+        // The process-wide default a connection reads, member by member, where its factory set none.
         // Its injector/extractor default to the client's Default* delegates; the deprecated statics
         // below read and write those same slots, so there is a single source of the fallback.
         private static RabbitMQTracingOptions s_tracingOptions = new RabbitMQTracingOptions();
@@ -84,9 +84,9 @@ namespace RabbitMQ.Client
          */
         private const string ObsoleteMessage =
             "Setting tracing configuration directly on these process-wide statics is deprecated. " +
-            "Set ConnectionFactory.TracingOptions instead, which is owned by the connection that " +
-            "performs the traced operations; for propagation set ConnectionTracingOptions.Propagator " +
-            "rather than these delegates, or call AddRabbitMQInstrumentation from the " +
+            "Set ConnectionFactory.TracingOptions instead, which applies to the connections that " +
+            "factory creates; for propagation set ConnectionTracingOptions.Propagator " +
+            "rather than these delegates, or call the AddRabbitMQInstrumentation overload that takes no factory, from the " +
             "RabbitMQ.Client.OpenTelemetry package to set the process-wide default. These members " +
             "will be removed in a future major version. " +
             "See https://github.com/rabbitmq/rabbitmq-dotnet-client/issues/1981.";
@@ -144,16 +144,16 @@ namespace RabbitMQ.Client
         }
 
         /// <summary>
-        /// The options applied to every tracing span this client produces when a connection factory
-        /// set no <see cref="ConnectionFactory.TracingOptions"/>.
+        /// The process-wide tracing options, used for each member a connection factory's
+        /// <see cref="ConnectionFactory.TracingOptions"/> leaves unset.
         /// </summary>
         /// <remarks>
-        /// Process-wide: these options shape the spans of every connection that captured this
-        /// default, so the last assignment wins and disposing a <c>TracerProvider</c> that configured
-        /// them restores nothing. Assigning replaces the instance, so a reference obtained from this
-        /// property beforehand is detached and no longer affects the client when mutated - and,
-        /// because the instance also carries <see cref="RabbitMQTracingOptions.ContextInjector"/> and
-        /// <see cref="RabbitMQTracingOptions.ContextExtractor"/>, assigning replaces those too.
+        /// Process-wide: every connection reads these at each operation for each member its factory
+        /// leaves unset, so the last assignment wins and disposing a <c>TracerProvider</c> that
+        /// configured them restores nothing. Assigning replaces the instance, so a reference obtained
+        /// from this property beforehand is detached and no longer affects the client when mutated.
+        /// Because the instance also carries the propagation that <see cref="ContextInjector"/> and
+        /// <see cref="ContextExtractor"/> expose, assigning replaces that too.
         /// Assigning <see langword="null"/> throws <see cref="ArgumentNullException"/>.
         /// </remarks>
         [Obsolete(ObsoleteMessage)]

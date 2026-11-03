@@ -34,9 +34,9 @@ using System.Diagnostics;
 namespace RabbitMQ.Client
 {
     /// <summary>
-    /// Tracing configuration owned by a connection. Set it on
-    /// <see cref="ConnectionFactory.TracingOptions"/> to configure the connections that factory
-    /// creates.
+    /// Tracing configuration for the connections a factory creates. Set it on
+    /// <see cref="ConnectionFactory.TracingOptions"/>; a member left <see langword="null"/> falls back to
+    /// the process-wide default.
     /// </summary>
     /// <remarks>
     /// Every member is nullable and <see langword="null"/> means "inherit", resolved per member
@@ -58,8 +58,8 @@ namespace RabbitMQ.Client
         public bool? UseRoutingKeyAsOperationName { get; set; }
 
         /// <summary>
-        /// Make the publisher's span the parent of the consumer's span rather than a link.
-        /// <see langword="null"/> inherits.
+        /// Make the publisher's span the parent of the consumer's span. Whenever a context is extracted
+        /// from the message, the consumer's span also links to the publisher's, in both modes. <see langword="null"/> inherits.
         /// </summary>
         public bool? UsePublisherAsParent { get; set; }
 
@@ -72,8 +72,9 @@ namespace RabbitMQ.Client
 
         /// <summary>
         /// Propagates trace context into published messages and out of received ones.
-        /// <see langword="null"/> inherits, which ultimately means
-        /// <see cref="DistributedContextPropagator.Current"/>.
+        /// <see langword="null"/> uses the process-wide propagation: the client's default, which uses
+        /// <see cref="DistributedContextPropagator.Current"/>, unless the <c>RabbitMQ.Client.OpenTelemetry</c>
+        /// package or the deprecated <see cref="RabbitMQActivitySource"/> statics replaced it.
         /// </summary>
         /// <remarks>
         /// This is the supported extension point for propagation. To propagate OpenTelemetry
@@ -85,8 +86,8 @@ namespace RabbitMQ.Client
         public DistributedContextPropagator? Propagator { get; set; }
 
         // Adapting a propagator to the client's injector/extractor pair allocates two closures, so
-        // cache them per options instance rather than per operation - these options are captured once
-        // per connection, the resolve runs on every publish and delivery.
+        // cache them per options instance rather than per operation: the resolve runs on every publish
+        // and delivery.
         private PropagatorAdapter? _adapter;
 
         // The copy a connection keeps, so later changes to the factory's instance cannot reach it, or tear a

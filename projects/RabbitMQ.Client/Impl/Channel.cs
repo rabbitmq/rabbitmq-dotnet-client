@@ -64,14 +64,9 @@ namespace RabbitMQ.Client.Impl
 
         internal readonly IConsumerDispatcher ConsumerDispatcher;
 
-        /// <summary>
-        /// The tracing configuration the owning connection captured at creation, or null when the
-        /// factory set none and the deprecated process-wide statics apply. Read on the publish, get,
-        /// and deliver paths so those spans reflect this connection's configuration. Captured in the
-        /// constructor from the channel options, which already copy the values a channel needs out of
-        /// ConnectionConfig. Walking Session.Connection instead put an unguarded dereference on the
-        /// deliver path and read Session before the constructor had assigned it. See issue #1981.
-        /// </summary>
+        // The connection's copy of the factory's tracing options, from the channel options; null falls
+        // back to the process-wide default. Not read through Session.Connection: Session is unassigned when the
+        // dispatcher starts. docs/internal/opentelemetry-tracing-review.md.
         internal ConnectionTracingOptions? TracingOptions { get; }
 
         // One resolve per basic.get, shared by the hit and the empty branch. Two resolves could

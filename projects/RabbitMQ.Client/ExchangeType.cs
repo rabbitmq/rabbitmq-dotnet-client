@@ -76,7 +76,9 @@ namespace RabbitMQ.Client
         /// Exchange type used for local random exchanges.
         /// </summary>
         /// <remarks>
-        /// Available in RabbitMQ 4.2.0 and later.
+        /// Available in RabbitMQ 4.0.0 and later. Before 4.3.0, a cluster upgraded from an earlier
+        /// version needs the <c>rabbit_exchange_type_local_random</c> feature flag enabled. From 4.1.4 a
+        /// broker can disable the type with <c>exchange_types.local_random.enabled</c>.
         /// </remarks>
         public const string LocalRandom = "x-local-random";
 
@@ -84,7 +86,8 @@ namespace RabbitMQ.Client
         /// Exchange type used for modulus hash exchanges.
         /// </summary>
         /// <remarks>
-        /// Available in RabbitMQ 4.3.0 and later.
+        /// Built into RabbitMQ 4.3.0 and later. Earlier versions need the <c>rabbitmq_sharding</c>
+        /// plugin enabled.
         /// </remarks>
         public const string ModulusHash = "x-modulus-hash";
 

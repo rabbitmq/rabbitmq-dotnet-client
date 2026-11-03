@@ -47,14 +47,14 @@ byte[] myMessageBody = eventArgs.Body.ToArray();
 
 ## OpenTelemetry tracing configuration
 
-Tracing configuration now belongs to the connection that performs the traced operations, rather than to process-wide statics on `RabbitMQActivitySource`. Set it on the factory:
+Tracing configuration can now be set on a factory for the connections it creates, rather than only through process-wide statics on `RabbitMQActivitySource`. A member left `null` falls back to the process-wide default:
 
 ```csharp
 var factory = new ConnectionFactory();
 factory.TracingOptions = new ConnectionTracingOptions
 {
     UseRoutingKeyAsOperationName = false,
-    // Propagation: null inherits DistributedContextPropagator.Current.
+    // Propagation: null uses the process-wide propagation.
     Propagator = new OpenTelemetryPropagator(), // from RabbitMQ.Client.OpenTelemetry
 };
 ```
