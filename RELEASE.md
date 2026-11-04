@@ -83,3 +83,30 @@ gh pr list --repo rabbitmq/rabbitmq-dotnet-client \
 * Close the appropriate milestone, and make a note of the link to the milestone with closed issues visible
 * Create the release as a draft with the notes file as its body: `gh release create vX.Y.Z --draft --notes-file docs/release-notes/X.Y.Z.md`, append the generated changelog links with `gh release edit`, then publish. Publishing triggers the NuGet push, so the body has to be finished first
 * GitHub actions will build and publish the release to NuGet
+
+### `RabbitMQ.Client.OpenTelemetry` prerelease
+
+The OpenTelemetry package takes its version from `otel-` tags, and the release workflow does not publish it: it pushes only `RabbitMQ.Client`. The package depends on whatever `RabbitMQ.Client` version MinVer computes when it is packed, so pack it at the `vX.Y.Z` commit. Packed from any other commit it depends on a prerelease client, which NuGet rejects for a stable package (NU5104).
+
+1. Once `vX.Y.Z` is tagged, tag the same commit and push the tag:
+
+    ```
+    git tag -a -s -u B1B82CC0CF84BA70147EBD05D99DE30E43EAE440 -m 'rabbitmq-dotnet-client otel-1.0.0-rc.N' 'otel-1.0.0-rc.N' 'vX.Y.Z^{}'
+    git push origin otel-1.0.0-rc.N
+    ```
+
+2. Build at the tag on Windows, as the release workflow builds `RabbitMQ.Client`. The build also packs `RabbitMQ.Client`; do not push that one.
+
+    ```
+    git checkout otel-1.0.0-rc.N
+    git clean -xffd
+    dotnet build projects/RabbitMQ.Client.OpenTelemetry/RabbitMQ.Client.OpenTelemetry.csproj --configuration Release --property CI=true
+    ```
+
+3. Check that `packages/RabbitMQ.Client.OpenTelemetry.1.0.0-rc.N.nupkg` has version `1.0.0-rc.N` and a `RabbitMQ.Client` dependency of `X.Y.Z`, then push it. Its `.snupkg` is pushed with it.
+
+    ```
+    dotnet nuget push -k NUGET_API_KEY -s https://api.nuget.org/v3/index.json packages/RabbitMQ.Client.OpenTelemetry.1.0.0-rc.N.nupkg
+    ```
+
+A prerelease leaves the package's `PublicAPI.Unshipped.txt` entries in place; they move to `PublicAPI.Shipped.txt` in the commit tagged for 1.0.0.
