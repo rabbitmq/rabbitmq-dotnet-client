@@ -7,8 +7,6 @@
 
 ## Update API documentation
 
-Note: `main` (`6.x` and later) only
-
 Please see [this guide](https://github.com/rabbitmq/rabbitmq-dotnet-client/blob/main/APIDOCS.md).
 
 
@@ -45,20 +43,6 @@ Push!
 
 ```
 git push --tags
-```
-
-## `6.x` branch
-
-
-### Trigger build locally
-
-```
-cd path\to\rabbitmq-dotnet-client
-git checkout v6.X.Y
-git clean -xffd
-.\build.bat
-dotnet build ./RabbitMQDotNetClient.sln --configuration Release --property:CONCOURSE_CI_BUILD=true
-dotnet nuget push -k NUGET_API_KEY -s https://api.nuget.org/v3/index.json ./packages/RabbitMQ.Client.6.X.Y.nupkg
 ```
 
 ## `main` (`7.x`) branch
