@@ -25,7 +25,7 @@ Only the latest `7.x` minor release is supported: when a new one ships, the prev
 
 ### 7.x
 
-`7.x` versions of the library require .NET framework 4.6.1 or any supported
+`7.x` versions of the library require .NET Framework 4.6.2 or any supported
 .NET version. They also introduce potentially breaking public API changes
 covered in the [changelog](CHANGELOG.md) and [migration
 guide](v7-MIGRATION.md).
