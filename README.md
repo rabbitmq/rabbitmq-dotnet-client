@@ -21,20 +21,22 @@ The client is [distributed via NuGet](https://www.nuget.org/packages/RabbitMQ.Cl
 
 ## Supported Platforms and .NET Releases
 
+Only the latest `7.x` minor release is supported: when a new one ships, the previous one is end of life. `6.x` and earlier are end of life. End of life means no further releases, including security fixes. The [release series table](https://www.rabbitmq.com/client-libraries/dotnet#series) lists the status of each series.
+
 ### 7.x
 
-`7.x` versions of the library require .NET framework 4.6.1 or any supported
+`7.x` versions of the library require .NET Framework 4.6.2 or any supported
 .NET version. They also introduce potentially breaking public API changes
 covered in the [changelog](CHANGELOG.md) and [migration
 guide](v7-MIGRATION.md).
 
-### 6.x
+### 6.x (end of life)
 
 `6.x` versions of the library require .NET framework 4.6.1 or any supported
 .NET version. They also introduce potentially breaking public API changes
 covered in the [changelog](CHANGELOG.md).
 
-### 5.x and 4.x
+### 5.x and 4.x (end of life)
 
 `4.x` and `5.x` versions of the library require .NET 4.5.1 or later or .NET
 Core. For .NET Core users, 2.0 is the minimum supported version for `5.x`

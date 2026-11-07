@@ -1,5 +1,7 @@
 ﻿# Migrating to RabbitMQ .NET Client 7.x
 
+`6.x` is end of life and receives no further releases, including security fixes.
+
 This document makes note of major changes in the API of this library for
 version 7. In addition to this document, please refer to the comprehensive
 integration test suites
