@@ -136,6 +136,8 @@ changing that area.
 - `docs/internal/channel-state-across-recovery.md` - what recovery transplants onto the
   new inner channel and what it silently drops, including `CurrentQueue` (#2031), and
   why a consumer tag already in use is rejected before it reaches the broker (#2080).
+- `docs/internal/connection-channel-architecture.md` - where connection, session and
+  channel state lives, the shutdown paths, and the 7.4.0 plan for them.
 
 ## Codebase map
 
