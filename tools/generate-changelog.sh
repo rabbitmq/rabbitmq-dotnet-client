@@ -73,10 +73,11 @@ add_issue() {
 categorize_labels() {
     local -r labels="$1"
 
-    if echo "$labels" | jq -e 'map(.name) | index("bug")' > /dev/null 2>&1
+    # C-bug and C-enhancement replaced bug and enhancement in #1959.
+    if echo "$labels" | jq -e 'any(.[].name; . == "bug" or . == "C-bug")' > /dev/null 2>&1
     then
         echo 'bug'
-    elif echo "$labels" | jq -e 'map(.name) | index("enhancement")' > /dev/null 2>&1
+    elif echo "$labels" | jq -e 'any(.[].name; . == "enhancement" or . == "C-enhancement")' > /dev/null 2>&1
     then
         echo 'enhancement'
     else
