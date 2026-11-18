@@ -1,6 +1,6 @@
 # Changelog
 
-## [v7.3.0](https://github.com/rabbitmq/rabbitmq-dotnet-client/tree/v7.3.0) (2026-11-17)
+## [v7.3.0](https://github.com/rabbitmq/rabbitmq-dotnet-client/tree/v7.3.0) (2026-11-18)
 
 [Full Changelog](https://github.com/rabbitmq/rabbitmq-dotnet-client/compare/v7.2.2...v7.3.0)
 
