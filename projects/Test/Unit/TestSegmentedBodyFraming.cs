@@ -34,6 +34,7 @@ using System.Buffers;
 using System.Collections.Generic;
 using System.IO.Pipelines;
 using System.Linq;
+using System.Threading.Tasks;
 using RabbitMQ.Client;
 using Xunit;
 
@@ -60,13 +61,13 @@ namespace Test.Unit
         [InlineData(70, 7, 16)]
         [InlineData(70, 1, 3)]
         [InlineData(1, 1, 1)]
-        public void SegmentedBodyIsByteIdenticalToContiguousBody(int bodyLength, int segmentSize, int maxBodyPayloadBytes)
+        public async Task SegmentedBodyIsByteIdenticalToContiguousBody(int bodyLength, int segmentSize, int maxBodyPayloadBytes)
         {
             byte[] body = GetBody(bodyLength);
             ReadOnlySequence<byte> segmented = ReadOnlySequenceFactory.CreateSegmented(body, segmentSize);
 
-            byte[] contiguousBytes = WriteToArray(CreateFrame(new ReadOnlySequence<byte>(body), maxBodyPayloadBytes));
-            byte[] segmentedBytes = WriteToArray(CreateFrame(segmented, maxBodyPayloadBytes));
+            byte[] contiguousBytes = await WriteToArray(CreateFrame(new ReadOnlySequence<byte>(body), maxBodyPayloadBytes));
+            byte[] segmentedBytes = await WriteToArray(CreateFrame(segmented, maxBodyPayloadBytes));
 
             Assert.Equal(contiguousBytes, segmentedBytes);
         }
@@ -89,13 +90,13 @@ namespace Test.Unit
         [InlineData(64, 16, 64, 1)]  // payload covers the whole body
         [InlineData(70, 16, 7, 10)]  // ragged last frame
         [InlineData(70, 16, int.MaxValue, 1)]
-        public void SegmentedBodyProducesExpectedBodyFrames(int bodyLength, int segmentSize,
+        public async Task SegmentedBodyProducesExpectedBodyFrames(int bodyLength, int segmentSize,
             int maxBodyPayloadBytes, int expectedBodyFrameCount)
         {
             byte[] body = GetBody(bodyLength);
             ReadOnlySequence<byte> segmented = ReadOnlySequenceFactory.CreateSegmented(body, segmentSize);
 
-            byte[] bytes = WriteToArray(CreateFrame(segmented, maxBodyPayloadBytes));
+            byte[] bytes = await WriteToArray(CreateFrame(segmented, maxBodyPayloadBytes));
 
             Assert.Equal(s_methodAndHeader, bytes.AsSpan(0, s_methodAndHeader.Length).ToArray());
 
@@ -113,7 +114,7 @@ namespace Test.Unit
         }
 
         [Fact]
-        public void SizeMatchesTheNumberOfBytesWritten()
+        public async Task SizeMatchesTheNumberOfBytesWritten()
         {
             const int BodyLength = 70;
             const int SegmentSize = 16;
@@ -125,30 +126,30 @@ namespace Test.Unit
             OutgoingFrame frame = CreateFrame(segmented, MaxBodyPayloadBytes);
             int size = frame.Size;
 
-            Assert.Equal(size, WriteToArray(frame).Length);
+            Assert.Equal(size, (await WriteToArray(frame)).Length);
         }
 
         [Fact]
-        public void EmptySequenceProducesNoBodyFrames()
+        public async Task EmptySequenceProducesNoBodyFrames()
         {
-            byte[] bytes = WriteToArray(CreateFrame(ReadOnlySequence<byte>.Empty, 16));
+            byte[] bytes = await WriteToArray(CreateFrame(ReadOnlySequence<byte>.Empty, 16));
             Assert.Equal(s_methodAndHeader, bytes);
         }
 
         [Fact]
-        public void SequenceOfEmptySegmentsProducesNoBodyFrames()
+        public async Task SequenceOfEmptySegmentsProducesNoBodyFrames()
         {
             ReadOnlySequence<byte> segmented = ReadOnlySequenceFactory.CreateSegmented(
                 Array.Empty<byte>(), Array.Empty<byte>(), Array.Empty<byte>());
 
             Assert.Equal(0, segmented.Length);
 
-            byte[] bytes = WriteToArray(CreateFrame(segmented, 16));
+            byte[] bytes = await WriteToArray(CreateFrame(segmented, 16));
             Assert.Equal(s_methodAndHeader, bytes);
         }
 
         [Fact]
-        public void EmptySegmentsInterleavedWithDataAreSkipped()
+        public async Task EmptySegmentsInterleavedWithDataAreSkipped()
         {
             ReadOnlySequence<byte> segmented = ReadOnlySequenceFactory.CreateSegmented(
                 new byte[] { 1, 2, 3 },
@@ -160,8 +161,8 @@ namespace Test.Unit
             byte[] expectedBody = { 1, 2, 3, 4, 5, 6 };
             Assert.Equal(expectedBody.Length, segmented.Length);
 
-            byte[] contiguousBytes = WriteToArray(CreateFrame(new ReadOnlySequence<byte>(expectedBody), 4));
-            byte[] segmentedBytes = WriteToArray(CreateFrame(segmented, 4));
+            byte[] contiguousBytes = await WriteToArray(CreateFrame(new ReadOnlySequence<byte>(expectedBody), 4));
+            byte[] segmentedBytes = await WriteToArray(CreateFrame(segmented, 4));
 
             Assert.Equal(contiguousBytes, segmentedBytes);
         }
@@ -200,10 +201,10 @@ namespace Test.Unit
                 Channel, maxBodyPayloadBytes, totalSize);
         }
 
-        private static byte[] WriteToArray(OutgoingFrame frame)
+        private static async Task<byte[]> WriteToArray(OutgoingFrame frame)
         {
             var pipe = new Pipe();
-            frame.WriteTo(pipe.Writer);
+            await frame.WriteToAsync(pipe.Writer, async () => await pipe.Writer.FlushAsync());
             pipe.Writer.Complete();
 
             Assert.True(pipe.Reader.TryRead(out ReadResult result));

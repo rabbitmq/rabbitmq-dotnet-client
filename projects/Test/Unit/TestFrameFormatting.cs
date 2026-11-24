@@ -32,6 +32,7 @@
 using System;
 using System.Buffers;
 using System.IO.Pipelines;
+using System.Threading.Tasks;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Framing;
 using RabbitMQ.Client.Impl;
@@ -42,15 +43,15 @@ namespace Test.Unit
     public class TestFrameFormatting : WireFormattingFixture
     {
         [Fact]
-        public void HeartbeatFrame()
+        public async Task HeartbeatFrame()
         {
             OutgoingFrame sfc = Framing.Heartbeat.GetHeartbeatFrame();
             var pipe = new Pipe();
-            sfc.WriteTo(pipe.Writer);
+            await sfc.WriteToAsync(pipe.Writer, async () => await pipe.Writer.FlushAsync());
             pipe.Writer.Complete();
             pipe.Reader.TryRead(out ReadResult result);
             Assert.Equal(Framing.BaseFrameSize, (int)result.Buffer.Length);
-            ReadOnlySpan<byte> frameSpan = result.Buffer.ToArray();
+            byte[] frameSpan = result.Buffer.ToArray();
             try
             {
                 Assert.Equal(8, frameSpan.Length);
