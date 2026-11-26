@@ -32,6 +32,7 @@
 using System;
 using System.Buffers;
 using System.Collections.Generic;
+using System.IO;
 using System.IO.Pipelines;
 using System.Linq;
 using System.Threading.Tasks;
@@ -184,6 +185,62 @@ namespace Test.Unit
             Assert.Equal(1, owner.DisposeCount);
         }
 
+        [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public async Task LargeBodyDoesNotHoldEveryFrameInThePipe_GH2166(bool segmented)
+        {
+            const int MaxBodyPayloadBytes = 131072 - 8; // the broker's default frame_max
+            const int BodyLength = 8 * MaxBodyPayloadBytes;
+            byte[] body = GetBody(BodyLength);
+            ReadOnlySequence<byte> sequence = segmented
+                ? ReadOnlySequenceFactory.CreateSegmented(body, 64 * 1024)
+                : new ReadOnlySequence<byte>(body);
+            Assert.Equal(segmented, !sequence.IsSingleSegment);
+
+            var pool = new PeakTrackingMemoryPool();
+            using var stream = new MemoryStream();
+            PipeWriter writer = PipeWriter.Create(stream, new StreamPipeWriterOptions(pool: pool, leaveOpen: true));
+            OutgoingFrame frame = CreateFrame(sequence, MaxBodyPayloadBytes);
+            try
+            {
+                await frame.WriteToAsync(writer, async () => await writer.FlushAsync());
+                await writer.FlushAsync();
+            }
+            finally
+            {
+                frame.Dispose();
+            }
+
+            // Without flushes between frames the pipe holds the whole body at once.
+            Assert.True(pool.PeakRentedBytes < 2 * (MaxBodyPayloadBytes + 8),
+                $"peak rented {pool.PeakRentedBytes} bytes for a {BodyLength} byte body");
+
+            byte[] bytes = stream.ToArray();
+            Assert.Equal(s_methodAndHeader, bytes.AsSpan(0, s_methodAndHeader.Length).ToArray());
+            List<byte[]> bodyFrames = ParseBodyFrames(bytes.AsSpan(s_methodAndHeader.Length).ToArray());
+            Assert.Equal(8, bodyFrames.Count);
+            Assert.Equal(body, bodyFrames.SelectMany(f => f).ToArray());
+        }
+
+        [Fact]
+        public async Task BodyBelowTheThresholdIsNotFlushedBetweenFrames_GH2166()
+        {
+            int flushes = 0;
+            var pipe = new Pipe();
+            OutgoingFrame frame = CreateFrame(ReadOnlySequenceFactory.CreateSegmented(GetBody(1000), 16), 16);
+            try
+            {
+                await frame.WriteToAsync(pipe.Writer, () => { flushes++; return default; });
+            }
+            finally
+            {
+                frame.Dispose();
+            }
+
+            Assert.Equal(0, flushes);
+        }
+
         private static OutgoingFrame CreateFrame(ReadOnlySequence<byte> body, int maxBodyPayloadBytes,
             IDisposable bodyOwner = null)
         {
@@ -276,6 +333,50 @@ namespace Test.Unit
             Assert.Equal(body.Length, payloadLength);
             Assert.Equal(body, result.AsSpan(7, body.Length).ToArray());
             Assert.Equal(Constants.FrameEnd, result.Last());
+        }
+
+        private sealed class PeakTrackingMemoryPool : MemoryPool<byte>
+        {
+            private long _rentedBytes;
+
+            public long PeakRentedBytes { get; private set; }
+
+            public override int MaxBufferSize => int.MaxValue;
+
+            public override IMemoryOwner<byte> Rent(int minBufferSize = -1)
+            {
+                var owner = new Owner(this, new byte[Math.Max(minBufferSize, 4096)]);
+                _rentedBytes += owner.Memory.Length;
+                PeakRentedBytes = Math.Max(PeakRentedBytes, _rentedBytes);
+                return owner;
+            }
+
+            protected override void Dispose(bool disposing)
+            {
+            }
+
+            private sealed class Owner : IMemoryOwner<byte>
+            {
+                private PeakTrackingMemoryPool _pool;
+                private readonly byte[] _array;
+
+                public Owner(PeakTrackingMemoryPool pool, byte[] array)
+                {
+                    _pool = pool;
+                    _array = array;
+                }
+
+                public Memory<byte> Memory => _array;
+
+                public void Dispose()
+                {
+                    if (_pool is not null)
+                    {
+                        _pool._rentedBytes -= _array.Length;
+                        _pool = null;
+                    }
+                }
+            }
         }
 
         /// <summary>

@@ -32,7 +32,6 @@
 using System;
 using System.Buffers;
 using System.Diagnostics;
-using System.IO.Pipelines;
 using System.Threading.Tasks;
 using static RabbitMQ.Client.Impl.Framing;
 
@@ -95,55 +94,32 @@ namespace RabbitMQ.Client
 
         private const int FlushThresholdBytes = 64 * 1024;
 
-        internal readonly ValueTask WriteToAsync(PipeWriter writer, Func<ValueTask> flushPipeAsync)
+        internal readonly async ValueTask WriteToAsync(IBufferWriter<byte> writer, Func<ValueTask> flushAsync)
         {
             Debug.Assert(_methodAndHeaderArray is not null);
-            ReadOnlySpan<byte> methodAndHeader = _methodAndHeaderArray.AsSpan(0, _methodAndHeaderLength);
-            writer.Write(methodAndHeader);
+            writer.Write(_methodAndHeaderArray.AsSpan(0, _methodAndHeaderLength));
 
-            long remainingBodyBytes = _body.Length;
-            if (remainingBodyBytes == 0)
-            {
-                return default;
-            }
-
-            if (_body.IsSingleSegment)
-            {
-                ReadOnlySpan<byte> bodySpan = _body.First.Span;
-                int bodyOffset = 0;
-
-                while (bodyOffset < bodySpan.Length)
-                {
-                    int payloadSize = Math.Min(bodySpan.Length - bodyOffset, _maxBodyPayloadBytes);
-                    BodySegment.WriteTo(writer, _channelNumber, bodySpan.Slice(bodyOffset, payloadSize));
-                    bodyOffset += payloadSize;
-                }
-
-                return default;
-            }
-
-            return WriteMultiSegmentBodyAsync(writer, flushPipeAsync);
-        }
-
-        private readonly async ValueTask WriteMultiSegmentBodyAsync(PipeWriter writer, Func<ValueTask> flushPipeAsync)
-        {
-            // Multi-segment body: body frame boundaries are independent of segment boundaries,
-            // so each frame payload is sliced out of the sequence and may itself span segments.
+            // A multi-segment body is sliced per frame and may span segments within one frame.
+            bool isSingleSegment = _body.IsSingleSegment;
             ReadOnlySequence<byte> remainingBody = _body;
             long remainingBodyBytes = remainingBody.Length;
+            int unflushedBytes = _methodAndHeaderLength;
 
             while (remainingBodyBytes > 0)
             {
                 int payloadSize = (int)Math.Min(remainingBodyBytes, _maxBodyPayloadBytes);
-                BodySegment.WriteTo(writer, _channelNumber, remainingBody.Slice(0, payloadSize));
+                ReadOnlySequence<byte> payload = remainingBody.Slice(0, payloadSize);
+                unflushedBytes += isSingleSegment
+                    ? BodySegment.WriteTo(writer, _channelNumber, payload.First.Span)
+                    : BodySegment.WriteTo(writer, _channelNumber, payload);
                 remainingBody = remainingBody.Slice(payloadSize);
                 remainingBodyBytes -= payloadSize;
 
-                // Flush incrementally so large multi-frame messages keep at most 1-2 segments
-                // rented at a time instead of pinning hundreds of segments until the whole message finishes.
-                if (writer.UnflushedBytes >= FlushThresholdBytes)
+                // The pipe holds a copy of every frame written since the last flush. The caller flushes after the last one.
+                if (unflushedBytes >= FlushThresholdBytes && remainingBodyBytes > 0)
                 {
-                    await flushPipeAsync().ConfigureAwait(false);
+                    await flushAsync().ConfigureAwait(false);
+                    unflushedBytes = 0;
                 }
             }
         }
