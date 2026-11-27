@@ -56,6 +56,7 @@ namespace RabbitMQ.Client.Impl
         private readonly SemaphoreSlim _closingSemaphore = new SemaphoreSlim(1, 1);
 
         private readonly PipeWriter _pipeWriter;
+        private readonly Func<ValueTask> _flushPipeAsync;
         private readonly PipeReader _pipeReader;
         private Task? _writerTask;
         private volatile Exception? _writeLoopException;
@@ -94,6 +95,7 @@ namespace RabbitMQ.Client.Impl
             _channelReader = channel.Reader;
 
             _pipeWriter = PipeWriter.Create(stream);
+            _flushPipeAsync = FlushPipeAsync;
             _pipeReader = PipeReader.Create(stream);
         }
 
@@ -383,7 +385,8 @@ namespace RabbitMQ.Client.Impl
                     {
                         try
                         {
-                            frames.WriteTo(_pipeWriter);
+                            await frames.WriteToAsync(_pipeWriter, _flushPipeAsync)
+                                .ConfigureAwait(false);
                             await FlushPipeAsync()
                                 .ConfigureAwait(false);
                             RabbitMqClientEventSource.Log.CommandSent(frames.Size);

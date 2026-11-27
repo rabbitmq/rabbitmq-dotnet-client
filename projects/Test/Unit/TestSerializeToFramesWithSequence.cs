@@ -32,6 +32,7 @@
 using System;
 using System.Buffers;
 using System.IO.Pipelines;
+using System.Threading.Tasks;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Framing;
 using RabbitMQ.Client.Impl;
@@ -60,17 +61,17 @@ namespace Test.Unit
         [InlineData(70, 7, 16)]
         [InlineData(70, 1, 3)]
         [InlineData(1024, 128, 100)]
-        public void CopyPathAndZeroCopyPathProduceIdenticalBytes(int bodyLength, int segmentSize, int maxBodyPayloadBytes)
+        public async Task CopyPathAndZeroCopyPathProduceIdenticalBytes(int bodyLength, int segmentSize, int maxBodyPayloadBytes)
         {
             byte[] body = GetBody(bodyLength);
             ReadOnlySequence<byte> segmented = ReadOnlySequenceFactory.CreateSegmented(body, segmentSize);
             Assert.False(segmented.IsSingleSegment);
 
-            byte[] contiguousBytes = SerializeToArray(new ReadOnlySequence<byte>(body), null, maxBodyPayloadBytes);
-            byte[] copyPathBytes = SerializeToArray(segmented, null, maxBodyPayloadBytes);
+            byte[] contiguousBytes = await SerializeToArray(new ReadOnlySequence<byte>(body), null, maxBodyPayloadBytes);
+            byte[] copyPathBytes = await SerializeToArray(segmented, null, maxBodyPayloadBytes);
 
             var owner = new TrackingDisposable();
-            byte[] zeroCopyBytes = SerializeToArray(segmented, owner, maxBodyPayloadBytes);
+            byte[] zeroCopyBytes = await SerializeToArray(segmented, owner, maxBodyPayloadBytes);
 
             Assert.Equal(contiguousBytes, copyPathBytes);
             Assert.Equal(contiguousBytes, zeroCopyBytes);
@@ -80,35 +81,35 @@ namespace Test.Unit
         [Theory]
         [InlineData(64, 16, 4)]
         [InlineData(70, 7, 16)]
-        public void SizeMatchesTheNumberOfBytesWrittenOnBothPaths(int bodyLength, int segmentSize, int maxBodyPayloadBytes)
+        public async Task SizeMatchesTheNumberOfBytesWrittenOnBothPaths(int bodyLength, int segmentSize, int maxBodyPayloadBytes)
         {
             ReadOnlySequence<byte> segmented =
                 ReadOnlySequenceFactory.CreateSegmented(GetBody(bodyLength), segmentSize);
 
-            AssertSizeMatchesBytesWritten(segmented, null, maxBodyPayloadBytes);
-            AssertSizeMatchesBytesWritten(segmented, new TrackingDisposable(), maxBodyPayloadBytes);
+            await AssertSizeMatchesBytesWritten(segmented, null, maxBodyPayloadBytes);
+            await AssertSizeMatchesBytesWritten(segmented, new TrackingDisposable(), maxBodyPayloadBytes);
         }
 
         [Fact]
-        public void SingleSegmentSequenceTakesTheContiguousPath()
+        public async Task SingleSegmentSequenceTakesTheContiguousPath()
         {
             byte[] body = GetBody(1024);
 
-            byte[] fromMemory = SerializeToArray(body, null, 100);
-            byte[] fromSequence = SerializeToArray(new ReadOnlySequence<byte>(body), null, 100);
+            byte[] fromMemory = await SerializeToArray(body, null, 100);
+            byte[] fromSequence = await SerializeToArray(new ReadOnlySequence<byte>(body), null, 100);
 
             Assert.Equal(fromMemory, fromSequence);
         }
 
         [Fact]
-        public void SingleSegmentSequenceTransfersOwnership()
+        public async Task SingleSegmentSequenceTransfersOwnership()
         {
             byte[] body = GetBody(1024);
             var memoryOwner = new TrackingDisposable();
             var sequenceOwner = new TrackingDisposable();
 
-            byte[] fromMemory = SerializeToArray(body, memoryOwner, 100);
-            byte[] fromSequence = SerializeToArray(new ReadOnlySequence<byte>(body), sequenceOwner, 100);
+            byte[] fromMemory = await SerializeToArray(body, memoryOwner, 100);
+            byte[] fromSequence = await SerializeToArray(new ReadOnlySequence<byte>(body), sequenceOwner, 100);
 
             Assert.Equal(fromMemory, fromSequence);
             Assert.Equal(1, memoryOwner.DisposeCount);
@@ -116,24 +117,24 @@ namespace Test.Unit
         }
 
         [Fact]
-        public void EmptySegmentsProduceNoBodyFramesOnBothPaths()
+        public async Task EmptySegmentsProduceNoBodyFramesOnBothPaths()
         {
             ReadOnlySequence<byte> segmented = ReadOnlySequenceFactory.CreateSegmented(
                 Array.Empty<byte>(), Array.Empty<byte>());
             Assert.False(segmented.IsSingleSegment);
 
-            byte[] emptyBodyBytes = SerializeToArray(ReadOnlyMemory<byte>.Empty, null, 16);
+            byte[] emptyBodyBytes = await SerializeToArray(ReadOnlyMemory<byte>.Empty, null, 16);
 
-            Assert.Equal(emptyBodyBytes, SerializeToArray(segmented, null, 16));
-            Assert.Equal(emptyBodyBytes, SerializeToArray(segmented, new TrackingDisposable(), 16));
+            Assert.Equal(emptyBodyBytes, await SerializeToArray(segmented, null, 16));
+            Assert.Equal(emptyBodyBytes, await SerializeToArray(segmented, new TrackingDisposable(), 16));
         }
 
         [Fact]
-        public void EmptyBodyWithUnlimitedFrameSizeProducesNoBodyFrames()
+        public async Task EmptyBodyWithUnlimitedFrameSizeProducesNoBodyFrames()
         {
             // maxBodyPayloadBytes == int.MaxValue is the "unlimited frame size" case.
-            byte[] withFrameLimit = SerializeToArray(ReadOnlyMemory<byte>.Empty, null, 16);
-            byte[] withoutFrameLimit = SerializeToArray(ReadOnlyMemory<byte>.Empty, null, int.MaxValue);
+            byte[] withFrameLimit = await SerializeToArray(ReadOnlyMemory<byte>.Empty, null, 16);
+            byte[] withoutFrameLimit = await SerializeToArray(ReadOnlyMemory<byte>.Empty, null, int.MaxValue);
 
             Assert.Equal(withFrameLimit, withoutFrameLimit);
         }
@@ -196,7 +197,7 @@ namespace Test.Unit
             });
         }
 
-        private static void AssertSizeMatchesBytesWritten(ReadOnlySequence<byte> body,
+        private static async Task AssertSizeMatchesBytesWritten(ReadOnlySequence<byte> body,
             IDisposable bodyOwner, int maxBodyPayloadBytes)
         {
             var method = new BasicPublish(Exchange, RoutingKey, false, false);
@@ -206,10 +207,10 @@ namespace Test.Unit
                 Channel, maxBodyPayloadBytes);
             int size = frame.Size;
 
-            Assert.Equal(size, WriteToArray(frame).Length);
+            Assert.Equal(size, (await WriteToArray(frame)).Length);
         }
 
-        private static byte[] SerializeToArray(ReadOnlySequence<byte> body, IDisposable bodyOwner,
+        private static Task<byte[]> SerializeToArray(ReadOnlySequence<byte> body, IDisposable bodyOwner,
             int maxBodyPayloadBytes)
         {
             var method = new BasicPublish(Exchange, RoutingKey, false, false);
@@ -219,7 +220,7 @@ namespace Test.Unit
                 Channel, maxBodyPayloadBytes));
         }
 
-        private static byte[] SerializeToArray(ReadOnlyMemory<byte> body, IDisposable bodyOwner,
+        private static Task<byte[]> SerializeToArray(ReadOnlyMemory<byte> body, IDisposable bodyOwner,
             int maxBodyPayloadBytes)
         {
             var method = new BasicPublish(Exchange, RoutingKey, false, false);
@@ -229,12 +230,12 @@ namespace Test.Unit
                 Channel, maxBodyPayloadBytes));
         }
 
-        private static byte[] WriteToArray(OutgoingFrame frame)
+        private static async Task<byte[]> WriteToArray(OutgoingFrame frame)
         {
             try
             {
                 var pipe = new Pipe();
-                frame.WriteTo(pipe.Writer);
+                await frame.WriteToAsync(pipe.Writer, async () => await pipe.Writer.FlushAsync());
                 pipe.Writer.Complete();
 
                 Assert.True(pipe.Reader.TryRead(out ReadResult result));

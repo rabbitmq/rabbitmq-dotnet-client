@@ -32,8 +32,10 @@
 using System;
 using System.Buffers;
 using System.Collections.Generic;
+using System.IO;
 using System.IO.Pipelines;
 using System.Linq;
+using System.Threading.Tasks;
 using RabbitMQ.Client;
 using Xunit;
 
@@ -60,13 +62,13 @@ namespace Test.Unit
         [InlineData(70, 7, 16)]
         [InlineData(70, 1, 3)]
         [InlineData(1, 1, 1)]
-        public void SegmentedBodyIsByteIdenticalToContiguousBody(int bodyLength, int segmentSize, int maxBodyPayloadBytes)
+        public async Task SegmentedBodyIsByteIdenticalToContiguousBody(int bodyLength, int segmentSize, int maxBodyPayloadBytes)
         {
             byte[] body = GetBody(bodyLength);
             ReadOnlySequence<byte> segmented = ReadOnlySequenceFactory.CreateSegmented(body, segmentSize);
 
-            byte[] contiguousBytes = WriteToArray(CreateFrame(new ReadOnlySequence<byte>(body), maxBodyPayloadBytes));
-            byte[] segmentedBytes = WriteToArray(CreateFrame(segmented, maxBodyPayloadBytes));
+            byte[] contiguousBytes = await WriteToArray(CreateFrame(new ReadOnlySequence<byte>(body), maxBodyPayloadBytes));
+            byte[] segmentedBytes = await WriteToArray(CreateFrame(segmented, maxBodyPayloadBytes));
 
             Assert.Equal(contiguousBytes, segmentedBytes);
         }
@@ -89,13 +91,13 @@ namespace Test.Unit
         [InlineData(64, 16, 64, 1)]  // payload covers the whole body
         [InlineData(70, 16, 7, 10)]  // ragged last frame
         [InlineData(70, 16, int.MaxValue, 1)]
-        public void SegmentedBodyProducesExpectedBodyFrames(int bodyLength, int segmentSize,
+        public async Task SegmentedBodyProducesExpectedBodyFrames(int bodyLength, int segmentSize,
             int maxBodyPayloadBytes, int expectedBodyFrameCount)
         {
             byte[] body = GetBody(bodyLength);
             ReadOnlySequence<byte> segmented = ReadOnlySequenceFactory.CreateSegmented(body, segmentSize);
 
-            byte[] bytes = WriteToArray(CreateFrame(segmented, maxBodyPayloadBytes));
+            byte[] bytes = await WriteToArray(CreateFrame(segmented, maxBodyPayloadBytes));
 
             Assert.Equal(s_methodAndHeader, bytes.AsSpan(0, s_methodAndHeader.Length).ToArray());
 
@@ -113,7 +115,7 @@ namespace Test.Unit
         }
 
         [Fact]
-        public void SizeMatchesTheNumberOfBytesWritten()
+        public async Task SizeMatchesTheNumberOfBytesWritten()
         {
             const int BodyLength = 70;
             const int SegmentSize = 16;
@@ -125,30 +127,30 @@ namespace Test.Unit
             OutgoingFrame frame = CreateFrame(segmented, MaxBodyPayloadBytes);
             int size = frame.Size;
 
-            Assert.Equal(size, WriteToArray(frame).Length);
+            Assert.Equal(size, (await WriteToArray(frame)).Length);
         }
 
         [Fact]
-        public void EmptySequenceProducesNoBodyFrames()
+        public async Task EmptySequenceProducesNoBodyFrames()
         {
-            byte[] bytes = WriteToArray(CreateFrame(ReadOnlySequence<byte>.Empty, 16));
+            byte[] bytes = await WriteToArray(CreateFrame(ReadOnlySequence<byte>.Empty, 16));
             Assert.Equal(s_methodAndHeader, bytes);
         }
 
         [Fact]
-        public void SequenceOfEmptySegmentsProducesNoBodyFrames()
+        public async Task SequenceOfEmptySegmentsProducesNoBodyFrames()
         {
             ReadOnlySequence<byte> segmented = ReadOnlySequenceFactory.CreateSegmented(
                 Array.Empty<byte>(), Array.Empty<byte>(), Array.Empty<byte>());
 
             Assert.Equal(0, segmented.Length);
 
-            byte[] bytes = WriteToArray(CreateFrame(segmented, 16));
+            byte[] bytes = await WriteToArray(CreateFrame(segmented, 16));
             Assert.Equal(s_methodAndHeader, bytes);
         }
 
         [Fact]
-        public void EmptySegmentsInterleavedWithDataAreSkipped()
+        public async Task EmptySegmentsInterleavedWithDataAreSkipped()
         {
             ReadOnlySequence<byte> segmented = ReadOnlySequenceFactory.CreateSegmented(
                 new byte[] { 1, 2, 3 },
@@ -160,8 +162,8 @@ namespace Test.Unit
             byte[] expectedBody = { 1, 2, 3, 4, 5, 6 };
             Assert.Equal(expectedBody.Length, segmented.Length);
 
-            byte[] contiguousBytes = WriteToArray(CreateFrame(new ReadOnlySequence<byte>(expectedBody), 4));
-            byte[] segmentedBytes = WriteToArray(CreateFrame(segmented, 4));
+            byte[] contiguousBytes = await WriteToArray(CreateFrame(new ReadOnlySequence<byte>(expectedBody), 4));
+            byte[] segmentedBytes = await WriteToArray(CreateFrame(segmented, 4));
 
             Assert.Equal(contiguousBytes, segmentedBytes);
         }
@@ -183,6 +185,62 @@ namespace Test.Unit
             Assert.Equal(1, owner.DisposeCount);
         }
 
+        [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public async Task LargeBodyDoesNotHoldEveryFrameInThePipe_GH2166(bool segmented)
+        {
+            const int MaxBodyPayloadBytes = 131072 - 8; // the broker's default frame_max
+            const int BodyLength = 8 * MaxBodyPayloadBytes;
+            byte[] body = GetBody(BodyLength);
+            ReadOnlySequence<byte> sequence = segmented
+                ? ReadOnlySequenceFactory.CreateSegmented(body, 64 * 1024)
+                : new ReadOnlySequence<byte>(body);
+            Assert.Equal(segmented, !sequence.IsSingleSegment);
+
+            var pool = new PeakTrackingMemoryPool();
+            using var stream = new MemoryStream();
+            PipeWriter writer = PipeWriter.Create(stream, new StreamPipeWriterOptions(pool: pool, leaveOpen: true));
+            OutgoingFrame frame = CreateFrame(sequence, MaxBodyPayloadBytes);
+            try
+            {
+                await frame.WriteToAsync(writer, async () => await writer.FlushAsync());
+                await writer.FlushAsync();
+            }
+            finally
+            {
+                frame.Dispose();
+            }
+
+            // Without flushes between frames the pipe holds the whole body at once.
+            Assert.True(pool.PeakRentedBytes < 2 * (MaxBodyPayloadBytes + 8),
+                $"peak rented {pool.PeakRentedBytes} bytes for a {BodyLength} byte body");
+
+            byte[] bytes = stream.ToArray();
+            Assert.Equal(s_methodAndHeader, bytes.AsSpan(0, s_methodAndHeader.Length).ToArray());
+            List<byte[]> bodyFrames = ParseBodyFrames(bytes.AsSpan(s_methodAndHeader.Length).ToArray());
+            Assert.Equal(8, bodyFrames.Count);
+            Assert.Equal(body, bodyFrames.SelectMany(f => f).ToArray());
+        }
+
+        [Fact]
+        public async Task BodyBelowTheThresholdIsNotFlushedBetweenFrames_GH2166()
+        {
+            int flushes = 0;
+            var pipe = new Pipe();
+            OutgoingFrame frame = CreateFrame(ReadOnlySequenceFactory.CreateSegmented(GetBody(1000), 16), 16);
+            try
+            {
+                await frame.WriteToAsync(pipe.Writer, () => { flushes++; return default; });
+            }
+            finally
+            {
+                frame.Dispose();
+            }
+
+            Assert.Equal(0, flushes);
+        }
+
         private static OutgoingFrame CreateFrame(ReadOnlySequence<byte> body, int maxBodyPayloadBytes,
             IDisposable bodyOwner = null)
         {
@@ -200,10 +258,10 @@ namespace Test.Unit
                 Channel, maxBodyPayloadBytes, totalSize);
         }
 
-        private static byte[] WriteToArray(OutgoingFrame frame)
+        private static async Task<byte[]> WriteToArray(OutgoingFrame frame)
         {
             var pipe = new Pipe();
-            frame.WriteTo(pipe.Writer);
+            await frame.WriteToAsync(pipe.Writer, async () => await pipe.Writer.FlushAsync());
             pipe.Writer.Complete();
 
             Assert.True(pipe.Reader.TryRead(out ReadResult result));
@@ -275,6 +333,50 @@ namespace Test.Unit
             Assert.Equal(body.Length, payloadLength);
             Assert.Equal(body, result.AsSpan(7, body.Length).ToArray());
             Assert.Equal(Constants.FrameEnd, result.Last());
+        }
+
+        private sealed class PeakTrackingMemoryPool : MemoryPool<byte>
+        {
+            private long _rentedBytes;
+
+            public long PeakRentedBytes { get; private set; }
+
+            public override int MaxBufferSize => int.MaxValue;
+
+            public override IMemoryOwner<byte> Rent(int minBufferSize = -1)
+            {
+                var owner = new Owner(this, new byte[Math.Max(minBufferSize, 4096)]);
+                _rentedBytes += owner.Memory.Length;
+                PeakRentedBytes = Math.Max(PeakRentedBytes, _rentedBytes);
+                return owner;
+            }
+
+            protected override void Dispose(bool disposing)
+            {
+            }
+
+            private sealed class Owner : IMemoryOwner<byte>
+            {
+                private PeakTrackingMemoryPool _pool;
+                private readonly byte[] _array;
+
+                public Owner(PeakTrackingMemoryPool pool, byte[] array)
+                {
+                    _pool = pool;
+                    _array = array;
+                }
+
+                public Memory<byte> Memory => _array;
+
+                public void Dispose()
+                {
+                    if (_pool is not null)
+                    {
+                        _pool._rentedBytes -= _array.Length;
+                        _pool = null;
+                    }
+                }
+            }
         }
 
         /// <summary>
