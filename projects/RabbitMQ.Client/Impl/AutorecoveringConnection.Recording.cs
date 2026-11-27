@@ -169,6 +169,16 @@ namespace RabbitMQ.Client.Impl
                 {
                     // last binding where this exchange is the source is gone, remove recorded exchange if it is auto-deleted.
                     _recordedExchanges.Remove(exchangeName);
+
+                    // The broker deletes the bindings into the exchange with it; replaying one would fail recovery. #2147.
+                    foreach (RecordedBinding binding in _recordedBindings.ToArray())
+                    {
+                        if (!binding.IsQueueBinding && binding.Destination == exchangeName)
+                        {
+                            DoDeleteRecordedBinding(binding);
+                            DoDeleteAutoDeleteExchange(binding.Source);
+                        }
+                    }
                 }
             }
 

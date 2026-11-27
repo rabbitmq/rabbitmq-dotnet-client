@@ -43,11 +43,15 @@ namespace RabbitMQ.Client.Impl
         private readonly string _source;
         private readonly string _routingKey;
         private readonly IDictionary<string, object?>? _arguments;
+        // The arguments as the broker compares them: encoded, top-level keys sorted. #2147.
+        private readonly byte[] _argumentsKey;
+        private readonly int _argumentsHash;
 
         public string Destination => _destination;
         public string Source => _source;
         public string RoutingKey => _routingKey;
         public IDictionary<string, object?>? Arguments => _arguments;
+        internal bool IsQueueBinding => _isQueueBinding;
 
         public RecordedBinding(bool isQueueBinding, string destination, string source, string routingKey, IDictionary<string, object?>? arguments)
         {
@@ -65,6 +69,9 @@ namespace RabbitMQ.Client.Impl
             {
                 _arguments = new Dictionary<string, object?>(arguments);
             }
+
+            _argumentsKey = ArgumentsKey(_arguments);
+            _argumentsHash = Hash(_argumentsKey);
         }
 
         public RecordedBinding(string destination, in RecordedBinding old)
@@ -74,6 +81,8 @@ namespace RabbitMQ.Client.Impl
             _source = old._source;
             _routingKey = old._routingKey;
             _arguments = old._arguments;
+            _argumentsKey = old._argumentsKey;
+            _argumentsHash = old._argumentsHash;
         }
 
         public Task RecoverAsync(IChannel channel, CancellationToken cancellationToken)
@@ -96,7 +105,7 @@ namespace RabbitMQ.Client.Impl
                 _destination == other._destination &&
                 _source == other._source &&
                _routingKey == other._routingKey &&
-               _arguments == other._arguments;
+               _argumentsKey.AsSpan().SequenceEqual(other._argumentsKey);
         }
 
         public override bool Equals(object? obj)
@@ -107,7 +116,7 @@ namespace RabbitMQ.Client.Impl
         public override int GetHashCode()
         {
 #if NET
-            return HashCode.Combine(_isQueueBinding, _destination, _source, _routingKey, _arguments);
+            return HashCode.Combine(_isQueueBinding, _destination, _source, _routingKey, _argumentsHash);
 #else
             unchecked
             {
@@ -115,10 +124,38 @@ namespace RabbitMQ.Client.Impl
                 hashCode = (hashCode * 397) ^ _destination.GetHashCode();
                 hashCode = (hashCode * 397) ^ _source.GetHashCode();
                 hashCode = (hashCode * 397) ^ _routingKey.GetHashCode();
-                hashCode = (hashCode * 397) ^ (_arguments != null ? _arguments.GetHashCode() : 0);
+                hashCode = (hashCode * 397) ^ _argumentsHash;
                 return hashCode;
             }
 #endif
+        }
+
+        private static byte[] ArgumentsKey(IDictionary<string, object?>? arguments)
+        {
+            if (arguments is null || arguments.Count == 0)
+            {
+                return Array.Empty<byte>();
+            }
+
+            IDictionary<string, object?> sorted = new SortedDictionary<string, object?>(arguments, StringComparer.Ordinal);
+            byte[] key = new byte[WireFormatting.GetTableByteCount(sorted)];
+            WireFormatting.WriteTable(ref key.GetStart(), sorted);
+            return key;
+        }
+
+        private static int Hash(byte[] bytes)
+        {
+            unchecked
+            {
+                // FNV-1a
+                int hash = (int)2166136261;
+                foreach (byte b in bytes)
+                {
+                    hash = (hash ^ b) * 16777619;
+                }
+
+                return hash;
+            }
         }
 
         public override string ToString()
