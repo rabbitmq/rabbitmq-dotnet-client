@@ -274,7 +274,8 @@ namespace RabbitMQ.Client
 
             Activity? activity =
                 s_connectionSource.StartRabbitMQActivity("tcp connection attempt", ActivityKind.Client);
-            if (activity is { IsAllDataRequested: true })
+            // Runs before SelectOneAsync's per-endpoint try, so it must not throw; a bad endpoint fails in the selector. #2132.
+            if (activity is { IsAllDataRequested: true } && endpoint is not null)
             {
                 activity.SetServerTags(endpoint);
             }
@@ -732,8 +733,12 @@ namespace RabbitMQ.Client
                     .SetTag("server.address", endpoint.HostName);
             }
 
-            activity
-                .SetTag("server.port", endpoint.Port);
+            // Port reads Ssl when no port is set, and Ssl can be null.
+            if (endpoint.PortOrMinusOne != AmqpTcpEndpoint.UseDefaultPort || endpoint.Ssl is not null)
+            {
+                activity
+                    .SetTag("server.port", endpoint.Port);
+            }
         }
 
         internal static void DefaultContextInjector(Activity sendActivity, IDictionary<string, object?> props)
