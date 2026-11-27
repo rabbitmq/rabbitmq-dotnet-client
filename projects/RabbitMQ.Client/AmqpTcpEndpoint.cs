@@ -135,7 +135,7 @@ namespace RabbitMQ.Client
         /// <returns>A copy with the same hostname, port, and TLS settings</returns>
         public object Clone()
         {
-            return new AmqpTcpEndpoint(HostName, _port, Ssl, _maxInboundMessageBodySize);
+            return new AmqpTcpEndpoint(HostName, _port, Ssl, _maxInboundMessageBodySize) { AddressFamily = AddressFamily };
         }
 
         /// <summary>
@@ -145,7 +145,7 @@ namespace RabbitMQ.Client
         /// <returns>A copy with the provided hostname and port/TLS settings of this endpoint</returns>
         public AmqpTcpEndpoint CloneWithHostname(string hostname)
         {
-            return new AmqpTcpEndpoint(hostname, _port, Ssl, _maxInboundMessageBodySize);
+            return new AmqpTcpEndpoint(hostname, _port, Ssl, _maxInboundMessageBodySize) { AddressFamily = AddressFamily };
         }
 
         // Keeps an unset port unset, so the default follows the new TLS setting.
