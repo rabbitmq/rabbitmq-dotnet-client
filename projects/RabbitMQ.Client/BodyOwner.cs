@@ -35,6 +35,16 @@ namespace RabbitMQ.Client
 {
     internal static class BodyOwner
     {
+        // The caller has already handed over bodyOwner, so rejecting an argument disposes it. #2101.
+        internal static void ThrowIfNull(object? argument, IDisposable? bodyOwner, string paramName)
+        {
+            if (argument is null)
+            {
+                Dispose(bodyOwner);
+                throw new ArgumentNullException(paramName);
+            }
+        }
+
         internal static void Dispose(IDisposable? bodyOwner)
         {
             try

@@ -99,10 +99,13 @@ namespace RabbitMQ.Client
             T basicProperties,
             ReadOnlyMemory<byte> body,
             CancellationToken cancellationToken = default)
-            where T : IReadOnlyBasicProperties, IAmqpHeader =>
-            channel.BasicPublishAsync(exchange: addr.ExchangeName, routingKey: addr.RoutingKey,
+            where T : IReadOnlyBasicProperties, IAmqpHeader
+        {
+            BodyOwner.ThrowIfNull(addr, null, nameof(addr));
+            return channel.BasicPublishAsync(exchange: addr.ExchangeName, routingKey: addr.RoutingKey,
                 mandatory: false, basicProperties: basicProperties, body: body,
                 cancellationToken);
+        }
 
         /// <summary>
         /// (Extension method) Convenience overload of <see cref="IChannel.BasicPublishAsync{TProperties}(string, string, bool, TProperties, ReadOnlyMemory{byte}, IDisposable, CancellationToken)"/>
@@ -124,10 +127,13 @@ namespace RabbitMQ.Client
             ReadOnlyMemory<byte> body,
             IDisposable? bodyOwner,
             CancellationToken cancellationToken = default)
-            where T : IReadOnlyBasicProperties, IAmqpHeader =>
-            channel.BasicPublishAsync(exchange: addr.ExchangeName, routingKey: addr.RoutingKey,
+            where T : IReadOnlyBasicProperties, IAmqpHeader
+        {
+            BodyOwner.ThrowIfNull(addr, bodyOwner, nameof(addr));
+            return channel.BasicPublishAsync(exchange: addr.ExchangeName, routingKey: addr.RoutingKey,
                 mandatory: false, basicProperties: basicProperties, body: body, bodyOwner: bodyOwner,
                 cancellationToken);
+        }
 
         /// <summary>
         /// (Extension method) Convenience overload of <see cref="IChannel.BasicPublishAsync{TProperties}(string, string, bool, TProperties, ReadOnlyMemory{byte}, CancellationToken)"/>
@@ -342,10 +348,13 @@ namespace RabbitMQ.Client
             ReadOnlySequence<byte> body,
             IDisposable? bodyOwner,
             CancellationToken cancellationToken = default)
-            where T : IReadOnlyBasicProperties, IAmqpHeader =>
-            channel.BasicPublishAsync(exchange: addr.ExchangeName, routingKey: addr.RoutingKey,
+            where T : IReadOnlyBasicProperties, IAmqpHeader
+        {
+            BodyOwner.ThrowIfNull(addr, bodyOwner, nameof(addr));
+            return channel.BasicPublishAsync(exchange: addr.ExchangeName, routingKey: addr.RoutingKey,
                 mandatory: false, basicProperties: basicProperties, body: body, bodyOwner: bodyOwner,
                 cancellationToken);
+        }
 
         /// <summary>
         /// (Extension method) Convenience overload of <see cref="IChannel.BasicPublishAsync{TProperties}(string, string, bool, TProperties, ReadOnlySequence{byte}, IDisposable, CancellationToken)"/>

@@ -68,6 +68,7 @@ namespace RabbitMQ.Client.Impl
             CancellationToken cancellationToken = default)
             where TProperties : IReadOnlyBasicProperties, IAmqpHeader
         {
+            ThrowIfNullAddress(exchange, routingKey, bodyOwner: null);
             var cmd = new BasicPublishMemory(exchange.Bytes, routingKey.Bytes, mandatory, default);
             return BasicPublishCoreAsync(cmd, basicProperties, body, bodyOwner: null, exchange.Value, routingKey.Value, cancellationToken);
         }
@@ -77,6 +78,7 @@ namespace RabbitMQ.Client.Impl
             CancellationToken cancellationToken = default)
             where TProperties : IReadOnlyBasicProperties, IAmqpHeader
         {
+            ThrowIfNullAddress(exchange, routingKey, bodyOwner);
             var cmd = new BasicPublishMemory(exchange.Bytes, routingKey.Bytes, mandatory, default);
             return BasicPublishCoreAsync(cmd, basicProperties, body, bodyOwner, exchange.Value, routingKey.Value, cancellationToken);
         }
@@ -96,9 +98,16 @@ namespace RabbitMQ.Client.Impl
             CancellationToken cancellationToken = default)
             where TProperties : IReadOnlyBasicProperties, IAmqpHeader
         {
+            ThrowIfNullAddress(exchange, routingKey, bodyOwner);
             ValidateBodyLength(body, bodyOwner);
             var cmd = new BasicPublishMemory(exchange.Bytes, routingKey.Bytes, mandatory, default);
             return BasicPublishCoreAsync(cmd, basicProperties, body, bodyOwner, exchange.Value, routingKey.Value, cancellationToken);
+        }
+
+        private static void ThrowIfNullAddress(CachedString exchange, CachedString routingKey, IDisposable? bodyOwner)
+        {
+            BodyOwner.ThrowIfNull(exchange, bodyOwner, nameof(exchange));
+            BodyOwner.ThrowIfNull(routingKey, bodyOwner, nameof(routingKey));
         }
 
         /// <summary>
