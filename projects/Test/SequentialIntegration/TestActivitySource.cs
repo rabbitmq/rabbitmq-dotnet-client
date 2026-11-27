@@ -996,6 +996,37 @@ namespace Test.SequentialIntegration
             tcpConnectionActivity.IsInError();
         }
 
+        [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public async Task ABadEndpointFailsOnlyItsOwnAttemptWhileTracing_GH2132(bool nullSslInsteadOfNullEndpoint)
+        {
+            using ActivityRecorder tcpConnectionRecorder =
+                new(RabbitMQActivitySource.ConnectionSourceName, "tcp connection attempt");
+            tcpConnectionRecorder.VerifyParent = false;
+
+            ConnectionFactory cf = CreateConnectionFactory();
+            AmqpTcpEndpoint reachableEndpoint = cf.Endpoint;
+            AmqpTcpEndpoint badEndpoint = nullSslInsteadOfNullEndpoint
+                ? new AmqpTcpEndpoint(reachableEndpoint.HostName, AmqpTcpEndpoint.UseDefaultPort, null)
+                : null;
+            var endpoints = new List<AmqpTcpEndpoint> { badEndpoint, reachableEndpoint };
+            cf.EndpointResolverFactory = _ => new OrderedEndpointResolver(endpoints);
+
+            await using (IConnection conn = await cf.CreateConnectionAsync(endpoints))
+            {
+                await conn.CloseAsync();
+            }
+
+            tcpConnectionRecorder.VerifyActivityRecorded(2);
+            List<Activity> tcpActivities = tcpConnectionRecorder.FinishedActivities.ToList();
+            Activity failedAttempt = Assert.Single(tcpActivities, a => a.GetTagItem("server.port") is null);
+            failedAttempt.IsInError();
+            Activity successfulAttempt = Assert.Single(tcpActivities,
+                a => reachableEndpoint.Port.Equals(a.GetTagItem("server.port")));
+            Assert.Equal(ActivityStatusCode.Unset, successfulAttempt.Status);
+        }
+
         [Fact]
         public async Task TestCreateConnectionWithFailoverRecordsErrorOnlyOnTheFailedAttempt()
         {
