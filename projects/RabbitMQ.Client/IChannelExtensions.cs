@@ -101,6 +101,7 @@ namespace RabbitMQ.Client
             CancellationToken cancellationToken = default)
             where T : IReadOnlyBasicProperties, IAmqpHeader
         {
+            BodyOwner.ThrowIfNull(channel, null, nameof(channel));
             BodyOwner.ThrowIfNull(addr, null, nameof(addr));
             return channel.BasicPublishAsync(exchange: addr.ExchangeName, routingKey: addr.RoutingKey,
                 mandatory: false, basicProperties: basicProperties, body: body,
@@ -129,6 +130,7 @@ namespace RabbitMQ.Client
             CancellationToken cancellationToken = default)
             where T : IReadOnlyBasicProperties, IAmqpHeader
         {
+            BodyOwner.ThrowIfNull(channel, bodyOwner, nameof(channel));
             BodyOwner.ThrowIfNull(addr, bodyOwner, nameof(addr));
             return channel.BasicPublishAsync(exchange: addr.ExchangeName, routingKey: addr.RoutingKey,
                 mandatory: false, basicProperties: basicProperties, body: body, bodyOwner: bodyOwner,
@@ -152,10 +154,13 @@ namespace RabbitMQ.Client
             string exchange,
             string routingKey,
             ReadOnlyMemory<byte> body,
-            CancellationToken cancellationToken = default) =>
-            channel.BasicPublishAsync(exchange: exchange, routingKey: routingKey,
+            CancellationToken cancellationToken = default)
+        {
+            BodyOwner.ThrowIfNull(channel, null, nameof(channel));
+            return channel.BasicPublishAsync(exchange: exchange, routingKey: routingKey,
                 mandatory: false, basicProperties: EmptyBasicProperty.Empty, body: body,
                 cancellationToken);
+        }
 
         /// <summary>
         /// (Extension method) Convenience overload of <see cref="IChannel.BasicPublishAsync{TProperties}(string, string, bool, TProperties, ReadOnlyMemory{byte}, IDisposable, CancellationToken)"/>
@@ -176,10 +181,13 @@ namespace RabbitMQ.Client
             string routingKey,
             ReadOnlyMemory<byte> body,
             IDisposable? bodyOwner,
-            CancellationToken cancellationToken = default) =>
-            channel.BasicPublishAsync(exchange: exchange, routingKey: routingKey,
+            CancellationToken cancellationToken = default)
+        {
+            BodyOwner.ThrowIfNull(channel, bodyOwner, nameof(channel));
+            return channel.BasicPublishAsync(exchange: exchange, routingKey: routingKey,
                 mandatory: false, basicProperties: EmptyBasicProperty.Empty, body: body, bodyOwner: bodyOwner,
                 cancellationToken);
+        }
 
         /// <summary>
         /// (Extension method) Convenience overload of <see cref="IChannel.BasicPublishAsync{TProperties}(CachedString, CachedString, bool, TProperties, ReadOnlyMemory{byte}, CancellationToken)" />
@@ -198,10 +206,13 @@ namespace RabbitMQ.Client
             CachedString exchange,
             CachedString routingKey,
             ReadOnlyMemory<byte> body,
-            CancellationToken cancellationToken = default) =>
-            channel.BasicPublishAsync(exchange: exchange, routingKey: routingKey,
+            CancellationToken cancellationToken = default)
+        {
+            BodyOwner.ThrowIfNull(channel, null, nameof(channel));
+            return channel.BasicPublishAsync(exchange: exchange, routingKey: routingKey,
                 mandatory: false, basicProperties: EmptyBasicProperty.Empty, body: body,
                 cancellationToken);
+        }
 
         /// <summary>
         /// (Extension method) Convenience overload of <see cref="IChannel.BasicPublishAsync{TProperties}(CachedString, CachedString, bool, TProperties, ReadOnlyMemory{byte}, IDisposable, CancellationToken)"/>
@@ -222,10 +233,13 @@ namespace RabbitMQ.Client
             CachedString routingKey,
             ReadOnlyMemory<byte> body,
             IDisposable? bodyOwner,
-            CancellationToken cancellationToken = default) =>
-            channel.BasicPublishAsync(exchange: exchange, routingKey: routingKey,
+            CancellationToken cancellationToken = default)
+        {
+            BodyOwner.ThrowIfNull(channel, bodyOwner, nameof(channel));
+            return channel.BasicPublishAsync(exchange: exchange, routingKey: routingKey,
                 mandatory: false, basicProperties: EmptyBasicProperty.Empty, body: body, bodyOwner: bodyOwner,
                 cancellationToken);
+        }
 
         /// <summary>
         /// (Extension method) Convenience overload of <see cref="IChannel.BasicPublishAsync{TProperties}(string, string, bool, TProperties, ReadOnlyMemory{byte}, CancellationToken)"/>
@@ -246,10 +260,13 @@ namespace RabbitMQ.Client
             string routingKey,
             bool mandatory,
             ReadOnlyMemory<byte> body,
-            CancellationToken cancellationToken = default) =>
-            channel.BasicPublishAsync(exchange: exchange, routingKey: routingKey,
+            CancellationToken cancellationToken = default)
+        {
+            BodyOwner.ThrowIfNull(channel, null, nameof(channel));
+            return channel.BasicPublishAsync(exchange: exchange, routingKey: routingKey,
                 mandatory: mandatory, basicProperties: EmptyBasicProperty.Empty, body: body,
                 cancellationToken);
+        }
 
         /// <summary>
         /// (Extension method) Convenience overload of <see cref="IChannel.BasicPublishAsync{TProperties}(string, string, bool, TProperties, ReadOnlyMemory{byte}, IDisposable, CancellationToken)"/>
@@ -272,10 +289,13 @@ namespace RabbitMQ.Client
             bool mandatory,
             ReadOnlyMemory<byte> body,
             IDisposable? bodyOwner,
-            CancellationToken cancellationToken = default) =>
-            channel.BasicPublishAsync(exchange: exchange, routingKey: routingKey,
+            CancellationToken cancellationToken = default)
+        {
+            BodyOwner.ThrowIfNull(channel, bodyOwner, nameof(channel));
+            return channel.BasicPublishAsync(exchange: exchange, routingKey: routingKey,
                 mandatory: mandatory, basicProperties: EmptyBasicProperty.Empty, body: body, bodyOwner: bodyOwner,
                 cancellationToken);
+        }
 
         /// <summary>
         /// (Extension method) Convenience overload of <see cref="IChannel.BasicPublishAsync{TProperties}(CachedString, CachedString, bool, TProperties, ReadOnlyMemory{byte}, CancellationToken)" />
@@ -296,10 +316,13 @@ namespace RabbitMQ.Client
             CachedString routingKey,
             bool mandatory,
             ReadOnlyMemory<byte> body,
-            CancellationToken cancellationToken = default) =>
-            channel.BasicPublishAsync(exchange: exchange, routingKey: routingKey,
+            CancellationToken cancellationToken = default)
+        {
+            BodyOwner.ThrowIfNull(channel, null, nameof(channel));
+            return channel.BasicPublishAsync(exchange: exchange, routingKey: routingKey,
                 mandatory: mandatory, basicProperties: EmptyBasicProperty.Empty, body: body,
                 cancellationToken);
+        }
 
         /// <summary>
         /// (Extension method) Convenience overload of <see cref="IChannel.BasicPublishAsync{TProperties}(CachedString, CachedString, bool, TProperties, ReadOnlyMemory{byte}, IDisposable, CancellationToken)"/>
@@ -322,10 +345,13 @@ namespace RabbitMQ.Client
             bool mandatory,
             ReadOnlyMemory<byte> body,
             IDisposable? bodyOwner,
-            CancellationToken cancellationToken = default) =>
-            channel.BasicPublishAsync(exchange: exchange, routingKey: routingKey,
+            CancellationToken cancellationToken = default)
+        {
+            BodyOwner.ThrowIfNull(channel, bodyOwner, nameof(channel));
+            return channel.BasicPublishAsync(exchange: exchange, routingKey: routingKey,
                 mandatory: mandatory, basicProperties: EmptyBasicProperty.Empty, body: body, bodyOwner: bodyOwner,
                 cancellationToken);
+        }
 
         /// <summary>
         /// (Extension method) Convenience overload of <see cref="IChannel.BasicPublishAsync{TProperties}(string, string, bool, TProperties, ReadOnlySequence{byte}, IDisposable, CancellationToken)"/>
@@ -350,6 +376,7 @@ namespace RabbitMQ.Client
             CancellationToken cancellationToken = default)
             where T : IReadOnlyBasicProperties, IAmqpHeader
         {
+            BodyOwner.ThrowIfNull(channel, bodyOwner, nameof(channel));
             BodyOwner.ThrowIfNull(addr, bodyOwner, nameof(addr));
             return channel.BasicPublishAsync(exchange: addr.ExchangeName, routingKey: addr.RoutingKey,
                 mandatory: false, basicProperties: basicProperties, body: body, bodyOwner: bodyOwner,
@@ -376,10 +403,13 @@ namespace RabbitMQ.Client
             string routingKey,
             ReadOnlySequence<byte> body,
             IDisposable? bodyOwner,
-            CancellationToken cancellationToken = default) =>
-            channel.BasicPublishAsync(exchange: exchange, routingKey: routingKey,
+            CancellationToken cancellationToken = default)
+        {
+            BodyOwner.ThrowIfNull(channel, bodyOwner, nameof(channel));
+            return channel.BasicPublishAsync(exchange: exchange, routingKey: routingKey,
                 mandatory: false, basicProperties: EmptyBasicProperty.Empty, body: body, bodyOwner: bodyOwner,
                 cancellationToken);
+        }
 
         /// <summary>
         /// (Extension method) Convenience overload of <see cref="IChannel.BasicPublishAsync{TProperties}(string, string, bool, TProperties, ReadOnlySequence{byte}, IDisposable, CancellationToken)"/>
@@ -403,10 +433,13 @@ namespace RabbitMQ.Client
             bool mandatory,
             ReadOnlySequence<byte> body,
             IDisposable? bodyOwner,
-            CancellationToken cancellationToken = default) =>
-            channel.BasicPublishAsync(exchange: exchange, routingKey: routingKey,
+            CancellationToken cancellationToken = default)
+        {
+            BodyOwner.ThrowIfNull(channel, bodyOwner, nameof(channel));
+            return channel.BasicPublishAsync(exchange: exchange, routingKey: routingKey,
                 mandatory: mandatory, basicProperties: EmptyBasicProperty.Empty, body: body, bodyOwner: bodyOwner,
                 cancellationToken);
+        }
 
         /// <summary>
         /// (Extension method) Convenience overload of <see cref="IChannel.BasicPublishAsync{TProperties}(CachedString, CachedString, bool, TProperties, ReadOnlySequence{byte}, IDisposable, CancellationToken)"/>
@@ -428,10 +461,13 @@ namespace RabbitMQ.Client
             CachedString routingKey,
             ReadOnlySequence<byte> body,
             IDisposable? bodyOwner,
-            CancellationToken cancellationToken = default) =>
-            channel.BasicPublishAsync(exchange: exchange, routingKey: routingKey,
+            CancellationToken cancellationToken = default)
+        {
+            BodyOwner.ThrowIfNull(channel, bodyOwner, nameof(channel));
+            return channel.BasicPublishAsync(exchange: exchange, routingKey: routingKey,
                 mandatory: false, basicProperties: EmptyBasicProperty.Empty, body: body, bodyOwner: bodyOwner,
                 cancellationToken);
+        }
 
         /// <summary>
         /// (Extension method) Convenience overload of <see cref="IChannel.BasicPublishAsync{TProperties}(CachedString, CachedString, bool, TProperties, ReadOnlySequence{byte}, IDisposable, CancellationToken)"/>
@@ -455,10 +491,13 @@ namespace RabbitMQ.Client
             bool mandatory,
             ReadOnlySequence<byte> body,
             IDisposable? bodyOwner,
-            CancellationToken cancellationToken = default) =>
-            channel.BasicPublishAsync(exchange: exchange, routingKey: routingKey,
+            CancellationToken cancellationToken = default)
+        {
+            BodyOwner.ThrowIfNull(channel, bodyOwner, nameof(channel));
+            return channel.BasicPublishAsync(exchange: exchange, routingKey: routingKey,
                 mandatory: mandatory, basicProperties: EmptyBasicProperty.Empty, body: body, bodyOwner: bodyOwner,
                 cancellationToken);
+        }
 
         /// <summary>
         /// Asynchronously declare a queue.

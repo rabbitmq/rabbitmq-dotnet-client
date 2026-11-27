@@ -32,6 +32,9 @@
 
 using System;
 using System.Buffers;
+using System.Linq;
+using System.Reflection;
+using System.Threading;
 using System.Threading.Tasks;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
@@ -40,7 +43,7 @@ using Xunit;
 
 namespace Test.Unit
 {
-    public class TestPublishNullAddressBodyOwner
+    public class TestPublishNullArgumentBodyOwner
     {
         public static TheoryData<int, string, bool> Cases()
         {
@@ -119,6 +122,77 @@ namespace Test.Unit
                 await session.CloseAsync(new ShutdownEventArgs(ShutdownInitiator.Library, Constants.ReplySuccess, "test teardown"));
                 await channel.DisposeAsync();
             }
+        }
+
+        public static TheoryData<string, bool> PublishExtensions()
+        {
+            var data = new TheoryData<string, bool>();
+            foreach (MethodInfo method in PublishExtensionMethods())
+            {
+                data.Add(Describe(method), false);
+                data.Add(Describe(method), true);
+            }
+
+            return data;
+        }
+
+        [Theory]
+        [MemberData(nameof(PublishExtensions))]
+        public void PublishingThroughANullChannelThrowsAndDisposesAnyBodyOwner_GH2170(string extension, bool throwingOwner)
+        {
+            MethodInfo method = PublishExtensionMethods().Single(m => Describe(m) == extension);
+            var owner = new CountingOwner(throwingOwner);
+            object[] args = method.GetParameters().Select(p => ArgumentFor(p.ParameterType, owner)).ToArray();
+
+            TargetInvocationException ex = Assert.Throws<TargetInvocationException>(() => method.Invoke(null, args));
+
+            ArgumentNullException inner = Assert.IsType<ArgumentNullException>(ex.InnerException);
+            Assert.Equal("channel", inner.ParamName);
+            bool takesOwner = method.GetParameters().Any(p => p.ParameterType == typeof(IDisposable));
+            Assert.Equal(takesOwner ? 1 : 0, owner.DisposeCount);
+        }
+
+        private static MethodInfo[] PublishExtensionMethods()
+        {
+            MethodInfo[] methods = typeof(IChannelExtensions).GetMethods(BindingFlags.Public | BindingFlags.Static)
+                .Where(m => m.Name == nameof(IChannelExtensions.BasicPublishAsync))
+                .Select(m => m.IsGenericMethodDefinition ? m.MakeGenericMethod(typeof(BasicProperties)) : m)
+                .ToArray();
+            Assert.NotEmpty(methods);
+            return methods;
+        }
+
+        // Short labels: xUnit truncates a string argument at 50 characters in the test name.
+        private static string Describe(MethodInfo method)
+            => string.Concat(method.GetParameters().Skip(1).Select(p => Abbreviate(p.ParameterType)));
+
+        private static string Abbreviate(Type type)
+        {
+            if (type == typeof(string)) return "s";
+            if (type == typeof(CachedString)) return "C";
+            if (type == typeof(PublicationAddress)) return "A";
+            if (type == typeof(ReadOnlyMemory<byte>)) return "M";
+            if (type == typeof(ReadOnlySequence<byte>)) return "Q";
+            if (type == typeof(IDisposable)) return "+owner";
+            if (type == typeof(bool)) return "b";
+            if (type == typeof(BasicProperties)) return "P";
+            if (type == typeof(CancellationToken)) return "";
+            throw new InvalidOperationException($"No label for {type}; extend Abbreviate.");
+        }
+
+        private static object ArgumentFor(Type type, IDisposable owner)
+        {
+            if (type == typeof(IChannel)) return null;
+            if (type == typeof(string)) return "";
+            if (type == typeof(CachedString)) return new CachedString("q");
+            if (type == typeof(PublicationAddress)) return new PublicationAddress(ExchangeType.Direct, "", "q");
+            if (type == typeof(ReadOnlyMemory<byte>)) return new ReadOnlyMemory<byte>(new byte[8]);
+            if (type == typeof(ReadOnlySequence<byte>)) return new ReadOnlySequence<byte>(new byte[8]);
+            if (type == typeof(IDisposable)) return owner;
+            if (type == typeof(bool)) return false;
+            if (type == typeof(BasicProperties)) return new BasicProperties();
+            if (type == typeof(CancellationToken)) return CancellationToken.None;
+            throw new InvalidOperationException($"No test argument for {type}; extend ArgumentFor.");
         }
 
         private sealed class CountingOwner : IDisposable
