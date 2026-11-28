@@ -232,6 +232,43 @@ namespace Test.Unit
             cf.Endpoint = new AmqpTcpEndpoint("node.example.com", -1, own);
 
             Assert.Same(own, cf.Ssl);
+            Assert.Equal(AmqpTcpEndpoint.UseDefaultPort, cf.Port);
+        }
+
+        [Theory]
+        [InlineData(false, true, 5671)]
+        [InlineData(true, false, 5672)]
+        public void AnEndpointWithoutAPortUnsetsTheFactoryPortSoItFollowsTls_GH2175(bool endpointTls, bool factoryTlsAfter, int expectedPort)
+        {
+            var cf = new ConnectionFactory { Port = 5000 };
+            cf.Endpoint = new AmqpTcpEndpoint("broker.example.com", AmqpTcpEndpoint.UseDefaultPort,
+                new SslOption("broker.example.com", enabled: endpointTls));
+            Assert.Equal(AmqpTcpEndpoint.UseDefaultPort, cf.Port);
+
+            cf.Ssl = new SslOption("broker.example.com", enabled: factoryTlsAfter);
+
+            Assert.Equal(expectedPort, cf.Endpoint.Port);
+        }
+
+        [Fact]
+        public void ReassigningTheFactoryEndpointKeepsAnUnsetPortUnset_GH2175()
+        {
+            var cf = new ConnectionFactory();
+
+            cf.Endpoint = cf.Endpoint;
+
+            Assert.Equal(AmqpTcpEndpoint.UseDefaultPort, cf.Port);
+        }
+
+        [Fact]
+        public void AnEndpointWithAPortSetsIt_GH2175()
+        {
+            var cf = new ConnectionFactory();
+
+            cf.Endpoint = new AmqpTcpEndpoint("broker.example.com", 1234);
+
+            Assert.Equal(1234, cf.Port);
+            Assert.Equal(1234, cf.Endpoint.Port);
         }
 
         [Fact]

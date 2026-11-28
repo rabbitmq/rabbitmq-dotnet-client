@@ -328,15 +328,13 @@ namespace RabbitMQ.Client
             set
             {
                 // An assigned endpoint never turns the factory's TLS off. GHSA-5wrf-cc49-8x6j.
-                if (Ssl is { Enabled: true } && value.Ssl is not { Enabled: true })
+                if (Ssl is not { Enabled: true } || value.Ssl is { Enabled: true })
                 {
-                    Port = value.PortOrMinusOne;
-                }
-                else
-                {
-                    Port = value.Port;
                     Ssl = value.Ssl;
                 }
+
+                // Unset stays unset, so the port follows the factory's TLS setting from then on. #2175.
+                Port = value.PortOrMinusOne;
 
                 HostName = value.HostName;
                 MaxInboundMessageBodySize = value.MaxInboundMessageBodySize;
