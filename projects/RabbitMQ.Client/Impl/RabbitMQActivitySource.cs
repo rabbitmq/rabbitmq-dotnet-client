@@ -29,6 +29,8 @@ namespace RabbitMQ.Client
         internal const string MessagingDestinationAnonymous = "messaging.destination.anonymous";
         internal const string MessagingBodySize = "messaging.message.body.size";
         internal const string MessagingEnvelopeSize = "messaging.message.envelope.size";
+        private const string IncludeMessageSizesProperty = "RabbitMQ.Client.IncludeMessageSizes";
+        private static readonly object s_true = true;
         internal const string NetworkTransport = "network.transport";
         internal const string ProtocolName = "network.protocol.name";
         internal const string ProtocolVersion = "network.protocol.version";
@@ -304,6 +306,11 @@ namespace RabbitMQ.Client
                 PopulateMessagingTags(MessagingOperationTypeSend, MessagingOperationNameBasicPublish, routingKey, destination, 0, basicProperties, bodySize,
                     tracing.IncludeMessageSizes, activity);
                 SetAnonymous(activity, anonymous);
+                if (tracing.IncludeMessageSizes)
+                {
+                    // The frames are written later; they read this so both size attributes follow one decision. #2154.
+                    activity.SetCustomProperty(IncludeMessageSizesProperty, s_true);
+                }
             }
 
             return activity;
@@ -585,22 +592,16 @@ namespace RabbitMQ.Client
          * itself so the cheap HasListeners() test guards the AsyncLocal read on a path
          * that runs for every AMQP method transmitted.
          */
-        internal static void PopulateMessageEnvelopeSizeOnAmbientPublisherActivity(int size,
-            ConnectionTracingOptions? tracing)
+        internal static void PopulateMessageEnvelopeSizeOnAmbientPublisherActivity(int size)
         {
             if (!PublisherHasListeners)
             {
                 return;
             }
 
-            // Opt-In, so resolve the flag here rather than per frame above the guard.
-            if (false == (tracing?.IncludeMessageSizes ?? s_tracingOptions.IncludeMessageSizes))
-            {
-                return;
-            }
-
             Activity? activity = Activity.Current;
-            if (activity != null && activity.IsAllDataRequested && IsPublisherActivity(activity))
+            if (activity != null && activity.IsAllDataRequested && IsPublisherActivity(activity)
+                && activity.GetCustomProperty(IncludeMessageSizesProperty) is true)
             {
                 activity.SetTag(MessagingEnvelopeSize, size);
             }

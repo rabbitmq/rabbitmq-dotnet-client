@@ -30,6 +30,7 @@
 //---------------------------------------------------------------------------
 
 
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text;
 using System.Threading.Tasks;
@@ -86,5 +87,34 @@ namespace Test.SequentialIntegration
             Activity deliver = deliverRecorder.VerifyActivityRecordedOnce();
             Assert.Null(deliver.ParentId);
         }
+
+#pragma warning disable CS0618 // the process-wide options are the only ones a running publish can see change
+        [Fact]
+        public async Task APublishSpanCarriesBothSizeAttributesOrNeither_GH2154()
+        {
+            using var scope = new TracingConfigurationScope();
+            var options = new RabbitMQTracingOptions { IncludeMessageSizes = true, UseRoutingKeyAsOperationName = false };
+            RabbitMQActivitySource.TracingOptions = options;
+
+            var finished = new List<Activity>();
+            using var listener = new ActivityListener
+            {
+                ShouldListenTo = source => source.Name == RabbitMQActivitySource.PublisherSourceName,
+                Sample = (ref ActivityCreationOptions<ActivityContext> _) => ActivitySamplingResult.AllDataAndRecorded,
+                // Flips the setting after the publish span resolved it and before its frames are written.
+                ActivityStarted = _ => options.IncludeMessageSizes = false,
+                ActivityStopped = finished.Add,
+            };
+            ActivitySource.AddActivityListener(listener);
+
+            await using IConnection conn = await CreateConnectionFactory().CreateConnectionAsync();
+            await using IChannel ch = await conn.CreateChannelAsync();
+            await ch.BasicPublishAsync("", GenerateQueueName(), Encoding.UTF8.GetBytes("hi"));
+
+            Activity publish = Assert.Single(finished, a => a.OperationName == "publish");
+            publish.HasTag(RabbitMQActivitySource.MessagingBodySize, 2);
+            publish.HasTag(RabbitMQActivitySource.MessagingEnvelopeSize);
+        }
+#pragma warning restore CS0618
     }
 }
