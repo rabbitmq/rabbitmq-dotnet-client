@@ -30,6 +30,7 @@
 //---------------------------------------------------------------------------
 
 using System;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using RabbitMQ.Client.Events;
@@ -80,7 +81,13 @@ namespace RabbitMQ.Client.ConsumerDispatching
             _reader = workChannel.Reader;
             _writer = workChannel.Writer;
 
-            Func<Task> loopStart = ProcessChannelAsync;
+            // Cleared inside the task: a delivery span must not become a child of the channel creator's span,
+            // and the creator's own flow keeps its activity, which may already have stopped. #2154.
+            Func<Task> loopStart = () =>
+            {
+                Activity.Current = null;
+                return ProcessChannelAsync();
+            };
             if (_concurrency == 1)
             {
                 _worker = Task.Run(loopStart);
