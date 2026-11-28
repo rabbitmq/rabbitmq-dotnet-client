@@ -64,6 +64,9 @@ namespace RabbitMQ.Client
 
         private readonly uint _maxInboundMessageBodySize;
 
+        // See the remarks on ConnectionFactory.Endpoint. #2129.
+        private readonly bool _maxInboundMessageBodySizeIsSet;
+
         /// <summary>
         /// Creates a new instance of the <see cref="AmqpTcpEndpoint"/>.
         /// </summary>
@@ -72,8 +75,15 @@ namespace RabbitMQ.Client
         /// <param name="ssl">Ssl option.</param>
         /// <param name="maxInboundMessageBodySize">Maximum message size from RabbitMQ.</param>
         public AmqpTcpEndpoint(string hostName, int portOrMinusOne, SslOption ssl,
-            uint maxInboundMessageBodySize)
+            uint maxInboundMessageBodySize) :
+            this(hostName, portOrMinusOne, ssl, maxInboundMessageBodySize, maxInboundMessageBodySizeIsSet: true)
         {
+        }
+
+        private AmqpTcpEndpoint(string hostName, int portOrMinusOne, SslOption ssl,
+            uint maxInboundMessageBodySize, bool maxInboundMessageBodySizeIsSet)
+        {
+            _maxInboundMessageBodySizeIsSet = maxInboundMessageBodySizeIsSet;
             HostName = hostName;
             _port = portOrMinusOne;
             Ssl = ssl;
@@ -88,7 +98,8 @@ namespace RabbitMQ.Client
         /// <param name="portOrMinusOne"> Port number. If the port number is -1, the default port number will be used.</param>
         /// <param name="ssl">Ssl option.</param>
         public AmqpTcpEndpoint(string hostName, int portOrMinusOne, SslOption ssl) :
-            this(hostName, portOrMinusOne, ssl, ConnectionFactory.DefaultMaxInboundMessageBodySize)
+            this(hostName, portOrMinusOne, ssl, ConnectionFactory.DefaultMaxInboundMessageBodySize,
+                maxInboundMessageBodySizeIsSet: false)
         {
         }
 
@@ -135,7 +146,7 @@ namespace RabbitMQ.Client
         /// <returns>A copy with the same hostname, port, and TLS settings</returns>
         public object Clone()
         {
-            return new AmqpTcpEndpoint(HostName, _port, Ssl, _maxInboundMessageBodySize);
+            return new AmqpTcpEndpoint(HostName, _port, Ssl, _maxInboundMessageBodySize, _maxInboundMessageBodySizeIsSet);
         }
 
         /// <summary>
@@ -145,7 +156,7 @@ namespace RabbitMQ.Client
         /// <returns>A copy with the provided hostname and port/TLS settings of this endpoint</returns>
         public AmqpTcpEndpoint CloneWithHostname(string hostname)
         {
-            return new AmqpTcpEndpoint(hostname, _port, Ssl, _maxInboundMessageBodySize);
+            return new AmqpTcpEndpoint(hostname, _port, Ssl, _maxInboundMessageBodySize, _maxInboundMessageBodySizeIsSet);
         }
 
         // Keeps an unset port unset, so the default follows the new TLS setting.
@@ -157,6 +168,8 @@ namespace RabbitMQ.Client
         }
 
         internal int PortOrMinusOne => _port;
+
+        internal bool MaxInboundMessageBodySizeIsSet => _maxInboundMessageBodySizeIsSet;
 
         /// <summary>
         /// Retrieve or set the hostname of this <see cref="AmqpTcpEndpoint"/>.

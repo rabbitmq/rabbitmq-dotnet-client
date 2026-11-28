@@ -321,6 +321,10 @@ namespace RabbitMQ.Client
         /// The endpoint this returns shares this factory's <see cref="Ssl"/>. Assigning an endpoint whose
         /// <see cref="AmqpTcpEndpoint.Ssl"/> does not enable TLS keeps this factory's <see cref="Ssl"/> when
         /// that enables TLS. To turn TLS off, assign <see cref="Ssl"/> a new <see cref="SslOption"/>.
+        /// Assigning an endpoint replaces this factory's <see cref="MaxInboundMessageBodySize"/> with the endpoint's
+        /// <see cref="AmqpTcpEndpoint.MaxInboundMessageBodySize"/> when the endpoint was given a limit: by the
+        /// constructor that takes one, or by being read from a factory's <see cref="Endpoint"/>. Otherwise this
+        /// factory's limit is kept, unless it is 0.
         /// </remarks>
         public AmqpTcpEndpoint Endpoint
         {
@@ -339,7 +343,11 @@ namespace RabbitMQ.Client
                 }
 
                 HostName = value.HostName;
-                MaxInboundMessageBodySize = value.MaxInboundMessageBodySize;
+                // A zero limit rejects every non-empty body, so any endpoint's limit replaces it. #2129.
+                if (value.MaxInboundMessageBodySizeIsSet || MaxInboundMessageBodySize == 0)
+                {
+                    MaxInboundMessageBodySize = value.MaxInboundMessageBodySize;
+                }
             }
         }
 
