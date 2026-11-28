@@ -113,9 +113,7 @@ namespace RabbitMQ.Client.Impl
             // We need to be careful about the range of word 0, too: we can
             // only take 31 bits worth of it, since the sign bit needs to
             // fit in there too.
-            if (data.Mid != 0 || // mantissa extends into middle word
-                data.Hi != 0 || // mantissa extends into top word
-                data.Lo < 0) // mantissa extends beyond 31 bits
+            if (!FitsAmqpDecimal(in data))
             {
                 return ThrowWireFormattingException(value);
             }
@@ -123,6 +121,12 @@ namespace RabbitMQ.Client.Impl
             destination = (byte)((data.Flags >> 16) & 0xFF);
             WriteLong(ref destination.GetOffset(1), (data.Flags & 0b1000_0000_0000_0000_0000_0000_0000_0000) | (data.Lo & 0b0111_1111_1111_1111_1111_1111_1111_1111));
             return 5;
+        }
+
+        private static bool FitsAmqpDecimal(in DecimalData data)
+        {
+            // AMQP carries a 31-bit magnitude and a sign bit, so the low word's top bit and the other two words must be clear.
+            return data.Mid == 0 && data.Hi == 0 && (data.Lo & 0x8000_0000) == 0;
         }
 
         public static int WriteFieldValue(ref byte destination, object? value)
@@ -262,7 +266,13 @@ namespace RabbitMQ.Client.Impl
                     return 3;
                 case uint _:
                     return 5;
-                case decimal _:
+                case decimal val:
+                    // Rejected here as well, so it fails before a frame buffer is rented. #2179.
+                    if (!FitsAmqpDecimal(new DecimalData { Value = val }))
+                    {
+                        ThrowWireFormattingException(val);
+                    }
+
                     return 6;
                 case IDictionary val:
                     return 1 + GetTableByteCount(val, depth);
