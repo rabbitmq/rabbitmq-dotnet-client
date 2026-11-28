@@ -671,8 +671,14 @@ namespace RabbitMQ.Client.Impl
                 throw new InvalidOperationException("recordedEntitiesSemaphore must be held");
             }
 
-            foreach (RecordedBinding binding in _recordedBindings.Where(x => _config.TopologyRecoveryFilter?.BindingFilter(x) ?? true))
+            // A snapshot: the exception handler runs with the semaphore released and can change the set. #2147.
+            foreach (RecordedBinding binding in _recordedBindings.Where(x => _config.TopologyRecoveryFilter?.BindingFilter(x) ?? true).ToArray())
             {
+                if (!_recordedBindings.Contains(binding))
+                {
+                    continue;
+                }
+
                 try
                 {
                     IChannel channel = await connection.CreateChannelAsync(cancellationToken: cancellationToken).ConfigureAwait(false);
