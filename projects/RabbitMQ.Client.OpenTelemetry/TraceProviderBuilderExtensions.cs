@@ -143,8 +143,7 @@ namespace OpenTelemetry.Trace
              * A message with no headers at all has nothing to extract. Returning early
              * matters: without it the getter below is called once per propagator field
              * with a null carrier, and the correct result depends entirely on its
-             * catch block swallowing a NullReferenceException. This mirrors the
-             * null check in RabbitMQActivitySource.DefaultContextExtractor.
+             * catch block swallowing a NullReferenceException.
              *
              * Baggage.Current is reset first: it is AsyncLocal-backed and the consumer
              * dispatcher processes deliveries sequentially on one async flow, so a
@@ -158,7 +157,8 @@ namespace OpenTelemetry.Trace
                 return default;
             }
 
-            // Extract the PropagationContext of the upstream parent from the message headers.
+            // Reset before extracting, so a propagator that throws leaves no stale baggage. #2154.
+            Baggage.Current = default;
             var parentContext = Propagators.DefaultTextMapPropagator.Extract(default, props.Headers, OpenTelemetryContextGetter);
             Baggage.Current = parentContext.Baggage;
             return parentContext.ActivityContext;

@@ -35,7 +35,10 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
+using OpenTelemetry;
+using OpenTelemetry.Context.Propagation;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using RabbitMQ.Client.Impl;
@@ -117,6 +120,8 @@ namespace Test.SequentialIntegration
             await ch.BasicPublishAsync("", queueName, Encoding.UTF8.GetBytes("delivered"));
             await receivedTcs.Task.WaitAsync(WaitSpan);
             Assert.True(await receivedTcs.Task);
+            // The deliver span stops after the callback returns; closing waits for the dispatcher.
+            await ch.CloseAsync();
             deliverRecorder.VerifyActivityRecordedOnce();
         }
 
@@ -125,6 +130,8 @@ namespace Test.SequentialIntegration
         [InlineData(true)]
         public async Task AnExtractedParentIsRemote_GH2154(bool connectionPropagator)
         {
+            using var scope = new TracingConfigurationScope();
+            PinDefaultProcessWideOptions();
             using var publishRecorder = new ActivityRecorder(RabbitMQActivitySource.PublisherSourceName, "publish")
             { VerifyParent = false };
             using var deliverRecorder = new ActivityRecorder(RabbitMQActivitySource.SubscriberSourceName, "deliver")
@@ -151,6 +158,7 @@ namespace Test.SequentialIntegration
             await ch.BasicPublishAsync("", queueName, Encoding.UTF8.GetBytes("hi"));
             await receivedTcs.Task.WaitAsync(WaitSpan);
             Assert.True(await receivedTcs.Task);
+            await ch.CloseAsync();
 
             Activity deliver = deliverRecorder.VerifyActivityRecordedOnce();
             Assert.Equal(publishRecorder.VerifyActivityRecordedOnce().SpanId, deliver.ParentSpanId);
@@ -160,8 +168,10 @@ namespace Test.SequentialIntegration
         }
 
         [Fact]
-        public async Task TheProcessWidePropagatorSeesAMessageWithoutTraceHeaders_GH2154()
+        public async Task TheProcessWidePropagatorSeesADeliveryWithoutTraceHeaders_GH2154()
         {
+            using var scope = new TracingConfigurationScope();
+            PinDefaultProcessWideOptions();
             DistributedContextPropagator original = DistributedContextPropagator.Current;
             var counting = new CountingPropagator(original);
             DistributedContextPropagator.Current = counting;
@@ -175,17 +185,122 @@ namespace Test.SequentialIntegration
                 await using IConnection conn = await cf.CreateConnectionAsync();
                 await using IChannel ch = await conn.CreateChannelAsync();
                 await ch.QueueDeclareAsync(queueName, durable: false, exclusive: true, autoDelete: false);
+                var consumer = new AsyncEventingBasicConsumer(ch);
+                var receivedTcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+                consumer.ReceivedAsync += (_, ea) =>
+                {
+                    receivedTcs.TrySetResult(ea.BasicProperties.Headers is null);
+                    return Task.CompletedTask;
+                };
+                await ch.BasicConsumeAsync(queueName, autoAck: true, consumer: consumer);
                 // No publisher listener, so the message has no headers at all.
                 await ch.BasicPublishAsync("", queueName, Encoding.UTF8.GetBytes("hi"));
-                BasicGetResult fetched = await ch.BasicGetAsync(queueName, autoAck: true);
-                Assert.NotNull(fetched);
-                Assert.Null(fetched.BasicProperties.Headers);
+                await receivedTcs.Task.WaitAsync(WaitSpan);
+                Assert.True(await receivedTcs.Task);
 
                 Assert.Equal(1, counting.Extractions);
             }
             finally
             {
                 DistributedContextPropagator.Current = original;
+            }
+        }
+
+        [Fact]
+        public async Task AHeaderlessFetchKeepsTheCallersBaggage_GH2154()
+        {
+            using var scope = new TracingConfigurationScope();
+            PinDefaultProcessWideOptions();
+            DistributedContextPropagator original = DistributedContextPropagator.Current;
+            DistributedContextPropagator.Current = new OpenTelemetryPropagator();
+            try
+            {
+                using var fetchRecorder = new ActivityRecorder(RabbitMQActivitySource.SubscriberSourceName, "fetch")
+                { VerifyParent = false };
+                string queueName = GenerateQueueName();
+                ConnectionFactory cf = CreateConnectionFactory();
+                cf.TracingOptions = new ConnectionTracingOptions { UseRoutingKeyAsOperationName = false };
+                await using IConnection conn = await cf.CreateConnectionAsync();
+                await using IChannel ch = await conn.CreateChannelAsync();
+                await ch.QueueDeclareAsync(queueName, durable: false, exclusive: true, autoDelete: false);
+                await ch.BasicPublishAsync("", queueName, Encoding.UTF8.GetBytes("hi"));
+
+                Baggage.SetBaggage("tenant", "acme");
+                BasicGetResult fetched = await ch.BasicGetAsync(queueName, autoAck: true);
+
+                Assert.NotNull(fetched);
+                Assert.Null(fetched.BasicProperties.Headers);
+                Assert.Equal("acme", Baggage.GetBaggage("tenant"));
+                fetchRecorder.VerifyActivityRecordedOnce();
+            }
+            finally
+            {
+                Baggage.ClearBaggage();
+                DistributedContextPropagator.Current = original;
+            }
+        }
+
+        [Fact]
+        public void AThrowingOpenTelemetryPropagatorLeavesNoBaggage_GH2154()
+        {
+            TextMapPropagator original = Propagators.DefaultTextMapPropagator;
+            Sdk.SetDefaultTextMapPropagator(new ThrowingTextMapPropagator());
+            try
+            {
+                Baggage.SetBaggage("tenant", "alice");
+                var carrier = new Dictionary<string, object>();
+
+                Assert.Throws<InvalidOperationException>(() => new OpenTelemetryPropagator().ExtractTraceIdAndState(carrier,
+                    (object c, string name, out string value, out IEnumerable<string> values) => { value = null; values = null; },
+                    out _, out _));
+
+                Assert.Null(Baggage.GetBaggage("tenant"));
+            }
+            finally
+            {
+                Baggage.ClearBaggage();
+                Sdk.SetDefaultTextMapPropagator(original);
+            }
+        }
+
+        [Fact]
+        public async Task CreatingAChannelKeepsTheCallersStoppedActivity_GH2154()
+        {
+            using var appSource = new ActivitySource("Test.GH2154.Stopped");
+            using var appRecorder = new ActivityRecorder(appSource.Name, "request") { VerifyParent = false };
+            ConnectionFactory cf = CreateConnectionFactory();
+            cf.AutomaticRecoveryEnabled = false;
+            await using IConnection conn = await cf.CreateConnectionAsync();
+
+            var stopped = new SemaphoreSlim(0);
+            Activity request = appSource.StartActivity("request");
+            Assert.NotNull(request);
+            // The forked flow keeps the span as Activity.Current after the outer flow stops it.
+            Task<Activity> forked = Task.Run(async () =>
+            {
+                await stopped.WaitAsync();
+                await using IChannel ch = await conn.CreateChannelAsync();
+                return Activity.Current;
+            });
+            request.Stop();
+            stopped.Release();
+
+            Assert.Same(request, await forked.WaitAsync(WaitSpan));
+        }
+
+#pragma warning disable CS0618 // pins the process-wide extractor that other test classes replace
+        private static void PinDefaultProcessWideOptions() => RabbitMQActivitySource.TracingOptions = new RabbitMQTracingOptions();
+#pragma warning restore CS0618
+
+        private sealed class ThrowingTextMapPropagator : TextMapPropagator
+        {
+            public override ISet<string> Fields { get; } = new HashSet<string> { "traceparent" };
+
+            public override PropagationContext Extract<T>(PropagationContext context, T carrier,
+                Func<T, string, IEnumerable<string>> getter) => throw new InvalidOperationException("propagator bug");
+
+            public override void Inject<T>(PropagationContext context, T carrier, Action<T, string, string> setter)
+            {
             }
         }
 

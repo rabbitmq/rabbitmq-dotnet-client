@@ -110,10 +110,6 @@ namespace RabbitMQ.Client.Impl
 
         public bool IsOpen => CloseReason is null;
 
-        // This connection's copy of the factory's tracing options; read by SessionBase. Channels take the
-        // same copy from CreateChannelOptions. #1981.
-        internal ConnectionTracingOptions? TracingOptions => _config.TracingOptions;
-
         public int LocalPort => _frameHandler.LocalPort;
         public int RemotePort => _frameHandler.RemotePort;
 

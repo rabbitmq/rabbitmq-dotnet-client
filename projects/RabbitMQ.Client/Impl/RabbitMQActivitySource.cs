@@ -357,8 +357,11 @@ namespace RabbitMQ.Client
                 return null;
             }
 
-            // Extract the PropagationContext of the upstream parent from the message headers.
-            ActivityContext linkedContext = ExtractUpstreamContext(tracing, readOnlyBasicProperties);
+            // A fetch runs on the caller's flow, so a header-less one must not let a propagator reset the
+            // caller's state, such as OpenTelemetry baggage. #2154.
+            ActivityContext linkedContext = readOnlyBasicProperties.Headers is null
+                ? default
+                : ExtractUpstreamContext(tracing, readOnlyBasicProperties);
             ActivityContext parentContext = tracing.UsePublisherAsParent ? linkedContext : default;
 
             string destination = BuildDestinationName(MessagingRole.Consumer, exchange, routingKey, queue);
