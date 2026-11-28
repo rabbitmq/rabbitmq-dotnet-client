@@ -358,7 +358,7 @@ namespace RabbitMQ.Client
             }
 
             // Extract the PropagationContext of the upstream parent from the message headers.
-            ActivityContext linkedContext = tracing.ContextExtractor(readOnlyBasicProperties);
+            ActivityContext linkedContext = ExtractUpstreamContext(tracing, readOnlyBasicProperties);
             ActivityContext parentContext = tracing.UsePublisherAsParent ? linkedContext : default;
 
             string destination = BuildDestinationName(MessagingRole.Consumer, exchange, routingKey, queue);
@@ -390,7 +390,7 @@ namespace RabbitMQ.Client
             }
 
             // Extract the PropagationContext of the upstream parent from the message headers.
-            ActivityContext linkedContext = tracing.ContextExtractor(readOnlyBasicProperties);
+            ActivityContext linkedContext = ExtractUpstreamContext(tracing, readOnlyBasicProperties);
             ActivityContext parentContext = tracing.UsePublisherAsParent ? linkedContext : default;
 
             // No queue: a delivery frame never carries the one it came from, so the two-part
@@ -409,6 +409,21 @@ namespace RabbitMQ.Client
             }
 
             return activity;
+        }
+
+        // The extractor is application code; a delivery must reach its consumer whatever it does. #2154.
+        private static ActivityContext ExtractUpstreamContext(ResolvedTracingOptions tracing,
+            IReadOnlyBasicProperties properties)
+        {
+            try
+            {
+                return tracing.ContextExtractor(properties);
+            }
+            catch (Exception ex)
+            {
+                Logging.ESLog.Error("A tracing context extractor threw; the message is traced without its upstream context.", ex);
+                return default;
+            }
         }
 
         private static Activity? StartRabbitMQActivity(this ActivitySource source, string name, ActivityKind kind,
@@ -744,29 +759,9 @@ namespace RabbitMQ.Client
 
         internal static ActivityContext DefaultContextExtractor(IReadOnlyBasicProperties props)
         {
-            if (props.Headers == null)
-            {
-                return default;
-            }
-
-            bool hasHeaders = false;
-            foreach (string header in DistributedContextPropagator.Current.Fields)
-            {
-                if (props.Headers.ContainsKey(header))
-                {
-                    hasHeaders = true;
-                    break;
-                }
-            }
-
-
-            if (!hasHeaders)
-            {
-                return default;
-            }
-
+            // Called even without trace headers, as PropagatorAdapter does: a propagator can reset per-message state. #2154.
             DistributedContextPropagator.Current.ExtractTraceIdAndState(props.Headers, DefaultContextGetter, out string? traceParent, out string? traceState);
-            return ActivityContext.TryParse(traceParent, traceState, out ActivityContext context) ? context : default;
+            return ActivityContext.TryParse(traceParent, traceState, isRemote: true, out ActivityContext context) ? context : default;
         }
 
         private static void DefaultContextSetter(object? carrier, string name, string value)

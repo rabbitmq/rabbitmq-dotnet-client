@@ -30,8 +30,10 @@
 //---------------------------------------------------------------------------
 
 
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using RabbitMQ.Client;
@@ -86,6 +88,145 @@ namespace Test.SequentialIntegration
 
             Activity deliver = deliverRecorder.VerifyActivityRecordedOnce();
             Assert.Null(deliver.ParentId);
+        }
+
+        [Fact]
+        public async Task AThrowingPropagatorDoesNotStopADeliveryOrAFetch_GH2154()
+        {
+            using var deliverRecorder = new ActivityRecorder(RabbitMQActivitySource.SubscriberSourceName, "deliver")
+            { VerifyParent = false };
+            string queueName = GenerateQueueName();
+            ConnectionFactory cf = CreateConnectionFactory();
+            cf.TracingOptions = new ConnectionTracingOptions { UseRoutingKeyAsOperationName = false, Propagator = new ThrowingPropagator() };
+            await using IConnection conn = await cf.CreateConnectionAsync();
+            await using IChannel ch = await conn.CreateChannelAsync();
+            await ch.QueueDeclareAsync(queueName, durable: false, exclusive: true, autoDelete: false);
+
+            await ch.BasicPublishAsync("", queueName, Encoding.UTF8.GetBytes("fetched"));
+            BasicGetResult fetched = await ch.BasicGetAsync(queueName, autoAck: true);
+            Assert.NotNull(fetched);
+
+            var consumer = new AsyncEventingBasicConsumer(ch);
+            var receivedTcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+            consumer.ReceivedAsync += (_, _) =>
+            {
+                receivedTcs.TrySetResult(true);
+                return Task.CompletedTask;
+            };
+            await ch.BasicConsumeAsync(queueName, autoAck: true, consumer: consumer);
+            await ch.BasicPublishAsync("", queueName, Encoding.UTF8.GetBytes("delivered"));
+            await receivedTcs.Task.WaitAsync(WaitSpan);
+            Assert.True(await receivedTcs.Task);
+            deliverRecorder.VerifyActivityRecordedOnce();
+        }
+
+        [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public async Task AnExtractedParentIsRemote_GH2154(bool connectionPropagator)
+        {
+            using var publishRecorder = new ActivityRecorder(RabbitMQActivitySource.PublisherSourceName, "publish")
+            { VerifyParent = false };
+            using var deliverRecorder = new ActivityRecorder(RabbitMQActivitySource.SubscriberSourceName, "deliver")
+            { VerifyParent = false };
+            string queueName = GenerateQueueName();
+            ConnectionFactory cf = CreateConnectionFactory();
+            cf.TracingOptions = new ConnectionTracingOptions
+            {
+                UseRoutingKeyAsOperationName = false,
+                UsePublisherAsParent = true,
+                Propagator = connectionPropagator ? DistributedContextPropagator.CreateDefaultPropagator() : null,
+            };
+            await using IConnection conn = await cf.CreateConnectionAsync();
+            await using IChannel ch = await conn.CreateChannelAsync();
+            await ch.QueueDeclareAsync(queueName, durable: false, exclusive: true, autoDelete: false);
+            var consumer = new AsyncEventingBasicConsumer(ch);
+            var receivedTcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+            consumer.ReceivedAsync += (_, _) =>
+            {
+                receivedTcs.TrySetResult(true);
+                return Task.CompletedTask;
+            };
+            await ch.BasicConsumeAsync(queueName, autoAck: true, consumer: consumer);
+            await ch.BasicPublishAsync("", queueName, Encoding.UTF8.GetBytes("hi"));
+            await receivedTcs.Task.WaitAsync(WaitSpan);
+            Assert.True(await receivedTcs.Task);
+
+            Activity deliver = deliverRecorder.VerifyActivityRecordedOnce();
+            Assert.Equal(publishRecorder.VerifyActivityRecordedOnce().SpanId, deliver.ParentSpanId);
+            // A context read from a message came from another process; ParentBased samplers depend on this.
+            Assert.True(deliver.HasRemoteParent);
+            Assert.True(deliver.Links.Single().Context.IsRemote);
+        }
+
+        [Fact]
+        public async Task TheProcessWidePropagatorSeesAMessageWithoutTraceHeaders_GH2154()
+        {
+            DistributedContextPropagator original = DistributedContextPropagator.Current;
+            var counting = new CountingPropagator(original);
+            DistributedContextPropagator.Current = counting;
+            try
+            {
+                using var deliverRecorder = new ActivityRecorder(RabbitMQActivitySource.SubscriberSourceName, "deliver")
+                { VerifyParent = false };
+                string queueName = GenerateQueueName();
+                ConnectionFactory cf = CreateConnectionFactory();
+                cf.TracingOptions = new ConnectionTracingOptions { UseRoutingKeyAsOperationName = false };
+                await using IConnection conn = await cf.CreateConnectionAsync();
+                await using IChannel ch = await conn.CreateChannelAsync();
+                await ch.QueueDeclareAsync(queueName, durable: false, exclusive: true, autoDelete: false);
+                // No publisher listener, so the message has no headers at all.
+                await ch.BasicPublishAsync("", queueName, Encoding.UTF8.GetBytes("hi"));
+                BasicGetResult fetched = await ch.BasicGetAsync(queueName, autoAck: true);
+                Assert.NotNull(fetched);
+                Assert.Null(fetched.BasicProperties.Headers);
+
+                Assert.Equal(1, counting.Extractions);
+            }
+            finally
+            {
+                DistributedContextPropagator.Current = original;
+            }
+        }
+
+        private sealed class ThrowingPropagator : DistributedContextPropagator
+        {
+            public override IReadOnlyCollection<string> Fields { get; } = new[] { "traceparent" };
+
+            public override void Inject(Activity activity, object carrier, PropagatorSetterCallback setter)
+            {
+            }
+
+            public override void ExtractTraceIdAndState(object carrier, PropagatorGetterCallback getter,
+                out string traceId, out string traceState)
+                => throw new InvalidOperationException("propagator bug");
+
+            public override IEnumerable<KeyValuePair<string, string>> ExtractBaggage(object carrier, PropagatorGetterCallback getter)
+                => throw new InvalidOperationException("propagator bug");
+        }
+
+        private sealed class CountingPropagator : DistributedContextPropagator
+        {
+            private readonly DistributedContextPropagator _inner;
+
+            public CountingPropagator(DistributedContextPropagator inner) => _inner = inner;
+
+            public int Extractions { get; private set; }
+
+            public override IReadOnlyCollection<string> Fields => _inner.Fields;
+
+            public override void Inject(Activity activity, object carrier, PropagatorSetterCallback setter)
+                => _inner.Inject(activity, carrier, setter);
+
+            public override void ExtractTraceIdAndState(object carrier, PropagatorGetterCallback getter,
+                out string traceId, out string traceState)
+            {
+                Extractions++;
+                _inner.ExtractTraceIdAndState(carrier, getter, out traceId, out traceState);
+            }
+
+            public override IEnumerable<KeyValuePair<string, string>> ExtractBaggage(object carrier, PropagatorGetterCallback getter)
+                => _inner.ExtractBaggage(carrier, getter);
         }
 
 #pragma warning disable CS0618 // the process-wide options are the only ones a running publish can see change

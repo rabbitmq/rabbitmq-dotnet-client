@@ -87,7 +87,7 @@ namespace RabbitMQ.Client
                 }
             }, out string? traceParent, out string? traceState);
 
-            return ActivityContext.TryParse(traceParent, traceState, out ActivityContext context)
+            return ActivityContext.TryParse(traceParent, traceState, isRemote: true, out ActivityContext context)
                 ? context
                 : default;
         }
