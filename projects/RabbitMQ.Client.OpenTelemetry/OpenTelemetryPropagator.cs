@@ -94,6 +94,8 @@ namespace RabbitMQ.Client
                 return;
             }
 
+            // Reset before extracting, so a propagator that throws leaves no stale baggage. #2154.
+            Baggage.Current = default;
             PropagationContext parentContext = Propagators.DefaultTextMapPropagator.Extract(default, carrier,
                 (c, key) =>
                 {

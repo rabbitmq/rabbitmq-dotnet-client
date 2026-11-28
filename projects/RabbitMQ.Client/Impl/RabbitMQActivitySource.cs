@@ -29,6 +29,8 @@ namespace RabbitMQ.Client
         internal const string MessagingDestinationAnonymous = "messaging.destination.anonymous";
         internal const string MessagingBodySize = "messaging.message.body.size";
         internal const string MessagingEnvelopeSize = "messaging.message.envelope.size";
+        private const string IncludeMessageSizesProperty = "RabbitMQ.Client.IncludeMessageSizes";
+        private static readonly object s_true = true;
         internal const string NetworkTransport = "network.transport";
         internal const string ProtocolName = "network.protocol.name";
         internal const string ProtocolVersion = "network.protocol.version";
@@ -304,6 +306,11 @@ namespace RabbitMQ.Client
                 PopulateMessagingTags(MessagingOperationTypeSend, MessagingOperationNameBasicPublish, routingKey, destination, 0, basicProperties, bodySize,
                     tracing.IncludeMessageSizes, activity);
                 SetAnonymous(activity, anonymous);
+                if (tracing.IncludeMessageSizes)
+                {
+                    // The frames are written later; they read this so both size attributes follow one decision. #2154.
+                    activity.SetCustomProperty(IncludeMessageSizesProperty, s_true);
+                }
             }
 
             return activity;
@@ -350,8 +357,11 @@ namespace RabbitMQ.Client
                 return null;
             }
 
-            // Extract the PropagationContext of the upstream parent from the message headers.
-            ActivityContext linkedContext = tracing.ContextExtractor(readOnlyBasicProperties);
+            // A fetch runs on the caller's flow, so a header-less one must not let a propagator reset the
+            // caller's state, such as OpenTelemetry baggage. #2154.
+            ActivityContext linkedContext = readOnlyBasicProperties.Headers is null
+                ? default
+                : ExtractUpstreamContext(tracing, readOnlyBasicProperties);
             ActivityContext parentContext = tracing.UsePublisherAsParent ? linkedContext : default;
 
             string destination = BuildDestinationName(MessagingRole.Consumer, exchange, routingKey, queue);
@@ -383,7 +393,7 @@ namespace RabbitMQ.Client
             }
 
             // Extract the PropagationContext of the upstream parent from the message headers.
-            ActivityContext linkedContext = tracing.ContextExtractor(readOnlyBasicProperties);
+            ActivityContext linkedContext = ExtractUpstreamContext(tracing, readOnlyBasicProperties);
             ActivityContext parentContext = tracing.UsePublisherAsParent ? linkedContext : default;
 
             // No queue: a delivery frame never carries the one it came from, so the two-part
@@ -402,6 +412,21 @@ namespace RabbitMQ.Client
             }
 
             return activity;
+        }
+
+        // The extractor is application code; a delivery must reach its consumer whatever it does. #2154.
+        private static ActivityContext ExtractUpstreamContext(ResolvedTracingOptions tracing,
+            IReadOnlyBasicProperties properties)
+        {
+            try
+            {
+                return tracing.ContextExtractor(properties);
+            }
+            catch (Exception ex)
+            {
+                Logging.ESLog.Error("A tracing context extractor threw; the message is traced without its upstream context.", ex);
+                return default;
+            }
         }
 
         private static Activity? StartRabbitMQActivity(this ActivitySource source, string name, ActivityKind kind,
@@ -585,22 +610,16 @@ namespace RabbitMQ.Client
          * itself so the cheap HasListeners() test guards the AsyncLocal read on a path
          * that runs for every AMQP method transmitted.
          */
-        internal static void PopulateMessageEnvelopeSizeOnAmbientPublisherActivity(int size,
-            ConnectionTracingOptions? tracing)
+        internal static void PopulateMessageEnvelopeSizeOnAmbientPublisherActivity(int size)
         {
             if (!PublisherHasListeners)
             {
                 return;
             }
 
-            // Opt-In, so resolve the flag here rather than per frame above the guard.
-            if (false == (tracing?.IncludeMessageSizes ?? s_tracingOptions.IncludeMessageSizes))
-            {
-                return;
-            }
-
             Activity? activity = Activity.Current;
-            if (activity != null && activity.IsAllDataRequested && IsPublisherActivity(activity))
+            if (activity != null && activity.IsAllDataRequested && IsPublisherActivity(activity)
+                && activity.GetCustomProperty(IncludeMessageSizesProperty) is true)
             {
                 activity.SetTag(MessagingEnvelopeSize, size);
             }
@@ -743,29 +762,9 @@ namespace RabbitMQ.Client
 
         internal static ActivityContext DefaultContextExtractor(IReadOnlyBasicProperties props)
         {
-            if (props.Headers == null)
-            {
-                return default;
-            }
-
-            bool hasHeaders = false;
-            foreach (string header in DistributedContextPropagator.Current.Fields)
-            {
-                if (props.Headers.ContainsKey(header))
-                {
-                    hasHeaders = true;
-                    break;
-                }
-            }
-
-
-            if (!hasHeaders)
-            {
-                return default;
-            }
-
+            // Called even without trace headers, as PropagatorAdapter does: a propagator can reset per-message state. #2154.
             DistributedContextPropagator.Current.ExtractTraceIdAndState(props.Headers, DefaultContextGetter, out string? traceParent, out string? traceState);
-            return ActivityContext.TryParse(traceParent, traceState, out ActivityContext context) ? context : default;
+            return ActivityContext.TryParse(traceParent, traceState, isRemote: true, out ActivityContext context) ? context : default;
         }
 
         private static void DefaultContextSetter(object? carrier, string name, string value)
